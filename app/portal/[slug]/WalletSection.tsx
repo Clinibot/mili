@@ -37,7 +37,21 @@ export default function WalletSection({ clientId }: { clientId: string }) {
             }
             setLoading(false);
         }
+
         fetchWallet();
+
+        // Check for payment success
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('payment') === 'success') {
+            toast.success('¡Recarga exitosa! Tu saldo se ha actualizado.');
+            // Limpiar URL
+            window.history.replaceState({}, '', window.location.pathname);
+            // Refrescar balance
+            fetchWallet();
+        } else if (params.get('payment') === 'cancel') {
+            toast.info('Recarga cancelada');
+            window.history.replaceState({}, '', window.location.pathname);
+        }
     }, [clientId]);
 
     const handleRecharge = async () => {
@@ -46,7 +60,31 @@ export default function WalletSection({ clientId }: { clientId: string }) {
             toast.error('El importe mínimo de recarga es 10€');
             return;
         }
-        toast.info('Redirigiendo a Stripe...');
+
+        try {
+            toast.info('Redirigiendo a Stripe...');
+
+            const response = await fetch('/api/stripe/create-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount,
+                    clientId
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                // Redirigir a Stripe Checkout
+                window.location.href = data.url;
+            } else {
+                toast.error(data.error || 'Error al procesar la recarga');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Error al procesar la recarga');
+        }
     };
 
     const handleSubscription = async () => {
@@ -142,7 +180,7 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                     onClick={handleSubscription}
                                     className="w-full md:w-auto px-8 py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95"
                                 >
-                                    ACTIVAR POR 95€/MES
+                                    ACTIVAR POR 55€/MES
                                 </button>
                             ) : (
                                 <button className="w-full md:w-auto px-8 py-5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl font-black text-sm cursor-default">
