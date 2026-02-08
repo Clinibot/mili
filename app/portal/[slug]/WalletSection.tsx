@@ -10,13 +10,15 @@ interface WalletData {
     balance: number;
     subscriptionTier: string;
     subscriptionAmount: number;
+    lastBillingDate: string | null;
 }
 
 export default function WalletSection({ clientId }: { clientId: string }) {
     const [wallet, setWallet] = useState<WalletData>({
         balance: 0,
         subscriptionTier: 'none',
-        subscriptionAmount: 0
+        subscriptionAmount: 0,
+        lastBillingDate: null
     });
     const [loading, setLoading] = useState(true);
     const [rechargeAmount, setRechargeAmount] = useState('100');
@@ -32,7 +34,7 @@ export default function WalletSection({ clientId }: { clientId: string }) {
         async function fetchWallet() {
             const { data } = await supabase
                 .from('clients')
-                .select('balance, subscription_tier, subscription_amount')
+                .select('balance, subscription_tier, subscription_amount, last_maintenance_billing')
                 .eq('id', clientId)
                 .single();
 
@@ -40,7 +42,8 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                 setWallet({
                     balance: data.balance || 0,
                     subscriptionTier: data.subscription_tier || 'none',
-                    subscriptionAmount: data.subscription_amount || 0
+                    subscriptionAmount: data.subscription_amount || 0,
+                    lastBillingDate: data.last_maintenance_billing || null
                 });
             }
             setLoading(false);
@@ -137,6 +140,10 @@ export default function WalletSection({ clientId }: { clientId: string }) {
         );
     }
 
+    const nextBillingDate = wallet.lastBillingDate
+        ? new Date(new Date(wallet.lastBillingDate).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+        : null;
+
     return (
         <div className="space-y-8">
             {/* Balance Display */}
@@ -151,10 +158,15 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                         </div>
                         <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 w-full md:w-auto min-w-[200px]">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Estado Cuenta</p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mb-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span className="text-sm font-bold text-slate-700">ACTIVA</span>
+                                <span className="text-sm font-bold text-slate-700 uppercase">{wallet.subscriptionTier !== 'none' ? 'Suscripción Activa' : 'ACTIVA'}</span>
                             </div>
+                            {nextBillingDate && wallet.subscriptionTier !== 'none' && (
+                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight">
+                                    Próximo cobro: {nextBillingDate}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </CardContent>
