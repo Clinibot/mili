@@ -318,59 +318,9 @@ export default function ClientDetail() {
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Technical Info - MOVED DOWN */}
-                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <Key size={18} className="text-purple-500" />
-                                    Configuración Técnica
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <FormInput label="Workspace Name" value={client.workspace_name} onChange={v => setClient({ ...client, workspace_name: v })} />
-                                <FormInput label="Agent ID" value={client.agent_id} onChange={v => setClient({ ...client, agent_id: v })} fontMono />
-                                <FormInput label="Retell API Key" value={client.api_key_retail} onChange={v => setClient({ ...client, api_key_retail: v })} type="password" fontMono />
-
-                                <div className="space-y-2 pt-4 border-t border-slate-100 mt-2">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Share2 size={14} className="text-blue-500" />
-                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Agent Level Webhook</label>
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 leading-relaxed mb-3">
-                                        Copia esta URL en la sección <span className="font-bold text-slate-700">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
-                                    </p>
-
-                                    {client.webhook_token ? (
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 pr-1">
-                                                <code className="flex-1 px-2 text-[10px] font-mono text-slate-600 break-all leading-relaxed">
-                                                    {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : 'URL se generará al guardar'}
-                                                </code>
-                                                <button
-                                                    onClick={() => {
-                                                        const url = `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`;
-                                                        navigator.clipboard.writeText(url);
-                                                        toast.success('Webhook URL copiada');
-                                                    }}
-                                                    className="p-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg text-slate-400 transition-all shadow-sm"
-                                                    title="Copiar URL"
-                                                >
-                                                    <ExternalLink size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="text-[10px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium italic">
-                                            Pulsa "Guardar Cambios" para generar la URL del Webhook automáticamente.
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
 
-                    {/* Right Column: AI Agent Config */}
+                    {/* Right Column: AI Agent Config + Technical Config */}
                     <div className="space-y-6 lg:col-span-2">
                         <Card className="border-t-4 border-t-pink-500 bg-white border-slate-100 shadow-sm rounded-2xl">
                             <CardHeader className="cursor-pointer" onClick={() => setIsAgentConfigExpanded(!isAgentConfigExpanded)}>
@@ -527,6 +477,57 @@ export default function ClientDetail() {
                                 </CardContent>
                             )}
                         </Card>
+
+                        {/* Technical Config - Now with Agent Config */}
+                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-700">
+                                    <Key size={18} className="text-purple-500" />
+                                    Configuración Técnica
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <FormInput label="Workspace Name" value={client.workspace_name} onChange={v => setClient({ ...client, workspace_name: v })} />
+                                <FormInput label="Agent ID" value={client.agent_id} onChange={v => setClient({ ...client, agent_id: v })} fontMono />
+                                <FormInput label="Retell API Key" value={client.api_key_retail} onChange={v => setClient({ ...client, api_key_retail: v })} type="password" fontMono />
+
+                                <div className="space-y-2 pt-4 border-t border-slate-100 mt-2">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Share2 size={14} className="text-blue-500" />
+                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Agent Level Webhook</label>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 leading-relaxed mb-3">
+                                        Copia esta URL en la sección <span className="font-bold text-slate-700">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
+                                    </p>
+
+                                    {client.webhook_token ? (
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 pr-1">
+                                                <code className="flex-1 px-2 text-[10px] font-mono text-slate-600 break-all leading-relaxed">
+                                                    {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : 'URL se generará al guardar'}
+                                                </code>
+                                                <button
+                                                    onClick={() => {
+                                                        const url = `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast.success('Webhook URL copiada');
+                                                    }}
+                                                    className="p-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg text-slate-400 transition-all shadow-sm"
+                                                    title="Copiar URL"
+                                                >
+                                                    <ExternalLink size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-[10px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium italic">
+                                            Pulsa "Guardar Cambios" para generar la URL del Webhook automáticamente.
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
 
                         {/* Stats / Invoices Placeholder */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
