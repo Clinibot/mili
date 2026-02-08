@@ -49,7 +49,7 @@ export default function ClientDetail() {
         notice_config: { email: '', whatsapp: '' }
     });
 
-    const [isAgentConfigExpanded, setIsAgentConfigExpanded] = useState(false);
+    const [isAgentConfigExpanded, setIsAgentConfigExpanded] = useState(true);
 
     useEffect(() => {
         async function fetchData() {
