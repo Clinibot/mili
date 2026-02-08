@@ -33,6 +33,7 @@ export default function ClientPortal() {
         comparisonStart: undefined as Date | undefined,
         comparisonEnd: undefined as Date | undefined,
     });
+    const [showWallet, setShowWallet] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -80,11 +81,23 @@ export default function ClientPortal() {
                         <p className="text-sm font-bold text-slate-800">{client.name}</p>
                         <p className="text-xs text-slate-500">{client.contact_name}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-medium">
-                        {client.contact_name?.charAt(0) || 'C'}
-                    </div>
+                    <button
+                        onClick={() => setShowWallet(!showWallet)}
+                        className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors"
+                    >
+                        Monedero
+                    </button>
                 </div>
             </header>
+
+            {/* Wallet Popover/Overlay */}
+            {showWallet && (
+                <div className="fixed inset-0 z-[60] flex items-start justify-end p-6 bg-slate-900/10 backdrop-blur-sm" onClick={() => setShowWallet(false)}>
+                    <div className="w-full max-w-md mt-16 animate-in slide-in-from-top-4 duration-200" onClick={e => e.stopPropagation()}>
+                        <WalletSection clientId={id} />
+                    </div>
+                </div>
+            )}
 
             <main className="max-w-7xl mx-auto p-6 lg:p-12 space-y-8">
 
@@ -126,9 +139,6 @@ export default function ClientPortal() {
                     comparisonStart={dateRange.comparisonStart}
                     comparisonEnd={dateRange.comparisonEnd}
                 />
-
-                {/* Wallet Section */}
-                <WalletSection clientId={id} />
 
                 {/* Calls List - Full Width */}
                 <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">

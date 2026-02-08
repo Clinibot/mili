@@ -153,10 +153,7 @@ function KpiCard({ title, value, change, isPositive, color }: any) {
         <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white hover:shadow-md transition-shadow duration-300">
             <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-current/20 text-white font-bold text-xl", color)}>
-                        {title.charAt(0)}
-                    </div>
-                    <div className={cn("text-xs font-bold px-2 py-1 rounded-full",
+                    <div className={cn("text-xs font-bold px-3 py-1 rounded-full",
                         isPositive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
                     )}>
                         {change}
