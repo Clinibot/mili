@@ -28,8 +28,8 @@ export default function LoginPage() {
             if (error) throw error;
 
             toast.success('Sesión iniciada correctamente');
-            router.push('/');
-            router.refresh(); // Ensure layout updates state
+            // Use window.location instead of router.push to ensure cookies are properly set
+            window.location.href = '/';
         } catch (err: any) {
             console.error('Login error:', err);
             setError(err.message || 'Error al iniciar sesión');
