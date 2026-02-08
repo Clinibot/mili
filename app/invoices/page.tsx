@@ -85,7 +85,8 @@ export default function InvoicesPage() {
     }
 
     async function handleAddInvoice(type: 'expense' | 'sale') {
-        if (!newInvoice.amount || Number(newInvoice.amount) <= 0) {
+        const amountValue = Number(newInvoice.amount);
+        if (!newInvoice.amount || amountValue <= 0) {
             toast.error('Introduce una cantidad válida');
             return;
         }
@@ -96,37 +97,52 @@ export default function InvoicesPage() {
 
             // Upload file if exists
             if (newInvoice.file) {
-                const fileName = `${Date.now()}_${newInvoice.file.name}`;
-                const { data, error: uploadError } = await supabase.storage
+                console.log('Uploading file:', newInvoice.file.name, 'to bucket: documentation');
+                const fileName = `${Date.now()}_${newInvoice.file.name.replace(/\s+/g, '_')}`;
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('documentation')
                     .upload(fileName, newInvoice.file);
 
-                if (uploadError) throw uploadError;
+                if (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    throw uploadError;
+                }
 
-                const { data: { publicUrl } } = supabase.storage
+                console.log('Upload success:', uploadData);
+
+                const { data } = supabase.storage
                     .from('documentation')
                     .getPublicUrl(fileName);
 
-                documentUrl = publicUrl;
+                documentUrl = data?.publicUrl || null;
+                console.log('Generated Public URL:', documentUrl);
             }
 
             // Insert invoice
-            const { error } = await supabase
+            const insertData = {
+                type,
+                amount: amountValue,
+                status: newInvoice.status,
+                description: newInvoice.description || null,
+                document_url: documentUrl,
+                invoice_date: new Date().toISOString()
+            };
+
+            console.log('Inserting invoice data:', insertData);
+
+            const { data: savedData, error } = await supabase
                 .from('invoices')
-                .insert({
-                    type,
-                    amount: Number(newInvoice.amount),
-                    status: newInvoice.status,
-                    description: newInvoice.description || null,
-                    document_url: documentUrl,
-                    invoice_date: new Date().toISOString()
-                });
+                .insert(insertData)
+                .select()
+                .single();
 
             if (error) {
-                console.error('Supabase error adding invoice:', error);
+                console.error('Supabase insert error:', error);
                 throw error;
             }
 
+            console.log('Invoice saved successfully:', savedData);
             toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} añadido correctamente`);
 
             // Reset form
@@ -141,7 +157,7 @@ export default function InvoicesPage() {
             // Refresh list
             fetchInvoices();
         } catch (err: any) {
-            console.error('Error adding invoice:', err);
+            console.error('Error detail adding invoice:', err);
             toast.error(`Error al guardar: ${err.message || 'Error desconocido'}`);
         } finally {
             setUploading(false);
