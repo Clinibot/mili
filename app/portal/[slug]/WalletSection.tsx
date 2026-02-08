@@ -88,11 +88,35 @@ export default function WalletSection({ clientId }: { clientId: string }) {
     };
 
     const handleSubscription = async () => {
-        if (wallet.subscriptionTier !== 'none') {
+        if (wallet.subscriptionTier !== 'none' && wallet.subscriptionTier !== null) {
             toast.info('Ya tienes una suscripción activa');
             return;
         }
-        toast.info('Configurando suscripción...');
+
+        try {
+            toast.info('Redirigiendo a suscripciones...');
+
+            const response = await fetch('/api/stripe/create-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: 55, // Precio fijo de la suscripci贸n solicitado en UI
+                    clientId,
+                    type: 'subscription'
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error(data.error || 'Error al configurar la suscripción');
+            }
+        } catch (error) {
+            console.error('Error subscription:', error);
+            toast.error('Error al conectar con el servidor');
+        }
     };
 
     if (loading) {

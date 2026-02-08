@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Manejar evento de pago exitoso
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
-        const { clientId, amount } = session.metadata || {};
+        const { clientId, amount, type } = session.metadata || {};
 
         if (!clientId || !amount) {
             console.error('Missing metadata in session');
@@ -45,52 +45,85 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-            // 1. Obtener balance actual
-            const { data: client, error: fetchError } = await supabase
-                .from('clients')
-                .select('balance')
-                .eq('id', clientId)
-                .single();
-
-            if (fetchError) {
-                console.error('Error fetching client:', fetchError);
-                throw fetchError;
-            }
-
-            const currentBalance = client?.balance || 0;
             const rechargeAmount = parseFloat(amount);
-            const newBalance = currentBalance + rechargeAmount;
+            const isSubscription = type === 'subscription';
 
-            // 2. Actualizar balance
-            const { error: updateError } = await supabase
-                .from('clients')
-                .update({ balance: newBalance })
-                .eq('id', clientId);
+            if (isSubscription) {
+                // 1. Actualizar estado de suscripción del cliente
+                const { error: updateError } = await supabase
+                    .from('clients')
+                    .update({
+                        subscription_tier: 'monthly',
+                        subscription_amount: rechargeAmount,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', clientId);
 
-            if (updateError) {
-                console.error('Error updating balance:', updateError);
-                throw updateError;
+                if (updateError) {
+                    console.error('Error updating subscription:', updateError);
+                    throw updateError;
+                }
+
+                // 2. Registrar transacción de suscripción
+                await supabase
+                    .from('transactions')
+                    .insert({
+                        client_id: clientId,
+                        amount: rechargeAmount,
+                        type: 'subscription',
+                        status: 'completed',
+                        stripe_session_id: session.id,
+                        description: `Alta de suscripción mensual: €${rechargeAmount}`,
+                        created_at: new Date().toISOString()
+                    });
+
+                console.log(`✅ Subscription activated for client ${clientId}: €${rechargeAmount}/mes`);
+            } else {
+                // 1. Obtener balance actual
+                const { data: client, error: fetchError } = await supabase
+                    .from('clients')
+                    .select('balance')
+                    .eq('id', clientId)
+                    .single();
+
+                if (fetchError) {
+                    console.error('Error fetching client:', fetchError);
+                    throw fetchError;
+                }
+
+                const currentBalance = client?.balance || 0;
+                const newBalance = currentBalance + rechargeAmount;
+
+                // 2. Actualizar balance
+                const { error: updateError } = await supabase
+                    .from('clients')
+                    .update({ balance: newBalance })
+                    .eq('id', clientId);
+
+                if (updateError) {
+                    console.error('Error updating balance:', updateError);
+                    throw updateError;
+                }
+
+                // 3. Registrar transacción de recarga
+                const { error: transactionError } = await supabase
+                    .from('transactions')
+                    .insert({
+                        client_id: clientId,
+                        amount: rechargeAmount,
+                        type: 'recharge',
+                        status: 'completed',
+                        stripe_session_id: session.id,
+                        description: `Recarga vía Stripe: €${rechargeAmount}`,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (transactionError) {
+                    console.error('Error creating transaction:', transactionError);
+                }
+
+                console.log(`✅ Balance updated for client ${clientId}: €${currentBalance} → €${newBalance}`);
             }
-
-            // 3. Registrar transacción
-            const { error: transactionError } = await supabase
-                .from('transactions')
-                .insert({
-                    client_id: clientId,
-                    amount: rechargeAmount,
-                    type: 'recharge',
-                    status: 'completed',
-                    stripe_session_id: session.id,
-                    description: `Recarga vía Stripe: €${rechargeAmount}`,
-                    created_at: new Date().toISOString()
-                });
-
-            if (transactionError) {
-                console.error('Error creating transaction:', transactionError);
-                // No lanzar error aquí, el balance ya se actualizó
-            }
-
-            console.log(`✅ Balance updated for client ${clientId}: €${currentBalance} → €${newBalance}`);
         } catch (error: any) {
             console.error('❌ Error processing webhook:', error);
             return NextResponse.json({ error: 'Database error' }, { status: 500 });

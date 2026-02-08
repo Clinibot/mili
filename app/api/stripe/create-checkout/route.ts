@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
             throw new Error('STRIPE_SECRET_KEY no está configurada');
         }
 
-        const { amount, clientId } = await request.json();
+        const { amount, clientId, type = 'recharge' } = await request.json();
         const baseUrl = process.env.NEXT_PUBLIC_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+        const isSubscription = type === 'subscription';
 
         if (!amount || amount < 10) {
             return NextResponse.json(
@@ -28,21 +29,28 @@ export async function POST(request: NextRequest) {
                     price_data: {
                         currency: 'eur',
                         product_data: {
-                            name: 'Recarga de Saldo',
-                            description: `Recarga de €${amount} para tu agente de IA`
+                            name: isSubscription ? 'Mantenimiento Mensual' : 'Recarga de Saldo',
+                            description: isSubscription
+                                ? 'Suscripción mensual de mantenimiento para agente de IA'
+                                : `Recarga de €${amount} para tu agente de IA`
                         },
-                        unit_amount: Math.round(amount * 100) // Stripe usa centavos
+                        unit_amount: Math.round(amount * 100), // Stripe usa centavos
+                        ...(isSubscription && {
+                            recurring: {
+                                interval: 'month'
+                            }
+                        })
                     },
                     quantity: 1
                 }
             ],
-            mode: 'payment',
+            mode: isSubscription ? 'subscription' : 'payment',
             success_url: `${baseUrl}/portal/${clientId}?payment=success`,
             cancel_url: `${baseUrl}/portal/${clientId}?payment=cancel`,
             metadata: {
                 clientId,
                 amount: amount.toString(),
-                type: 'recharge'
+                type: type
             }
         });
 
