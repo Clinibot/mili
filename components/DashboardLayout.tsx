@@ -57,12 +57,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const handleLogout = async () => {
         try {
-            await supabase.auth.signOut();
-            // Force clear local storage just in case
-            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0] + '-auth-token');
+            // Call server-side logout to clear cookies
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
         } catch (error) {
             console.error('Error logging out:', error);
         } finally {
+            // Force redirect to login page
             window.location.href = '/login';
         }
     };
