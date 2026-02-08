@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
     Save, ArrowLeft, Phone, Mail, User, CreditCard,
     Bot, Calendar, Share2, Bell, ExternalLink, Key
@@ -16,9 +16,10 @@ interface ClientDetailProps {
     }
 }
 
-export default function ClientDetail({ params }: ClientDetailProps) {
+export default function ClientDetail() {
     const router = useRouter();
-    const { id } = params;
+    const params = useParams();
+    const id = params?.id as string;
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
