@@ -31,7 +31,8 @@ export default function ClientDetail() {
         workspace_name: '',
         webhook_token: '',
         portal_user: '',
-        portal_password: ''
+        portal_password: '',
+        slug: ''
     });
 
     const [agent, setAgent] = useState({
@@ -112,7 +113,7 @@ export default function ClientDetail() {
             } else {
                 const { data, error } = await supabase
                     .from('clients')
-                    .update({ ...client })
+                    .update({ ...client, slug: client.slug || slugify(client.name) })
                     .eq('id', id)
                     .select()
                     .single();
@@ -215,7 +216,11 @@ export default function ClientDetail() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <FormInput label="Nombre Cliente / Empresa" value={client.name} onChange={v => setClient({ ...client, name: v })} placeholder="Ej. Clínica Dental" />
+                                <FormInput label="Nombre Cliente / Empresa" value={client.name} onChange={v => {
+                                    const newSlug = client.slug || id === 'new' ? slugify(v) : client.slug;
+                                    setClient({ ...client, name: v, slug: newSlug });
+                                }} placeholder="Ej. Clínica Dental" />
+                                <FormInput label="Slug / URL (Opcional)" value={client.slug} onChange={v => setClient({ ...client, slug: v })} placeholder="clinica-dental" fontMono />
                                 <FormInput label="Nombre Contacto" value={client.contact_name} onChange={v => setClient({ ...client, contact_name: v })} placeholder="Ej. Juan Pérez" />
                                 <FormInput label="Email Contacto" value={client.contact_email} onChange={v => setClient({ ...client, contact_email: v })} type="email" />
                                 <FormInput label="Teléfono Contacto" value={client.contact_phone} onChange={v => setClient({ ...client, contact_phone: v })} />
@@ -298,15 +303,24 @@ export default function ClientDetail() {
                                         />
                                     </div>
                                 </div>
-                                <div className="pt-2 flex justify-between items-center">
-                                    <p className="text-xs text-indigo-600/80">Credenciales para que el cliente acceda a su panel.</p>
-                                    <button
-                                        onClick={() => window.open(`/portal/${id}`, '_blank')}
-                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
-                                    >
-                                        <ExternalLink size={14} />
-                                        Ver Panel
-                                    </button>
+                                <div className="pt-2 flex flex-col gap-3">
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-xs text-indigo-600/80">Credenciales para que el cliente acceda a su panel.</p>
+                                        <button
+                                            onClick={() => {
+                                                if (saving) return;
+                                                window.open(`/portal/${(client as any).slug || id}`, '_blank');
+                                            }}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
+                                        >
+                                            <ExternalLink size={14} />
+                                            Ver Panel
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] font-bold text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100 flex items-center gap-2">
+                                        <span className="text-lg">⚠️</span>
+                                        Recuerda pulsar "Guardar Cambios" arriba antes de entrar al panel con las nuevas credenciales.
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -484,4 +498,14 @@ function FormInput({ label, value, onChange, type = "text", placeholder, icon, c
             </div>
         </div>
     );
+}
+
+function slugify(text: string) {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-');
 }

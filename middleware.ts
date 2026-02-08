@@ -45,13 +45,33 @@ export async function middleware(request: NextRequest) {
 
     const isProtectedAdminRoute = path === '/' || path.startsWith('/clients');
     const isLoginPage = path === '/login';
+    const isPortalRoute = path.startsWith('/portal');
+    const isPortalLoginPage = path === '/portal/login';
 
+    // 1. Admin Protection
     if (isProtectedAdminRoute && !user) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
     if (isLoginPage && user) {
         return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // 2. Portal Protection
+    if (isPortalRoute) {
+        const portalSession = request.cookies.get('portal-session');
+
+        if (isPortalLoginPage && portalSession) {
+            // Already logged in, redirect to a default portal page or use a saved slug if possible
+            // For now, if we have a session, we let them through to /portal/login which should redirect
+            // via client-side or just stay there. Better: redirect to a generic portal landing if we knew the slug.
+            // Since we don't know the slug here easily without a DB lookup, 
+            // we'll handle the "auto-redirect" inside the LoginPage itself for better UX.
+        }
+
+        if (!isPortalLoginPage && !portalSession) {
+            return NextResponse.redirect(new URL('/portal/login', request.url))
+        }
     }
 
     return response
@@ -67,6 +87,6 @@ export const config = {
          * - api/webhooks (public webhooks)
          * - portal (public client portal - has its own login check if needed)
          */
-        '/((?!_next/static|_next/image|favicon.ico|api/webhooks|portal).*)',
+        '/((?!_next/static|_next/image|favicon.ico|api/webhooks).*)',
     ],
 }
