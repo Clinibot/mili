@@ -229,30 +229,30 @@ export default function ClientDetail() {
                     {/* Left Column */}
                     <div className="space-y-6 lg:col-span-1">
                         {/* Client Access - FIRST POSITION */}
-                        <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100 shadow-sm rounded-2xl">
+                        <Card className="bg-gradient-to-br from-blue-50/30 via-slate-50 to-indigo-50/30 border-slate-200/50 shadow-sm rounded-2xl">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-indigo-900">
-                                    <Lock size={18} className="text-indigo-600" />
+                                <CardTitle className="flex items-center gap-2 text-slate-700">
+                                    <Lock size={18} className="text-slate-500" />
                                     Acceso Panel Cliente
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-medium text-indigo-800">Usuario Portal</label>
+                                        <label className="text-xs font-medium text-slate-600">Usuario Portal</label>
                                         <input
                                             type="text"
-                                            className="w-full bg-white/50 border border-indigo-200 rounded-lg px-3 py-2 text-sm text-indigo-900 placeholder:text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                                            className="w-full bg-white/70 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20"
                                             placeholder="usuario.cliente"
                                             value={client.portal_user || ''}
                                             onChange={(e) => setClient({ ...client, portal_user: e.target.value })}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-medium text-indigo-800">Contraseña Portal</label>
+                                        <label className="text-xs font-medium text-slate-600">Contraseña Portal</label>
                                         <input
                                             type="text"
-                                            className="w-full bg-white/50 border border-indigo-200 rounded-lg px-3 py-2 text-sm text-indigo-900 placeholder:text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                                            className="w-full bg-white/70 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20"
                                             placeholder="contraseña123"
                                             value={client.portal_password || ''}
                                             onChange={(e) => setClient({ ...client, portal_password: e.target.value })}
@@ -262,8 +262,8 @@ export default function ClientDetail() {
                                 <div className="pt-2 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
                                         <div className="flex flex-col gap-1">
-                                            <p className="text-xs text-indigo-600/80">Credenciales para que el cliente acceda a su panel.</p>
-                                            <p className="text-[10px] text-indigo-400">URL actual: /portal/{client.slug || id}</p>
+                                            <p className="text-xs text-slate-500">Credenciales para que el cliente acceda a su panel.</p>
+                                            <p className="text-[10px] text-slate-400">URL actual: /portal/{client.slug || id}</p>
                                         </div>
                                         <button
                                             onClick={() => {
@@ -271,7 +271,7 @@ export default function ClientDetail() {
                                                 const currentSlug = client.slug || id;
                                                 window.open(`/portal/${currentSlug}`, '_blank');
                                             }}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
+                                            className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-slate-500/20"
                                         >
                                             <ExternalLink size={14} />
                                             Ver Panel
@@ -321,10 +321,10 @@ export default function ClientDetail() {
                         </Card>
 
                         {/* Gift Balance - Admin Only */}
-                        <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 shadow-sm rounded-2xl">
+                        <Card className="bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-emerald-900">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                                <CardTitle className="flex items-center gap-2 text-slate-700">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
                                         <rect x="3" y="8" width="18" height="4" rx="1"></rect>
                                         <path d="M12 8v13"></path>
                                         <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path>
@@ -388,7 +388,7 @@ export default function ClientDetail() {
                                                 toast.error('Error al regalar saldo');
                                             }
                                         }}
-                                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 whitespace-nowrap"
+                                        className="px-6 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold rounded-lg transition-all shadow-md shadow-slate-500/20 flex items-center gap-2 whitespace-nowrap"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M12 5v14M5 12h14"></path>
@@ -396,7 +396,7 @@ export default function ClientDetail() {
                                         Regalar
                                     </button>
                                 </div>
-                                <div className="text-xs text-emerald-600 bg-white/50 px-3 py-2 rounded-lg border border-emerald-100">
+                                <div className="text-xs text-slate-600 bg-white/50 px-3 py-2 rounded-lg border border-slate-200">
                                     <strong>Balance actual:</strong> €{(client.balance || 0).toFixed(2)}
                                 </div>
                             </CardContent>
@@ -405,16 +405,29 @@ export default function ClientDetail() {
 
                     {/* Right Column: AI Agent Config + Technical Config */}
                     <div className="space-y-6 lg:col-span-2">
-                        <Card className="border-t-4 border-t-pink-500 bg-white border-slate-100 shadow-sm rounded-2xl">
+                        <Card className="bg-gradient-to-br from-indigo-50/40 via-blue-50/30 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
                             <CardHeader className="cursor-pointer" onClick={() => setIsAgentConfigExpanded(!isAgentConfigExpanded)}>
                                 <CardTitle className="flex items-center justify-between text-slate-700">
-                                    <div className="flex items-center gap-2">
-                                        <Bot size={18} className="text-pink-500" />
+                                    <div className="flex items-center gap-3">
+                                        <Bot size={18} className="text-slate-500" />
                                         Configuración Agente IA
+                                        <button
+                                            type="button"
+                                            className="ml-2 p-1.5 hover:bg-white/80 rounded-lg transition-all border border-slate-300 bg-white shadow-sm group"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toast.info('Funcionalidad de múltiples agentes próximamente. El wallet es compartido entre todos los agentes del cliente.');
+                                            }}
+                                            title="Añadir otro agente (próximamente)"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 group-hover:text-slate-600">
+                                                <path d="M12 5v14M5 12h14"></path>
+                                            </svg>
+                                        </button>
                                     </div>
                                     <button
                                         type="button"
-                                        className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                                        className="p-1 hover:bg-white/50 rounded-lg transition-colors"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setIsAgentConfigExpanded(!isAgentConfigExpanded);
@@ -532,8 +545,8 @@ export default function ClientDetail() {
                                         </div>
 
                                         {/* Notifications Task */}
-                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
-                                            <div className="flex items-center gap-2 text-yellow-600 font-medium pb-2 border-b border-yellow-200/50">
+                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200/50">
+                                            <div className="flex items-center gap-2 text-slate-600 font-medium pb-2 border-b border-slate-200/50">
                                                 <Bell size={16} />
                                                 <span>Avisos / Notificaciones</span>
                                             </div>
@@ -558,8 +571,8 @@ export default function ClientDetail() {
                                         </div>
 
                                         {/* Technical Config - Inside Agent Config */}
-                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-purple-50/50 border border-purple-100 mt-6">
-                                            <div className="flex items-center gap-2 text-purple-600 font-medium pb-2 border-b border-purple-200/50">
+                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-gradient-to-r from-indigo-50/30 to-slate-50 border border-slate-200/50 mt-6">
+                                            <div className="flex items-center gap-2 text-slate-600 font-medium pb-2 border-b border-slate-200/50">
                                                 <Key size={16} />
                                                 <span>Configuración Técnica</span>
                                             </div>
