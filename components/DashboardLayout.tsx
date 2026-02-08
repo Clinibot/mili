@@ -56,8 +56,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push('/login');
+        try {
+            await supabase.auth.signOut();
+            // Force clear local storage just in case
+            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0] + '-auth-token');
+        } catch (error) {
+            console.error('Error logging out:', error);
+        } finally {
+            window.location.href = '/login';
+        }
     };
 
     return (
@@ -69,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0 lg:w-20"
                 )}
             >
-                <div className="h-full px-3 py-4 overflow-y-auto">
+                <div className="h-full px-3 py-4 overflow-y-auto pb-24">
                     <div className="flex items-center gap-2 mb-10 px-4 h-10">
                         <div className="flex items-center gap-2">
                             <span className={cn("text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 transition-opacity whitespace-nowrap",
@@ -107,7 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
 
                 {/* Bottom Logout */}
-                <div className="absolute bottom-6 left-0 w-full px-5">
+                <div className="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-slate-100/50 z-50">
                     <button
                         onClick={handleLogout}
                         className={cn("flex items-center gap-3 p-3 text-slate-400 hover:text-red-500 transition-all w-full hover:bg-red-50 rounded-xl",
