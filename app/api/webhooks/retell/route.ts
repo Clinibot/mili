@@ -23,12 +23,118 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        console.log('Webhook received for client:', client.id, body);
+        const { event, call } = body;
 
-        // TODO: Process call data and insert into 'calls' table
-        // This is a placeholder for future implementation as requested.
+        console.log(`Webhook [${event}] received for client:`, client.id, call?.call_id);
 
-        return NextResponse.json({ received: true });
+        // Solo procesamos 'call_analyzed' para asegurar que tenemos la duración final y el análisis
+        if (event !== 'call_analyzed') {
+            return NextResponse.json({ received: true, message: 'Event ignored' });
+        }
+
+        if (!call) {
+            return NextResponse.json({ error: 'Missing call object' }, { status: 400 });
+        }
+
+        const {
+            call_id,
+            agent_id,
+            duration_ms,
+            start_timestamp,
+            end_timestamp,
+            transcript,
+            recording_url,
+            from_number,
+            to_number,
+            call_analysis,
+            direction
+        } = call;
+
+        // 1. Evitar duplicados (verificar si la llamada ya existe)
+        const { data: existingCall } = await supabase
+            .from('calls')
+            .select('id')
+            .eq('call_id', call_id)
+            .maybeSingle();
+
+        if (existingCall) {
+            return NextResponse.json({ received: true, message: 'Call already processed' });
+        }
+
+        // 2. Calcular costes
+        const durationSeconds = Math.floor(duration_ms / 1000);
+        const billableMinutes = Math.ceil(durationSeconds / 60) || 1; // Mínimo 1 minuto
+        const costPerMinute = 0.16;
+        const totalCost = billableMinutes * costPerMinute;
+
+        try {
+            // 3. Obtener balance actual del cliente
+            const { data: clientData, error: clientError } = await supabase
+                .from('clients')
+                .select('balance, name')
+                .eq('id', client.id)
+                .single();
+
+            if (clientError || !clientData) throw new Error('Client not found during billing');
+
+            const currentBalance = clientData.balance || 0;
+            const newBalance = currentBalance - totalCost;
+
+            // 4. Actualizar balance en la base de datos
+            const { error: balanceError } = await supabase
+                .from('clients')
+                .update({ balance: newBalance })
+                .eq('id', client.id);
+
+            if (balanceError) throw balanceError;
+
+            // 5. Insertar la llamada en la tabla 'calls'
+            await supabase
+                .from('calls')
+                .insert({
+                    client_id: client.id,
+                    call_id,
+                    agent_id,
+                    call_type: 'retell',
+                    direction,
+                    call_status: 'completed',
+                    start_timestamp,
+                    end_timestamp,
+                    duration_seconds: durationSeconds,
+                    transcript,
+                    recording_url,
+                    from_number,
+                    to_number,
+                    call_summary: call_analysis?.call_summary,
+                    user_sentiment: call_analysis?.user_sentiment,
+                    call_successful: call_analysis?.call_successful,
+                    in_voicemail: call_analysis?.in_voicemail
+                });
+
+            // 6. Registrar la transacción de descuento
+            await supabase
+                .from('transactions')
+                .insert({
+                    client_id: client.id,
+                    type: 'deduction',
+                    amount: totalCost,
+                    balance_before: currentBalance,
+                    balance_after: newBalance,
+                    description: `Llamada IA (${billableMinutes} min): ${call_id}`,
+                    metadata: {
+                        call_id,
+                        duration_seconds: durationSeconds,
+                        event_type: event
+                    }
+                });
+
+            console.log(`✅ Call ${call_id} processed for ${clientData.name}. Cost: ${totalCost}€ deducted.`);
+            return NextResponse.json({ received: true, billedAmount: totalCost });
+
+        } catch (billingError: any) {
+            console.error('❌ Error in billing process:', billingError);
+            return NextResponse.json({ error: 'Billing process failed', details: billingError.message }, { status: 500 });
+        }
 
     } catch (e) {
         console.error('Webhook error:', e);
