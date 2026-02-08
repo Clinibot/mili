@@ -119,3 +119,50 @@ END $$;
 -- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'clients';
 -- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'calls';
 -- SELECT tablename, policyname FROM pg_policies WHERE schemaname = 'public' ORDER BY tablename, policyname;
+
+-- 4. CREATE DOCUMENTATION_ITEMS TABLE
+-- ================================================================
+CREATE TABLE IF NOT EXISTS public.documentation_items (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+  title text NOT NULL,
+  type text NOT NULL CHECK (type IN ('url', 'file')),
+  content text NOT NULL,
+  file_name text,
+  created_by text
+);
+
+-- Enable RLS
+ALTER TABLE public.documentation_items ENABLE ROW LEVEL SECURITY;
+
+-- Policies for documentation_items
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'documentation_items' 
+    AND policyname = 'Enable access for all'
+  ) THEN
+    CREATE POLICY "Enable access for all" ON public.documentation_items FOR ALL USING (true);
+  END IF;
+END $$;
+
+-- 5. STORAGE BUCKET CONFIGURATION
+-- ================================================================
+-- Note: Bucket creation via SQL requires specific permissions.
+-- If this fails in your editor, please create the 'documentation' bucket manually in the Storage UI.
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('documentation', 'documentation', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policies for documentation bucket
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'documentation');
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Full Access' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Full Access" ON storage.objects FOR ALL USING (bucket_id = 'documentation') WITH CHECK (bucket_id = 'documentation');
+  END IF;
+END $$;
