@@ -35,17 +35,41 @@ export default function InvoicesPage() {
     });
     const [uploading, setUploading] = useState(false);
 
+    // Date filter states
+    const [filterPeriod, setFilterPeriod] = useState<'all' | '30d' | 'custom'>('all');
+    const [dateRange, setDateRange] = useState({
+        start: '',
+        end: ''
+    });
+
     useEffect(() => {
         fetchInvoices();
-    }, []);
+    }, [filterPeriod, dateRange]);
 
     async function fetchInvoices() {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('invoices')
                 .select('*')
                 .order('invoice_date', { ascending: false });
+
+            // Apply filters
+            if (filterPeriod === '30d') {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                query = query.gte('invoice_date', thirtyDaysAgo.toISOString());
+            } else if (filterPeriod === 'custom' && dateRange.start && dateRange.end) {
+                // Ensure the end date includes the whole day
+                const endTime = new Date(dateRange.end);
+                endTime.setHours(23, 59, 59, 999);
+
+                query = query
+                    .gte('invoice_date', new Date(dateRange.start).toISOString())
+                    .lte('invoice_date', endTime.toISOString());
+            }
+
+            const { data, error } = await query;
 
             if (error) {
                 console.error('Supabase error fetching invoices:', error);
@@ -168,10 +192,50 @@ export default function InvoicesPage() {
     return (
         <DashboardLayout>
             <div className="space-y-6">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Gestión de Facturas</h1>
                         <p className="text-slate-500 mt-1">Control de gastos y ventas</p>
+                    </div>
+
+                    {/* Date Filters */}
+                    <div className="flex flex-wrap items-center gap-2 bg-white/50 p-1.5 rounded-2xl border border-slate-200/60 backdrop-blur-sm">
+                        <button
+                            onClick={() => setFilterPeriod('all')}
+                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Todo
+                        </button>
+                        <button
+                            onClick={() => setFilterPeriod('30d')}
+                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === '30d' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Últimos 30 días
+                        </button>
+                        <button
+                            onClick={() => setFilterPeriod('custom')}
+                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === 'custom' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Personalizado
+                        </button>
+
+                        {filterPeriod === 'custom' && (
+                            <div className="flex items-center gap-2 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <input
+                                    type="date"
+                                    value={dateRange.start}
+                                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                                    className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400"
+                                />
+                                <span className="text-slate-300">→</span>
+                                <input
+                                    type="date"
+                                    value={dateRange.end}
+                                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                                    className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400"
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 
