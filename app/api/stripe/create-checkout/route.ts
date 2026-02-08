@@ -7,7 +7,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
     try {
+        if (!process.env.STRIPE_SECRET_KEY) {
+            throw new Error('STRIPE_SECRET_KEY no está configurada');
+        }
+
         const { amount, clientId } = await request.json();
+        const baseUrl = process.env.NEXT_PUBLIC_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
         if (!amount || amount < 10) {
             return NextResponse.json(
@@ -32,8 +37,8 @@ export async function POST(request: NextRequest) {
                 }
             ],
             mode: 'payment',
-            success_url: `${process.env.NEXT_PUBLIC_URL}/portal/${clientId}?payment=success`,
-            cancel_url: `${process.env.NEXT_PUBLIC_URL}/portal/${clientId}?payment=cancel`,
+            success_url: `${baseUrl}/portal/${clientId}?payment=success`,
+            cancel_url: `${baseUrl}/portal/${clientId}?payment=cancel`,
             metadata: {
                 clientId,
                 amount: amount.toString(),
@@ -43,9 +48,22 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ sessionId: session.id, url: session.url });
     } catch (error: any) {
-        console.error('Error creating checkout session:', error);
+        console.error('❌ Detailed Stripe Error:', {
+            message: error.message,
+            stack: error.stack,
+            type: error.type,
+            raw: error.raw
+        });
+
         return NextResponse.json(
-            { error: 'Error creando sesión de pago' },
+            {
+                error: 'Error al crear la sesión de pago',
+                details: error.message,
+                missingKeys: {
+                    stripeKey: !process.env.STRIPE_SECRET_KEY,
+                    publicUrl: !process.env.NEXT_PUBLIC_URL
+                }
+            },
             { status: 500 }
         );
     }
