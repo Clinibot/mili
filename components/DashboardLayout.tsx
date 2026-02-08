@@ -1,137 +1,111 @@
 "use client";
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, Settings, Menu, Bell, User } from 'lucide-react';
+import {
+    LayoutDashboard, Users, FileText, Settings,
+    Menu, X, Bell, Search, ChevronDown, LogOut
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface NavItemProps {
-    href: string;
-    icon: React.ReactNode;
-    label: string;
-    isActive: boolean;
-    collapsed: boolean;
-}
-
-const NavItem = ({ href, icon, label, isActive, collapsed }: NavItemProps) => (
-    <Link
-        href={href}
-        className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative",
-            isActive
-                ? "bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-                : "text-slate-400 hover:text-white hover:bg-white/5",
-            collapsed ? "justify-center" : ""
-        )}
-    >
-        {icon}
-        {!collapsed && <span className="font-medium">{label}</span>}
-        {collapsed && (
-            <div className="absolute left-[60px] bg-slate-800 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
-                {label}
-            </div>
-        )}
-    </Link>
-);
-
-export default function DashboardLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    const [collapsed, setCollapsed] = useState(false);
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const pathname = usePathname();
 
-    return (
-        <div className="min-h-screen bg-[#0F1115] text-white font-sans flex overflow-hidden selection:bg-blue-500/30">
+    const menuItems = [
+        { name: 'Dashboard', icon: LayoutDashboard, href: '/' },
+        { name: 'Clientes', icon: Users, href: '/' }, // Temporary link to home for clients
+        { name: 'Facturas', icon: FileText, href: '/invoices' },
+        { name: 'Configuración', icon: Settings, href: '/settings' },
+    ];
 
-            {/* Sidebar - Glassmorphism */}
+    return (
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+            {/* Sidebar */}
             <aside
                 className={cn(
-                    "relative z-20 flex flex-col border-r border-white/5 bg-[#0F1115] transition-all duration-300 ease-in-out",
-                    collapsed ? "w-20" : "w-64"
+                    "fixed top-0 left-0 z-40 h-screen transition-transform bg-white border-r border-slate-200 shadow-sm",
+                    isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0 lg:w-20"
                 )}
             >
-                <div className="p-6 flex items-center justify-between">
-                    {!collapsed && (
+                <div className="h-full px-3 py-4 overflow-y-auto">
+                    <div className="flex items-center gap-2 mb-10 px-2 h-10">
                         <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                                 IA para llamadas
                             </span>
                         </div>
-                    )}
-                    <button
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors ml-auto"
-                    >
-                        <Menu size={20} />
-                    </button>
+                    </div>
+
+                    <ul className="space-y-2 font-medium">
+                        {menuItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <li key={item.name}>
+                                    <Link
+                                        href={item.href}
+                                        className={cn(
+                                            "flex items-center p-3 rounded-xl transition-all group",
+                                            isActive
+                                                ? "bg-blue-50 text-blue-600 shadow-sm"
+                                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                        )}
+                                    >
+                                        <item.icon size={22} className={cn("transition-colors", isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600")} />
+                                        <span className={cn("ml-3 whitespace-nowrap overflow-hidden transition-all duration-300",
+                                            isSidebarOpen ? "opacity-100 max-w-full" : "opacity-0 max-w-0"
+                                        )}>
+                                            {item.name}
+                                        </span>
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </div>
 
-                <nav className="flex-1 px-3 py-6 space-y-2">
-                    <NavItem
-                        href="/"
-                        icon={<LayoutDashboard size={20} />}
-                        label="Dashboard"
-                        isActive={pathname === '/'}
-                        collapsed={collapsed}
-                    />
-                    <NavItem
-                        href="/clients"
-                        icon={<Users size={20} />}
-                        label="Clientes"
-                        isActive={pathname.startsWith('/clients')}
-                        collapsed={collapsed}
-                    />
-                    <NavItem
-                        href="/invoices"
-                        icon={<FileText size={20} />}
-                        label="Facturas"
-                        isActive={pathname.startsWith('/invoices')}
-                        collapsed={collapsed}
-                    />
-                </nav>
-
-                <div className="p-3 mt-auto">
-                    <NavItem
-                        href="/settings"
-                        icon={<Settings size={20} />}
-                        label="Configuración"
-                        isActive={pathname === '/settings'}
-                        collapsed={collapsed}
-                    />
-                </div>
+                {/* Toggle Button (Mobile/Desktop) */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="absolute bottom-4 right-4 lg:hidden p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
+                >
+                    {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col relative overflow-hidden">
-                {/* Top Navbar */}
-                <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0F1115]/50 backdrop-blur-md sticky top-0 z-10">
-                    <h1 className="text-lg font-semibold text-slate-200">
-                        {pathname === '/' ? 'Vista General' : pathname.split('/').filter(Boolean).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' / ')}
-                    </h1>
+            <div className={cn("p-4 transition-all duration-300", isSidebarOpen ? "lg:ml-64" : "lg:ml-20")}>
+                <div className="p-4 rounded-3xl min-h-[calc(100vh-2rem)]">
+                    {/* Top Navbar */}
+                    <header className="flex justify-between items-center mb-8 bg-white/60 backdrop-blur-md p-4 rounded-2xl sticky top-4 z-30 shadow-sm border border-slate-100">
+                        <h2 className="text-2xl font-bold text-slate-800">
+                            {pathname === '/' ? 'Vista General' :
+                                pathname.startsWith('/clients') ? 'Clientes' :
+                                    'Panel de Control'}
+                        </h2>
 
-                    <div className="flex items-center gap-4">
-                        <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
-                            <Bell size={20} />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
-                        </button>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold border-2 border-[#0F1115]">
-                            SO
+                        <div className="flex items-center gap-4">
+                            <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative">
+                                <Bell size={20} />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                            </button>
+                            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-blue-500/20">
+                                    SO
+                                </div>
+                                <div className="hidden md:block">
+                                    <p className="text-sm font-semibold text-slate-700 leading-none">Sonia Ortiz</p>
+                                    <p className="text-xs text-slate-400">Admin</p>
+                                </div>
+                                <ChevronDown size={16} className="text-slate-400 cursor-pointer" />
+                            </div>
                         </div>
-                    </div>
-                </header>
+                    </header>
 
-                {/* Content Scroll View */}
-                <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                     {children}
                 </div>
-
-                {/* Background decorative elements */}
-                <div className="absolute top-0 left-0 w-full h-[500px] bg-blue-500/5 blur-[120px] pointer-events-none rounded-full -translate-y-1/2"></div>
-                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 blur-[120px] pointer-events-none rounded-full translate-y-1/2"></div>
-            </main>
+            </div>
         </div>
     );
 }
