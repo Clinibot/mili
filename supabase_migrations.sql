@@ -3,11 +3,15 @@
 -- Execute this entire file in your Supabase SQL Editor
 -- ================================================================
 
--- 1. ADD PORTAL CREDENTIALS TO CLIENTS TABLE
+-- 1. ADD PORTAL CREDENTIALS & BILLING TO CLIENTS TABLE
 -- ================================================================
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS portal_user text UNIQUE;
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS portal_password text;
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS webhook_token text;
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS slug text UNIQUE;
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS balance numeric DEFAULT 0;
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS subscription_tier text DEFAULT 'none';
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS subscription_amount numeric DEFAULT 0;
 
 -- 2. CREATE CALLS TABLE FOR WEBHOOK DATA
 -- ================================================================
