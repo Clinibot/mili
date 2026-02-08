@@ -18,13 +18,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const router = useRouter();
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUserEmail(user.email || null);
             }
         };
-        fetchUser();
+
+        getUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUserEmail(session?.user?.email || null);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const menuItems = [
@@ -35,9 +42,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const getWelcomeMessage = () => {
         if (!userEmail) return 'Bienvenido';
-        if (userEmail.toLowerCase().includes('sonia')) return 'Hola Sonia';
-        if (userEmail.toLowerCase().includes('mili')) return 'Hola Mili';
-        return 'Hola Admin';
+        if (userEmail.toLowerCase().includes('sonia')) return 'Hola Sonia!';
+        if (userEmail.toLowerCase().includes('mili')) return 'Hola Mili!';
+        return 'Hola Admin!';
     };
 
     const getUserInitials = () => {
