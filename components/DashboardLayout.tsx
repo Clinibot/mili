@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
     Users, FileText, Settings,
     Menu, X, Bell, Search, ChevronDown, LogOut,
-    BookOpen
+    BookOpen, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
@@ -38,6 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Clientes', icon: Users, href: '/' },
         { name: 'Facturas', icon: FileText, href: '/invoices' },
         { name: 'Documentación', icon: BookOpen, href: '/docs' },
+        { name: 'Qué está pasando?', icon: Activity, href: '/activity' },
     ];
 
     const getWelcomeMessage = () => {

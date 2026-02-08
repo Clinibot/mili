@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { logAdminAction } from '@/lib/logger';
 import { DndContext, DragEndEvent, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -85,6 +86,8 @@ export default function Home() {
       if (error) throw error;
 
       setClients(clients.filter(c => c.id !== clientToDelete));
+
+      logAdminAction('Eliminar Cliente', `Se ha eliminado el cliente (ID: ${clientToDelete})`);
       toast.success('Cliente eliminado correctamente');
     } catch (err) {
       toast.error('Error eliminando cliente');

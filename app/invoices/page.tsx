@@ -8,6 +8,7 @@ import { FileText, Upload, TrendingUp, TrendingDown, DollarSign, Check, Clock, X
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { logAdminAction } from '@/lib/logger';
 
 interface Invoice {
     id: string;
@@ -147,6 +148,11 @@ export default function InvoicesPage() {
             }
 
             console.log('Invoice saved successfully:', savedData);
+            logAdminAction(
+                'Nuevo Gasto/Venta',
+                `Se ha registrado ${type === 'expense' ? 'un gasto' : 'una venta'} de €${amountValue}`,
+                { invoiceId: savedData.id, amount: amountValue, type }
+            );
             toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} añadido correctamente`);
 
             // Reset form
@@ -183,6 +189,7 @@ export default function InvoicesPage() {
                 .eq('id', idToDelete);
 
             if (error) throw error;
+            logAdminAction('Eliminar Factura', `Se ha eliminado una factura (ID: ${idToDelete.substring(0, 8)}...)`);
             toast.success('Eliminado correctamente');
             fetchInvoices();
         } catch (err) {
