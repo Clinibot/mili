@@ -20,26 +20,21 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
             });
 
-            if (error) throw error;
+            const data = await response.json();
 
-            // Wait for session to be established
-            const { data: { session } } = await supabase.auth.getSession();
-
-            if (!session) {
-                throw new Error('No se pudo establecer la sesión');
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al iniciar sesión');
             }
 
             toast.success('Sesión iniciada correctamente');
 
-            // Wait a bit more for cookies to propagate
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Now redirect
+            // Redirect to dashboard
             window.location.href = '/';
         } catch (err: any) {
             console.error('Login error:', err);
