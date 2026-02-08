@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import { DndContext, DragEndEvent, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -313,6 +313,11 @@ function PipelineColumn({
     c.contact_name?.toLowerCase().includes(columnFilter.toLowerCase())
   );
 
+  // Make this column a droppable zone
+  const { setNodeRef } = useDroppable({
+    id: title,
+  });
+
   return (
     <SortableContext
       id={title}
@@ -320,6 +325,7 @@ function PipelineColumn({
       strategy={verticalListSortingStrategy}
     >
       <div
+        ref={setNodeRef}
         className={`min-w-[280px] flex flex-col bg-gradient-to-b ${gradient} rounded-2xl p-4 h-[calc(100vh-280px)]`}
         id={title}
       >

@@ -295,7 +295,9 @@ export default function ClientDetail() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <FormInput label="Nombre Cliente / Empresa" value={client.name} onChange={v => {
-                                    const newSlug = client.slug || id === 'new' ? slugify(v) : client.slug;
+                                    // Solo generar slug automático si es cliente NUEVO sin slug
+                                    // Para clientes existentes, preservar el slug original
+                                    const newSlug = id === 'new' && !client.slug ? slugify(v) : client.slug;
                                     setClient({ ...client, name: v, slug: newSlug });
                                 }} placeholder="Ej. Clínica Dental" />
                                 <FormSelect
