@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
     Save, ArrowLeft, Phone, Mail, User, CreditCard,
-    Bot, Calendar, Share2, Bell, ExternalLink, Key
+    Bot, Calendar, Share2, Bell, ExternalLink, Key, Lock
 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,11 +28,10 @@ export default function ClientDetail() {
         cost_per_minute: 0,
         api_key_retail: '',
         agent_id: '',
-        cost_per_minute: 0,
-        api_key_retail: '',
-        agent_id: '',
         workspace_name: '',
-        webhook_token: ''
+        webhook_token: '',
+        portal_user: '',
+        portal_password: ''
     });
 
     const [agent, setAgent] = useState({
@@ -270,18 +269,45 @@ export default function ClientDetail() {
 
                         {/* Client Access */}
                         <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100 shadow-sm rounded-2xl">
-                            <CardContent className="p-6 flex items-center justify-between">
-                                <div>
-                                    <h3 className="font-bold text-indigo-900">Panel del Cliente</h3>
-                                    <p className="text-xs text-indigo-600/80">Ver métricas y KPIs</p>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-indigo-900">
+                                    <Lock size={18} className="text-indigo-600" />
+                                    Acceso Panel Cliente
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-indigo-800">Usuario Portal</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-white/50 border border-indigo-200 rounded-lg px-3 py-2 text-sm text-indigo-900 placeholder:text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                                            placeholder="usuario.cliente"
+                                            value={client.portal_user || ''}
+                                            onChange={(e) => setClient({ ...client, portal_user: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-indigo-800">Contraseña Portal</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-white/50 border border-indigo-200 rounded-lg px-3 py-2 text-sm text-indigo-900 placeholder:text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                                            placeholder="contraseña123"
+                                            value={client.portal_password || ''}
+                                            onChange={(e) => setClient({ ...client, portal_password: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={() => window.open(`/portal/${id}`, '_blank')}
-                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
-                                >
-                                    <ExternalLink size={14} />
-                                    Ver Panel
-                                </button>
+                                <div className="pt-2 flex justify-between items-center">
+                                    <p className="text-xs text-indigo-600/80">Credenciales para que el cliente acceda a su panel.</p>
+                                    <button
+                                        onClick={() => window.open(`/portal/${id}`, '_blank')}
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
+                                    >
+                                        <ExternalLink size={14} />
+                                        Ver Panel
+                                    </button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
