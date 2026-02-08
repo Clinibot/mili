@@ -85,7 +85,13 @@ export default function KpiCards({
                 // Calculate current period KPIs
                 const totalCalls = currentCalls?.length || 0;
                 const totalSeconds = currentCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
-                const totalMinutes = Math.round(totalSeconds / 60);
+
+                // Calculamos minutos totales basándonos en la lógica de facturación (cada llamada redondea al alza)
+                const totalMinutes = currentCalls?.reduce((sum, call) => {
+                    const billable = Math.ceil((call.duration_seconds || 0) / 60) || (call.duration_seconds > 0 ? 1 : 0);
+                    return sum + billable;
+                }, 0) || 0;
+
                 const totalCost = (totalMinutes * costPerMinute);
                 const successfulCalls = currentCalls?.filter(call => call.call_successful).length || 0;
                 const colgadasShort = currentCalls?.filter(call => (call.duration_seconds || 0) < 15).length || 0;

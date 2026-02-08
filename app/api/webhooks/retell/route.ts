@@ -89,7 +89,7 @@ export async function POST(req: Request) {
             if (balanceError) throw balanceError;
 
             // 5. Insertar la llamada en la tabla 'calls'
-            await supabase
+            const { error: insertError } = await supabase
                 .from('calls')
                 .insert({
                     client_id: client.id,
@@ -106,10 +106,13 @@ export async function POST(req: Request) {
                     from_number,
                     to_number,
                     call_summary: call_analysis?.call_summary,
-                    user_sentiment: call_analysis?.user_sentiment,
-                    call_successful: call_analysis?.call_successful,
-                    in_voicemail: call_analysis?.in_voicemail
+                    user_sentiment: call_analysis?.user_sentiment || 'Neutral',
+                    call_successful: call_analysis?.call_successful || false,
+                    in_voicemail: call_analysis?.in_voicemail || false,
+                    custom_analysis_data: call_analysis?.custom_analysis_data || {}
                 });
+
+            if (insertError) throw insertError;
 
             // 6. Registrar la transacción de descuento
             await supabase

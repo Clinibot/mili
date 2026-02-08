@@ -109,7 +109,7 @@ function CallsList({ clientId }: { clientId: string }) {
                 .select('*')
                 .eq('client_id', clientId)
                 .order('created_at', { ascending: false })
-                .limit(10);
+                .limit(20);
 
             if (data) setCalls(data);
             setLoading(false);
@@ -117,61 +117,116 @@ function CallsList({ clientId }: { clientId: string }) {
         fetchCalls();
     }, [clientId]);
 
-    if (loading) return <div className="p-6 text-center text-slate-400">Cargando llamadas...</div>;
-    if (calls.length === 0) return <div className="p-6 text-center text-slate-400">No hay llamadas registradas.</div>;
+    if (loading) return <div className="p-8 text-center text-slate-400 font-medium">Cargando llamadas...</div>;
+    if (calls.length === 0) return (
+        <div className="p-12 text-center text-slate-400 space-y-3">
+            <div className="text-4xl">📞</div>
+            <p className="font-medium text-slate-500">No hay llamadas registradas todavía.</p>
+        </div>
+    );
 
     return (
-        <div>
-            {calls.map((call) => (
-                <div key={call.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                    <div
-                        className="flex items-center justify-between p-4 cursor-pointer"
-                        onClick={() => setExpandedCall(expandedCall === call.id ? null : call.id)}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div>
-                                <p className="text-sm font-bold text-slate-800">{call.from_number || 'Desconocido'}</p>
-                                <p className="text-xs text-slate-400">{new Date(Number(call.start_timestamp)).toLocaleString('es-ES')}</p>
+        <div className="divide-y divide-slate-100">
+            {calls.map((call) => {
+                const isPlayground = !call.from_number || call.from_number.includes('playground') || call.direction === 'outbound';
+                const callerDisplay = isPlayground ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                        Playground
+                    </span>
+                ) : (
+                    <span className="text-sm font-bold text-slate-800">{call.from_number}</span>
+                );
+
+                return (
+                    <div key={call.id} className="hover:bg-slate-50/50 transition-all duration-200">
+                        <div
+                            className="flex items-center justify-between p-6 cursor-pointer"
+                            onClick={() => setExpandedCall(expandedCall === call.id ? null : call.id)}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className={cn(
+                                    "w-10 h-10 rounded-2xl flex items-center justify-center text-lg",
+                                    call.call_successful ? "bg-emerald-50 text-emerald-600" : "bg-slate-50 text-slate-500"
+                                )}>
+                                    {isPlayground ? "💻" : "📱"}
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        {callerDisplay}
+                                        {call.call_successful && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] font-semibold text-slate-400 tabular-nums">
+                                        {new Date(Number(call.start_timestamp)).toLocaleString('es-ES', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-right flex flex-col items-end gap-1.5">
+                                <span className="text-sm font-black text-slate-900 tabular-nums">
+                                    {call.duration_seconds
+                                        ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`
+                                        : '0s'}
+                                </span>
+                                <span className={cn(
+                                    "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tight",
+                                    call.call_successful ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                                )}>
+                                    {call.call_successful ? 'EXITOSA' : (call.call_status || 'TERMINADA')}
+                                </span>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <span className="block text-xs font-bold text-slate-700">
-                                {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '0s'}
-                            </span>
-                            <span className={`text-[10px] font-medium ${call.call_successful ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                {call.call_status}
-                            </span>
-                        </div>
-                    </div>
 
-                    {expandedCall === call.id && (
-                        <div className="bg-slate-50/50 p-4 pt-0 text-sm space-y-3 animate-in slide-in-from-top-2">
-                            {call.call_summary && (
-                                <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                                    <p className="font-semibold text-slate-700 mb-1">Resumen</p>
-                                    <p className="text-slate-600 text-xs leading-relaxed">{call.call_summary}</p>
+                        {expandedCall === call.id && (
+                            <div className="bg-slate-50/80 p-6 pt-0 space-y-5 animate-in slide-in-from-top-2 duration-300">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {call.call_summary && (
+                                        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Resumen de IA</p>
+                                            <p className="text-slate-600 text-xs leading-relaxed font-medium">{call.call_summary}</p>
+                                        </div>
+                                    )}
+
+                                    {call.custom_analysis_data && Object.keys(call.custom_analysis_data).length > 0 && (
+                                        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                            <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Datos Extraídos</p>
+                                            <div className="space-y-2">
+                                                {Object.entries(call.custom_analysis_data).map(([key, value]: [string, any]) => (
+                                                    <div key={key} className="flex justify-between items-start gap-4 border-b border-slate-50 last:border-0 pb-1.5 mb-1.5">
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase">{key.replace(/_/g, ' ')}</span>
+                                                        <span className="text-[11px] font-bold text-slate-700 text-right">{String(value)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                            {call.recording_url && (
-                                <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                                    <p className="font-semibold text-slate-700 mb-2">Grabación</p>
-                                    <audio controls src={call.recording_url} className="w-full h-8" />
-                                </div>
-                            )}
-                            {call.transcript && (
-                                <details className="group">
-                                    <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors list-none">
-                                        Ver Transcripción Completa
-                                    </summary>
-                                    <div className="mt-2 p-3 bg-white rounded-xl border border-slate-100 text-xs text-slate-600 max-h-40 overflow-y-auto whitespace-pre-wrap leading-relaxed">
-                                        {call.transcript}
+
+                                {call.recording_url && (
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Grabación de audio</p>
+                                        <audio controls src={call.recording_url} className="w-full h-10" />
                                     </div>
-                                </details>
-                            )}
-                        </div>
-                    )}
-                </div>
-            ))}
+                                )}
+
+                                {call.transcript && (
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Transcripción completa</p>
+                                        <div className="max-h-48 overflow-y-auto pr-2 text-[11px] text-slate-600 leading-relaxed font-medium whitespace-pre-wrap custom-scrollbar">
+                                            {call.transcript}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 }
