@@ -10,6 +10,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function ClientDetail() {
     const router = useRouter();
@@ -110,7 +111,7 @@ export default function ClientDetail() {
             let clientData;
 
             if (id === 'new') {
-                const newToken = crypto.randomUUID();
+                const newToken = uuidv4();
                 const { data, error } = await supabase
                     .from('clients')
                     .insert([{
@@ -129,7 +130,7 @@ export default function ClientDetail() {
                 const updatePayload = {
                     ...client,
                     slug: client.slug || slugify(client.name),
-                    webhook_token: client.webhook_token || crypto.randomUUID()
+                    webhook_token: client.webhook_token || uuidv4()
                 };
 
                 const { data, error } = await supabase

@@ -176,7 +176,7 @@ export default function AnalyticsCharts({
             return {
                 date: format(date, formatString, { locale: es }),
                 calls: periodCalls.length,
-                minutes: Math.round(totalMinutes),
+                minutes: Number(totalMinutes.toFixed(2)),
                 avgMinutes: Math.round(avgMinutes * 10) / 10,
                 transfers,
                 positive: sentiments.positive,

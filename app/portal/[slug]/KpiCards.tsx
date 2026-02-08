@@ -169,6 +169,13 @@ export default function KpiCards({
     const avgMinutes = kpis.totalCalls > 0 ? (kpis.totalMinutes / kpis.totalCalls).toFixed(1) : '0';
     const sentimentScore = kpis.totalCalls > 0 ? Math.round(kpis.successRate) : 0; // Using successRate as proxy for sentiment for now
 
+    const formatMinutesToMMSS = (decimalMinutes: number) => {
+        const totalSeconds = Math.round(decimalMinutes * 60);
+        const minutes = Math.floor(Math.abs(totalSeconds) / 60);
+        const seconds = Math.abs(totalSeconds) % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             <KpiCard
@@ -181,7 +188,7 @@ export default function KpiCards({
             />
             <KpiCard
                 title="MINUTOS"
-                value={kpis.totalMinutes.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
+                value={formatMinutesToMMSS(kpis.totalMinutes)}
                 change={minutesChange.value}
                 isPositive={minutesChange.isPositive}
                 subValue={`Ø ${avgMinutes} min por llamada`}
