@@ -29,13 +29,28 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         async function fetchClient() {
             try {
                 const isUuid = slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-                let query = supabase.from('clients').select('*');
+                let data, error;
+
                 if (isUuid) {
-                    query = query.eq('id', slug);
+                    // Buscar por ID (UUID)
+                    const result = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('id', slug)
+                        .single();
+                    data = result.data;
+                    error = result.error;
                 } else {
-                    query = query.or(`slug.eq.${slug},id.eq.${slug},name.ilike.%${slug}%`);
+                    // Buscar por slug primero
+                    const result = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('slug', slug)
+                        .maybeSingle();
+                    data = result.data;
+                    error = result.error;
                 }
-                const { data } = await query.single();
+
                 if (data) setClient(data);
             } catch (err) {
                 console.error("Error fetching client", err);
