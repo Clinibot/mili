@@ -14,6 +14,3 @@ CREATE POLICY "Admins can view all messages" ON admin_chat_messages
 
 CREATE POLICY "Admins can send messages" ON admin_chat_messages
   FOR INSERT TO authenticated WITH CHECK (true);
-
--- 4. Asegurar Realtime
-alter publication supabase_realtime add table admin_chat_messages;

@@ -92,18 +92,21 @@ export default function ActivityPage() {
         if (!newMessage.trim() || !userEmail) return;
 
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('admin_chat_messages')
                 .insert({
                     sender_email: userEmail,
                     content: newMessage
                 });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error details:', error);
+                throw error;
+            }
             setNewMessage('');
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error sending message:', err);
-            toast.error('Error al enviar mensaje');
+            toast.error(`Error al enviar: ${err.message || 'Desconocido'}`);
         }
     };
 
