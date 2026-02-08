@@ -6,6 +6,8 @@ import { Search, Plus, Trash2, Phone, Mail, User, Mic } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 interface Client {
   id: string;
@@ -20,6 +22,32 @@ export default function Home() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, clientId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setClientToDelete(clientId);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!clientToDelete) return;
+
+    try {
+      const { error } = await supabase.from('clients').delete().eq('id', clientToDelete);
+      if (error) throw error;
+
+      setClients(clients.filter(c => c.id !== clientToDelete));
+      toast.success('Cliente eliminado correctamente');
+    } catch (err) {
+      toast.error('Error eliminando cliente');
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     async function fetchClients() {
@@ -90,20 +118,9 @@ export default function Home() {
                       <User size={24} />
                     </div>
                     <button
-                      onClick={async (e) => {
-                        e.preventDefault(); // Prevent navigation
-                        if (confirm('¿Estás seguro de querer eliminar este cliente?')) {
-                          try {
-                            const { error } = await supabase.from('clients').delete().eq('id', client.id);
-                            if (error) throw error;
-                            setClients(clients.filter(c => c.id !== client.id));
-                          } catch (err) {
-                            alert('Error eliminando cliente');
-                            console.error(err);
-                          }
-                        }
-                      }}
-                      className="text-slate-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all"
+                      onClick={(e) => handleDeleteClick(e, client.id)}
+                      className="text-slate-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-100"
+                      title="Eliminar Cliente"
                     >
                       <Trash2 size={20} />
                     </button>
@@ -134,6 +151,16 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Cliente"
+        message="¿Estás seguro de que quieres eliminar este cliente? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        destructive
+      />
     </DashboardLayout>
   );
 }

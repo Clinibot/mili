@@ -9,6 +9,7 @@ import {
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
 
 export default function ClientDetail() {
     const router = useRouter();
@@ -155,12 +156,12 @@ export default function ClientDetail() {
 
             if (agentError) throw agentError;
 
-            alert('Guardado correctamente');
+            toast.success('Guardado correctamente');
             if (id === 'new') router.push(`/clients/${clientId}`);
 
         } catch (error: any) {
             console.error("Error saving:", error);
-            alert('Error al guardar: ' + error.message);
+            toast.error('Error al guardar: ' + error.message);
         } finally {
             setSaving(false);
         }
