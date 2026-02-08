@@ -33,7 +33,8 @@ export default function ClientDetail() {
         webhook_token: '',
         portal_user: '',
         portal_password: '',
-        slug: ''
+        slug: '',
+        balance: 0
     });
 
     const [agent, setAgent] = useState({
