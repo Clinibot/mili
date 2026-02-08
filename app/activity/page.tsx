@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabaseClient';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send, User, Activity, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner';
+import { Activity } from 'lucide-react';
 
 interface ActivityLog {
     id: string;
@@ -16,26 +15,13 @@ interface ActivityLog {
     created_at: string;
 }
 
-interface ChatMessage {
-    id: string;
-    sender_email: string;
-    content: string;
-    created_at: string;
-}
-
 export default function ActivityPage() {
     const [logs, setLogs] = useState<ActivityLog[]>([]);
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [newMessage, setNewMessage] = useState('');
-    const [userEmail, setUserEmail] = useState<string | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        fetchUser();
         fetchLogs();
-        fetchMessages();
 
-        // Realtime subscriptions
+        // Realtime subscription
         const logsBox = supabase
             .channel('activity_logs')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_activity_logs' }, payload => {
@@ -43,24 +29,10 @@ export default function ActivityPage() {
             })
             .subscribe();
 
-        const chatBox = supabase
-            .channel('admin_chat')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_chat_messages' }, payload => {
-                setMessages(current => [...current, payload.new as ChatMessage]);
-                setTimeout(scrollToBottom, 100);
-            })
-            .subscribe();
-
         return () => {
             supabase.removeChannel(logsBox);
-            supabase.removeChannel(chatBox);
         };
     }, []);
-
-    const fetchUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) setUserEmail(user.email || null);
-    };
 
     const fetchLogs = async () => {
         const { data, error } = await supabase
@@ -69,45 +41,6 @@ export default function ActivityPage() {
             .order('created_at', { ascending: false })
             .limit(50);
         if (!error && data) setLogs(data);
-    };
-
-    const fetchMessages = async () => {
-        const { data, error } = await supabase
-            .from('admin_chat_messages')
-            .select('*')
-            .order('created_at', { ascending: true })
-            .limit(100);
-        if (!error && data) {
-            setMessages(data);
-            setTimeout(scrollToBottom, 100);
-        }
-    };
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newMessage.trim() || !userEmail) return;
-
-        try {
-            const { data, error } = await supabase
-                .from('admin_chat_messages')
-                .insert({
-                    sender_email: userEmail,
-                    content: newMessage
-                });
-
-            if (error) {
-                console.error('Error details:', error);
-                throw error;
-            }
-            setNewMessage('');
-        } catch (err: any) {
-            console.error('Error sending message:', err);
-            toast.error(`Error al enviar: ${err.message || 'Desconocido'}`);
-        }
     };
 
     const getAvatarColor = (email: string) => {
@@ -124,16 +57,15 @@ export default function ActivityPage() {
 
     return (
         <DashboardLayout>
-            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)]">
-
-                {/* Left: Activity Feed */}
-                <div className="flex-1 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+            <div className="max-w-5xl mx-auto">
+                {/* Activity Feed */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-6">
                         <Activity className="text-blue-500" />
                         <h2 className="text-xl font-bold text-slate-800">Actividad Reciente</h2>
                     </div>
 
-                    <div className="overflow-y-auto pr-2 space-y-4 flex-1 custom-scrollbar">
+                    <div className="space-y-4">
                         {logs.length === 0 ? (
                             <p className="text-slate-400 text-center py-10">No hay actividad registrada aún.</p>
                         ) : (
@@ -156,58 +88,6 @@ export default function ActivityPage() {
                         )}
                     </div>
                 </div>
-
-                {/* Right: Chat */}
-                <div className="flex-1 lg:max-w-md bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
-                    <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-                        <MessageSquare className="text-green-500" />
-                        <h2 className="text-lg font-bold text-slate-800">Chat de Equipo</h2>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30 custom-scrollbar">
-                        {messages.length === 0 ? (
-                            <p className="text-slate-400 text-center text-sm py-10">Inicia la conversación...</p>
-                        ) : (
-                            messages.map(msg => {
-                                const isMe = msg.sender_email === userEmail;
-                                return (
-                                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[80%] rounded-2xl p-3 ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-700 rounded-bl-none'}`}>
-                                            {!isMe && (
-                                                <p className="text-xs font-bold text-slate-400 mb-1">{getName(msg.sender_email)}</p>
-                                            )}
-                                            <p className="text-sm">{msg.content}</p>
-                                            <p className={`text-[10px] mt-1 text-right ${isMe ? 'text-blue-200' : 'text-slate-400'}`}>
-                                                {format(new Date(msg.created_at), 'HH:mm')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    <div className="p-4 bg-white border-t border-slate-100">
-                        <form onSubmit={handleSendMessage} className="flex gap-2">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Escribe un mensaje..."
-                                className="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all outline-none"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!newMessage.trim()}
-                                className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Send size={18} />
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
             </div>
         </DashboardLayout>
     );
