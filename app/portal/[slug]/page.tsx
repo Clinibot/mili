@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import KpiCards from './KpiCards';
@@ -168,11 +169,14 @@ function CallsList({ clientId }: { clientId: string }) {
                                 </div>
                             </div>
                             <div className="text-right flex flex-col items-end gap-1.5">
-                                <span className="text-sm font-black text-slate-900 tabular-nums">
-                                    {call.duration_seconds
-                                        ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`
-                                        : '0s'}
-                                </span>
+                                <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-500 transition-colors">
+                                    <span className="text-sm font-black text-slate-900 tabular-nums">
+                                        {call.duration_seconds
+                                            ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`
+                                            : '0s'}
+                                    </span>
+                                    {expandedCall === call.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                </div>
                                 <span className={cn(
                                     "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tight",
                                     call.call_successful ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
