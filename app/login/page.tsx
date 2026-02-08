@@ -27,8 +27,19 @@ export default function LoginPage() {
 
             if (error) throw error;
 
+            // Wait for session to be established
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                throw new Error('No se pudo establecer la sesión');
+            }
+
             toast.success('Sesión iniciada correctamente');
-            // Use window.location instead of router.push to ensure cookies are properly set
+
+            // Wait a bit more for cookies to propagate
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Now redirect
             window.location.href = '/';
         } catch (err: any) {
             console.error('Login error:', err);
