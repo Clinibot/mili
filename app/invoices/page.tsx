@@ -47,11 +47,14 @@ export default function InvoicesPage() {
                 .select('*')
                 .order('invoice_date', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error fetching invoices:', error);
+                throw error;
+            }
             setInvoices(data || []);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error fetching invoices:', err);
-            toast.error('Error cargando facturas');
+            toast.error(`Error cargando facturas: ${err.message || 'Error desconocido'}`);
         } finally {
             setLoading(false);
         }
@@ -95,7 +98,10 @@ export default function InvoicesPage() {
                     invoice_date: new Date().toISOString()
                 });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error adding invoice:', error);
+                throw error;
+            }
 
             toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} añadido correctamente`);
 
@@ -110,9 +116,9 @@ export default function InvoicesPage() {
 
             // Refresh list
             fetchInvoices();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error adding invoice:', err);
-            toast.error('Error al guardar');
+            toast.error(`Error al guardar: ${err.message || 'Error desconocido'}`);
         } finally {
             setUploading(false);
         }
