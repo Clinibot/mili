@@ -75,12 +75,15 @@ export default function AnalyticsCharts({
         setLoading(true);
 
         // Fetch main period data
+        // Fix: Use endOfDay to encompass the entire last day
+        const msEnd = endOfDay(endDate).getTime();
+
         const { data: calls, error } = await supabase
             .from('calls')
             .select('*')
             .eq('client_id', clientId)
             .gte('start_timestamp', startDate.getTime())
-            .lte('start_timestamp', endDate.getTime())
+            .lte('start_timestamp', msEnd)
             .order('start_timestamp');
 
         if (error) {
@@ -92,12 +95,13 @@ export default function AnalyticsCharts({
         // Fetch comparison period data if needed
         let comparisonCalls: Call[] = [];
         if (comparisonMode !== 'none' && comparisonStart && comparisonEnd) {
+            const msCompEnd = endOfDay(comparisonEnd).getTime();
             const { data: compData } = await supabase
                 .from('calls')
                 .select('*')
                 .eq('client_id', clientId)
                 .gte('start_timestamp', comparisonStart.getTime())
-                .lte('start_timestamp', comparisonEnd.getTime())
+                .lte('start_timestamp', msCompEnd)
                 .order('start_timestamp');
 
             comparisonCalls = compData || [];
