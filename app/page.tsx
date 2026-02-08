@@ -94,7 +94,22 @@ export default function Home() {
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-indigo-400 group-hover:text-white group-hover:from-indigo-500 group-hover:to-purple-500 transition-all duration-300">
                       <User size={24} />
                     </div>
-                    <button className="text-slate-500 hover:text-white p-1 rounded-lg hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all">
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault(); // Prevent navigation
+                        if (confirm('¿Estás seguro de querer eliminar este cliente?')) {
+                          try {
+                            const { error } = await supabase.from('clients').delete().eq('id', client.id);
+                            if (error) throw error;
+                            setClients(clients.filter(c => c.id !== client.id));
+                          } catch (err) {
+                            alert('Error eliminando cliente');
+                            console.error(err);
+                          }
+                        }
+                      }}
+                      className="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all"
+                    >
                       <MoreHorizontal size={20} />
                     </button>
                   </div>
