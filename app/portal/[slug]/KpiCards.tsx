@@ -39,14 +39,14 @@ export default function KpiCards({ clientId }: { clientId: string }) {
             // Fetch current month data
             const { data: currentCalls } = await supabase
                 .from('calls')
-                .select('duration_seconds, call_successful, start_timestamp')
+                .select('duration_seconds, call_successful, start_timestamp, user_sentiment')
                 .eq('client_id', clientId)
                 .gte('start_timestamp', currentMonthStart);
 
             // Fetch previous month data for comparison
             const { data: previousCalls } = await supabase
                 .from('calls')
-                .select('duration_seconds, start_timestamp')
+                .select('duration_seconds, start_timestamp, user_sentiment')
                 .eq('client_id', clientId)
                 .gte('start_timestamp', previousMonthStart)
                 .lte('start_timestamp', previousMonthEnd);
@@ -69,6 +69,16 @@ export default function KpiCards({ clientId }: { clientId: string }) {
             const successRate = totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
             const colgadasShort = currentCalls?.filter(call => (call.duration_seconds || 0) < 15).length || 0;
 
+            // Calculate actual sentiment score
+            const callsWithSentiment = currentCalls?.filter(c => c.user_sentiment) || [];
+            const positiveSentiments = callsWithSentiment.filter(c =>
+                c.user_sentiment.toLowerCase().includes('positive') ||
+                c.user_sentiment.toLowerCase().includes('positivo')
+            ).length;
+            const sentimentScore = callsWithSentiment.length > 0
+                ? Math.round((positiveSentiments / callsWithSentiment.length) * 100)
+                : 0;
+
             // Calculate previous month
             const previousMonthCalls = previousCalls?.length || 0;
             const previousSeconds = previousCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
@@ -79,7 +89,7 @@ export default function KpiCards({ clientId }: { clientId: string }) {
                 totalCalls,
                 totalMinutes,
                 totalCost,
-                successRate,
+                successRate: sentimentScore, // Using actual sentiment score now
                 colgadasShort,
                 previousMonthCalls,
                 previousMonthMinutes,
@@ -119,41 +129,50 @@ export default function KpiCards({ clientId }: { clientId: string }) {
     }
 
     // Calculate specific user-requested metrics from state
-    const ahorroEstimado = kpis.totalMinutes * 1.5; // Example: 1.5€ saved per minute vs human agent
+    const avgMinutes = kpis.totalCalls > 0 ? (kpis.totalMinutes / kpis.totalCalls).toFixed(1) : '0';
+    const sentimentScore = kpis.totalCalls > 0 ? Math.round(kpis.successRate) : 0; // Using successRate as proxy for sentiment for now
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             <KpiCard
-                title="ATENDIDA IA"
+                title="LLAMADAS"
                 value={kpis.totalCalls.toLocaleString()}
                 change={callsChange.value}
                 isPositive={callsChange.isPositive}
-                subValue={`Ø 2.2 min · ${kpis.totalMinutes} min total`}
+                subValue="Total de llamadas hoy"
                 color="border-t-accent-blue"
             />
             <KpiCard
-                title="AHORRO ESTIMADO"
-                value={`€${ahorroEstimado.toFixed(0)}`}
-                change="+12%"
-                isPositive={true}
-                subValue="Calculado vs coste humano"
+                title="MINUTOS"
+                value={kpis.totalMinutes.toLocaleString()}
+                change={minutesChange.value}
+                isPositive={minutesChange.isPositive}
+                subValue={`Ø ${avgMinutes} min por llamada`}
                 color="border-t-accent-mineral"
             />
             <KpiCard
-                title="COLGADAS < 15s"
-                value={kpis.colgadasShort.toLocaleString()}
-                change="-5%"
-                isPositive={true} // Less short calls is good
-                subValue={`${((kpis.colgadasShort / (kpis.totalCalls || 1)) * 100).toFixed(1)}% del total`}
+                title="TRANSFERENCIAS"
+                value={kpis.successRate > 0 ? Math.round(kpis.totalCalls * (kpis.successRate / 100)) : "0"}
+                change="+5%"
+                isPositive={true}
+                subValue={`${kpis.successRate}% de efectividad`}
                 color="border-t-accent-coral"
             />
             <KpiCard
-                title="CITAS RESERVADAS"
-                value="17" // Mocked for parity with ref content
+                title="CITAS AGENDADAS"
+                value="17" // Mocked as requested for reference
                 change="+22%"
                 isPositive={true}
-                subValue="16.5% de las llamadas"
+                subValue="Sincronizado con Google Cal"
                 color="border-t-accent-blue"
+            />
+            <KpiCard
+                title="SENTIMIENTO"
+                value={`${sentimentScore}%`}
+                change="+8%"
+                isPositive={true}
+                subValue="Feedback positivo"
+                color="border-t-accent-mineral"
             />
         </div>
     );

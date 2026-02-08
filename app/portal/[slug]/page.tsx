@@ -82,8 +82,9 @@ export default function ClientPortal() {
             <aside className="w-64 bg-surface-dark border-r border-white/5 flex flex-col sticky top-0 h-screen hidden lg:flex">
                 <div className="p-8 border-b border-white/5">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-accent-blue flex items-center justify-center font-bold text-lg">M</div>
-                        <h1 className="font-header text-xl font-bold tracking-tight">MILI</h1>
+                        <h1 className="font-header text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-accent-blue to-accent-mineral">
+                            IA para llamadas
+                        </h1>
                     </div>
                     <p className="font-serif text-sm text-accent-blue italic">"La IA que entiende a las pymes"</p>
                 </div>
@@ -130,7 +131,7 @@ export default function ClientPortal() {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div>
                             <p className="text-accent-blue font-mono text-xs uppercase tracking-[0.2em] mb-2 font-bold">Resumen de actividad</p>
-                            <h2 className="font-header text-4xl font-bold tracking-tight">Panel de Control</h2>
+                            <h2 className="font-header text-4xl font-bold tracking-tight text-white">Panel de Control</h2>
                         </div>
                         <div className="flex gap-4">
                             <DateRangeSelector
