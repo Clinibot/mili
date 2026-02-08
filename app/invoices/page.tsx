@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
-import { FileText, Upload, TrendingUp, TrendingDown, DollarSign, Check, Clock, X } from 'lucide-react';
+import { FileText, Upload, TrendingUp, TrendingDown, DollarSign, Check, Clock, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -34,6 +34,10 @@ export default function InvoicesPage() {
         file: null as File | null
     });
     const [uploading, setUploading] = useState(false);
+
+    // Confirmation Modal state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [idToDelete, setIdToDelete] = useState<string | null>(null);
 
     // Date filter states
     const [filterPeriod, setFilterPeriod] = useState<'all' | '30d' | 'custom'>('all');
@@ -165,12 +169,18 @@ export default function InvoicesPage() {
     }
 
     async function handleDelete(id: string) {
-        if (!confirm('¿Estás seguro de que quieres eliminar este registro?')) return;
+        setIdToDelete(id);
+        setIsDeleteModalOpen(true);
+    }
+
+    async function confirmDelete() {
+        if (!idToDelete) return;
+
         try {
             const { error } = await supabase
                 .from('invoices')
                 .delete()
-                .eq('id', id);
+                .eq('id', idToDelete);
 
             if (error) throw error;
             toast.success('Eliminado correctamente');
@@ -178,6 +188,9 @@ export default function InvoicesPage() {
         } catch (err) {
             console.error('Error deleting invoice:', err);
             toast.error('Error al eliminar');
+        } finally {
+            setIsDeleteModalOpen(false);
+            setIdToDelete(null);
         }
     }
 
@@ -321,6 +334,37 @@ export default function InvoicesPage() {
                         loading={loading}
                     />
                 </div>
+
+                {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
+                {isDeleteModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 border border-slate-100 animate-in zoom-in-95 duration-200">
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 mb-6">
+                                    <AlertTriangle size={32} />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">¿Estás seguro?</h3>
+                                <p className="text-slate-500 mb-8">
+                                    Esta acción eliminará el registro de forma permanente. No podrás deshacerlo.
+                                </p>
+                                <div className="flex w-full gap-3">
+                                    <button
+                                        onClick={() => setIsDeleteModalOpen(false)}
+                                        className="flex-1 px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmDelete}
+                                        className="flex-1 px-6 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-lg shadow-red-200"
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     );
