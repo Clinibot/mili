@@ -6,6 +6,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
+import KpiCards from './KpiCards';
+import WalletSection from './WalletSection';
+import NotificationBell from './NotificationBell';
 
 interface Client {
     id: string;
@@ -54,16 +57,14 @@ export default function ClientPortal() {
             {/* Navbar Simplified */}
             <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-600/20">
-                        IA
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold text-slate-900 leading-tight">Panel de Control</h1>
-                        <p className="text-xs text-slate-500">Vista de Cliente</p>
-                    </div>
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                        IA para llamadas
+                    </h1>
                 </div>
 
+
                 <div className="flex items-center gap-6">
+                    <NotificationBell clientId={id} />
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-bold text-slate-800">{client.name}</p>
                         <p className="text-xs text-slate-500">{client.contact_name}</p>
@@ -87,41 +88,12 @@ export default function ClientPortal() {
                     </button>
                 </div>
 
-                {/* KPI Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <KpiCard
-                        title="Llamadas Totales"
-                        value="1,245"
-                        change="+12.5%"
-                        isPositive={true}
-                        color="bg-blue-500"
-                    />
-                    <KpiCard
-                        title="Minutos Consumidos"
-                        value="3,820"
-                        change="+5.2%"
-                        isPositive={true}
-                        color="bg-purple-500"
-                    />
-                    <KpiCard
-                        title="Coste Estimado"
-                        value="€458.00"
-                        change="-2.1%"
-                        isPositive={true}
-                        color="bg-emerald-500"
-                    />
-                    <KpiCard
-                        title="Satisfacción IA"
-                        value="98%"
-                        change="+1.0%"
-                        isPositive={true}
-                        color="bg-pink-500"
-                    />
-                </div>
+                {/* KPI Cards - Real Data */}
+                <KpiCards clientId={id} />
 
-                {/* Main Content Area */}
+                {/* Main Content Area - 3 Column Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Chart Section */}
+                    {/* Left: Chart Section */}
                     <Card className="lg:col-span-2 border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                         <CardHeader className="border-b border-slate-50 pb-4">
                             <div className="flex items-center justify-between">
@@ -139,16 +111,19 @@ export default function ClientPortal() {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Calls List */}
-                    <Card className="lg:col-span-1 border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                        <CardHeader className="border-b border-slate-50 pb-4">
-                            <CardTitle className="text-lg font-bold text-slate-800">Últimas Llamadas</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <CallsList clientId={id} />
-                        </CardContent>
-                    </Card>
+                    {/* Right Top: Wallet */}
+                    <WalletSection clientId={id} />
                 </div>
+
+                {/* Calls List - Full Width */}
+                <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                    <CardHeader className="border-b border-slate-50 pb-4">
+                        <CardTitle className="text-lg font-bold text-slate-800">Últimas Llamadas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <CallsList clientId={id} />
+                    </CardContent>
+                </Card>
             </main>
         </div>
     );
@@ -252,29 +227,5 @@ function CallsList({ clientId }: { clientId: string }) {
                 </div>
             ))}
         </div>
-    );
-}
-
-function KpiCard({ title, value, change, isPositive, color }: any) {
-    return (
-        <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white hover:shadow-md transition-shadow duration-300">
-            <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-current/20 text-white font-bold text-xl", color)}>
-                        {title.charAt(0)}
-                    </div>
-                    <div className={cn("flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full",
-                        isPositive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-                    )}>
-                        {isPositive ? "↗" : "↘"}
-                        {change}
-                    </div>
-                </div>
-                <div>
-                    <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
-                    <div className="text-3xl font-bold text-slate-800">{value}</div>
-                </div>
-            </CardContent>
-        </Card>
     );
 }
