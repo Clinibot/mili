@@ -131,7 +131,7 @@ function CallsList({ clientId }: { clientId: string }) {
                         <div className="flex items-center gap-3">
                             <div>
                                 <p className="text-sm font-bold text-slate-800">{call.from_number || 'Desconocido'}</p>
-                                <p className="text-xs text-slate-400">{new Date(call.start_timestamp).toLocaleString()}</p>
+                                <p className="text-xs text-slate-400">{new Date(Number(call.start_timestamp)).toLocaleString('es-ES')}</p>
                             </div>
                         </div>
                         <div className="text-right">

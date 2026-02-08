@@ -54,8 +54,8 @@ export default function KpiCards({
                     .from('calls')
                     .select('duration_seconds, call_successful, start_timestamp, user_sentiment')
                     .eq('client_id', clientId)
-                    .gte('start_timestamp', startDate.toISOString())
-                    .lte('start_timestamp', endDate.toISOString());
+                    .gte('start_timestamp', startDate.getTime())
+                    .lte('start_timestamp', endDate.getTime());
 
                 if (currentError) throw currentError;
 
@@ -66,8 +66,8 @@ export default function KpiCards({
                         .from('calls')
                         .select('duration_seconds, start_timestamp, user_sentiment')
                         .eq('client_id', clientId)
-                        .gte('start_timestamp', comparisonStart.toISOString())
-                        .lte('start_timestamp', comparisonEnd.toISOString());
+                        .gte('start_timestamp', comparisonStart.getTime())
+                        .lte('start_timestamp', comparisonEnd.getTime());
 
                     if (prevError) throw prevError;
                     previousCalls = prevData || [];
@@ -80,7 +80,7 @@ export default function KpiCards({
                     .eq('id', clientId)
                     .single();
 
-                const costPerMinute = client?.cost_per_minute || 0.12;
+                const costPerMinute = client?.cost_per_minute || 0.16;
 
                 // Calculate current period KPIs
                 const totalCalls = currentCalls?.length || 0;

@@ -12,7 +12,7 @@ type ComparisonMode = 'none' | 'previousPeriod' | 'custom';
 
 interface Call {
     id: string;
-    start_timestamp: string;
+    start_timestamp: string | number;
     duration_seconds: number;
     user_sentiment: string | null;
     call_successful: boolean;
@@ -68,8 +68,8 @@ export default function AnalyticsCharts({
             .from('calls')
             .select('*')
             .eq('client_id', clientId)
-            .gte('start_timestamp', startDate.toISOString())
-            .lte('start_timestamp', endDate.toISOString())
+            .gte('start_timestamp', startDate.getTime())
+            .lte('start_timestamp', endDate.getTime())
             .order('start_timestamp');
 
         if (error) {
@@ -85,8 +85,8 @@ export default function AnalyticsCharts({
                 .from('calls')
                 .select('*')
                 .eq('client_id', clientId)
-                .gte('start_timestamp', comparisonStart.toISOString())
-                .lte('start_timestamp', comparisonEnd.toISOString())
+                .gte('start_timestamp', comparisonStart.getTime())
+                .lte('start_timestamp', comparisonEnd.getTime())
                 .order('start_timestamp');
 
             comparisonCalls = compData || [];
@@ -150,7 +150,7 @@ export default function AnalyticsCharts({
             }
 
             const periodCalls = calls.filter((call) => {
-                const callDate = parseISO(call.start_timestamp);
+                const callDate = new Date(Number(call.start_timestamp));
                 return callDate >= date && callDate <= periodEnd;
             });
 
