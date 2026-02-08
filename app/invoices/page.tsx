@@ -125,6 +125,7 @@ export default function InvoicesPage() {
     }
 
     async function handleDelete(id: string) {
+        if (!confirm('¿Estás seguro de que quieres eliminar este registro?')) return;
         try {
             const { error } = await supabase
                 .from('invoices')
@@ -137,6 +138,23 @@ export default function InvoicesPage() {
         } catch (err) {
             console.error('Error deleting invoice:', err);
             toast.error('Error al eliminar');
+        }
+    }
+
+    async function handleToggleStatus(id: string, currentStatus: string) {
+        const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+        try {
+            const { error } = await supabase
+                .from('invoices')
+                .update({ status: newStatus })
+                .eq('id', id);
+
+            if (error) throw error;
+            toast.success(`Estado actualizado a ${newStatus === 'paid' ? 'Pagado' : 'Pendiente'}`);
+            fetchInvoices();
+        } catch (err) {
+            console.error('Error updating status:', err);
+            toast.error('Error al actualizar estado');
         }
     }
 
@@ -201,6 +219,7 @@ export default function InvoicesPage() {
                         setNewInvoice={setNewInvoice}
                         onAdd={() => handleAddInvoice('expense')}
                         onDelete={handleDelete}
+                        onToggleStatus={handleToggleStatus}
                         uploading={uploading}
                         loading={loading}
                     />
@@ -217,6 +236,7 @@ export default function InvoicesPage() {
                         setNewInvoice={setNewInvoice}
                         onAdd={() => handleAddInvoice('sale')}
                         onDelete={handleDelete}
+                        onToggleStatus={handleToggleStatus}
                         uploading={uploading}
                         loading={loading}
                     />
@@ -238,6 +258,7 @@ function InvoiceColumn({
     setNewInvoice,
     onAdd,
     onDelete,
+    onToggleStatus,
     uploading,
     loading
 }: {
@@ -251,6 +272,7 @@ function InvoiceColumn({
     setNewInvoice: any;
     onAdd: () => void;
     onDelete: (id: string) => void;
+    onToggleStatus: (id: string, status: string) => void;
     uploading: boolean;
     loading: boolean;
 }) {
@@ -342,19 +364,18 @@ function InvoiceColumn({
                 </div>
 
                 {/* Invoice List */}
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
                     {loading ? (
-                        <div className="text-center py-8 text-slate-400">Cargando...</div>
+                        <div className="text-center py-8 text-slate-400 text-sm">Cargando...</div>
                     ) : invoices.length === 0 ? (
-                        <div className="text-center py-8 text-slate-400 text-sm">
-                            No hay {title.toLowerCase()} registrados
-                        </div>
+                        <div className="text-center py-8 text-slate-400 text-sm">No hay {title.toLowerCase()} registrados</div>
                     ) : (
-                        invoices.map(invoice => (
+                        invoices.map((invoice) => (
                             <InvoiceCard
                                 key={invoice.id}
                                 invoice={invoice}
                                 onDelete={onDelete}
+                                onToggleStatus={onToggleStatus}
                                 color={color}
                             />
                         ))
@@ -369,10 +390,12 @@ function InvoiceColumn({
 function InvoiceCard({
     invoice,
     onDelete,
+    onToggleStatus,
     color
 }: {
     invoice: Invoice;
     onDelete: (id: string) => void;
+    onToggleStatus: (id: string, status: string) => void;
     color: 'red' | 'green';
 }) {
     return (
@@ -383,43 +406,48 @@ function InvoiceCard({
                         <p className={`text-lg font-bold ${color === 'red' ? 'text-red-600' : 'text-green-600'}`}>
                             €{Number(invoice.amount).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                         </p>
-                        {invoice.status === 'paid' ? (
-                            <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                                <Check size={12} />
-                                Pagado
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                                <Clock size={12} />
-                                Pendiente
-                            </span>
-                        )}
+                        <button
+                            onClick={() => onToggleStatus(invoice.id, invoice.status)}
+                            className="cursor-pointer transition-transform hover:scale-105"
+                        >
+                            {invoice.status === 'paid' ? (
+                                <span className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full">
+                                    <Check size={12} strokeWidth={3} />
+                                    Pagado
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
+                                    <Clock size={12} strokeWidth={3} />
+                                    No Pagado
+                                </span>
+                            )}
+                        </button>
                     </div>
                     {invoice.description && (
-                        <p className="text-sm text-slate-600 mb-1">{invoice.description}</p>
+                        <p className="text-sm text-slate-700 font-medium mb-1">{invoice.description}</p>
                     )}
-                    <p className="text-xs text-slate-400">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                         {format(new Date(invoice.invoice_date), "d 'de' MMMM, yyyy", { locale: es })}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     {invoice.document_url && (
                         <a
                             href={invoice.document_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
                             title="Ver documento"
                         >
-                            <FileText size={18} />
+                            <FileText size={16} />
                         </a>
                     )}
                     <button
                         onClick={() => onDelete(invoice.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 opacity-60 hover:opacity-100"
                         title="Eliminar"
                     >
-                        <X size={18} />
+                        <X size={16} />
                     </button>
                 </div>
             </div>
