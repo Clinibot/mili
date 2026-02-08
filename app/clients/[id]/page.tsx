@@ -28,7 +28,11 @@ export default function ClientDetail() {
         cost_per_minute: 0,
         api_key_retail: '',
         agent_id: '',
-        workspace_name: ''
+        cost_per_minute: 0,
+        api_key_retail: '',
+        agent_id: '',
+        workspace_name: '',
+        webhook_token: ''
     });
 
     const [agent, setAgent] = useState({
@@ -98,9 +102,10 @@ export default function ClientDetail() {
             let clientData;
 
             if (id === 'new') {
+                const newToken = crypto.randomUUID();
                 const { data, error } = await supabase
                     .from('clients')
-                    .insert([{ ...client }])
+                    .insert([{ ...client, webhook_token: newToken }])
                     .select()
                     .single();
                 if (error) throw error;
@@ -232,6 +237,28 @@ export default function ClientDetail() {
                                 <FormInput label="Workspace Name" value={client.workspace_name} onChange={v => setClient({ ...client, workspace_name: v })} />
                                 <FormInput label="Agent ID" value={client.agent_id} onChange={v => setClient({ ...client, agent_id: v })} fontMono />
                                 <FormInput label="Retell API Key" value={client.api_key_retail} onChange={v => setClient({ ...client, api_key_retail: v })} type="password" fontMono />
+
+                                {client.webhook_token && (
+                                    <div className="space-y-1.5 pt-2 border-t border-slate-100 mt-2">
+                                        <label className="text-xs font-medium text-slate-500">Webhook URL (Para Retell)</label>
+                                        <div className="flex items-center gap-2">
+                                            <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-600 break-all">
+                                                {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : ''}
+                                            </code>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`);
+                                                    toast.success('Copiado al portapapeles');
+                                                }}
+                                                className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
+                                                title="Copiar URL"
+                                            >
+                                                <ExternalLink size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="pt-2">
                                     <a href="#" className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group border border-slate-100">
                                         <span className="text-sm font-medium text-slate-600">Acceder a Retell</span>
