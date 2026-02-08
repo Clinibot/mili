@@ -115,7 +115,8 @@ export default function ClientDetail() {
                     .from('clients')
                     .insert([{
                         ...client,
-                        slug: slugify(client.name),
+                        // Auto-generar slug si está vacío, sino usar el proporcionado
+                        slug: client.slug || slugify(client.name),
                         webhook_token: newToken
                     }])
                     .select()
@@ -295,10 +296,7 @@ export default function ClientDetail() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <FormInput label="Nombre Cliente / Empresa" value={client.name} onChange={v => {
-                                    // Solo generar slug automático si es cliente NUEVO sin slug
-                                    // Para clientes existentes, preservar el slug original
-                                    const newSlug = id === 'new' && !client.slug ? slugify(v) : client.slug;
-                                    setClient({ ...client, name: v, slug: newSlug });
+                                    setClient({ ...client, name: v });
                                 }} placeholder="Ej. Clínica Dental" />
                                 <FormSelect
                                     label="Estado"
