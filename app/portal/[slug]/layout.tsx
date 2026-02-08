@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
 import NotificationBell from './NotificationBell';
 import { Wallet, LayoutDashboard, Phone, Mic, CreditCard, BarChart3, Settings } from 'lucide-react';
+import { PortalProvider } from './PortalContext';
 
 interface Client {
     id: string;
@@ -142,7 +143,9 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 </header>
 
                 <main>
-                    {children}
+                    <PortalProvider value={{ client, slug: slug as string }}>
+                        {children}
+                    </PortalProvider>
                 </main>
             </div>
         </div>
