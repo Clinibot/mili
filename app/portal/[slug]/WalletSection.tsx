@@ -229,7 +229,11 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                         <div className="text-lg font-black text-slate-900 leading-tight">
                                             {pack.price}€<span className="text-[10px] font-bold text-slate-400 ml-0.5">/mes</span>
                                         </div>
-                                        {id !== 'none' && (
+                                        {id === 'none' ? (
+                                            <div className="mt-1 text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                                0 min (Recarga manual)
+                                            </div>
+                                        ) : (
                                             <div className="mt-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                                                 +{pack.extraMinutes} min incl.
                                             </div>
