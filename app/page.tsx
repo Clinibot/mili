@@ -71,10 +71,12 @@ export default function Home() {
             />
           </div>
 
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-            <Plus size={18} />
-            <span>Nuevo Cliente</span>
-          </button>
+          <Link href="/clients/new">
+            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+              <Plus size={18} />
+              <span>Nuevo Cliente</span>
+            </button>
+          </Link>
         </div>
 
         {/* Client Grid */}
