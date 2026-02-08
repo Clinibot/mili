@@ -3,26 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search, Plus, Trash2, Phone, Mail, User, Mic } from 'lucide-react';
-// ... somewhere later in the file ...
-<button
-  onClick={async (e) => {
-    e.preventDefault(); // Prevent navigation
-    if (confirm('¿Estás seguro de querer eliminar este cliente?')) {
-      try {
-        const { error } = await supabase.from('clients').delete().eq('id', client.id);
-        if (error) throw error;
-        setClients(clients.filter(c => c.id !== client.id));
-      } catch (err) {
-        alert('Error eliminando cliente');
-        console.error(err);
-      }
-    }
-  }}
-  className="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-100"
-  title="Eliminar Cliente"
->
-  <Trash2 size={18} />
-</button>
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';

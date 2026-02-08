@@ -118,7 +118,7 @@ export default function ClientDetail() {
             if (!clientData || !clientData.id) throw new Error("No ID returned");
             clientId = clientData.id;
 
-            // 2. Upsert Agent
+            // 2. Upsert Agent (Manual check to avoid ON CONFLICT error)
             const agentPayload = {
                 client_id: clientId,
                 name: agent.name,
@@ -129,9 +129,29 @@ export default function ClientDetail() {
                 notice_config: agent.notice_config
             };
 
-            const { error: agentError } = await supabase
+            // Check if agent exists for this client
+            const { data: existingAgent } = await supabase
                 .from('agents')
-                .upsert(agentPayload, { onConflict: 'client_id' });
+                .select('id')
+                .eq('client_id', clientId)
+                .maybeSingle();
+
+            let agentError;
+
+            if (existingAgent) {
+                // Update
+                const { error } = await supabase
+                    .from('agents')
+                    .update(agentPayload)
+                    .eq('client_id', clientId);
+                agentError = error;
+            } else {
+                // Insert
+                const { error } = await supabase
+                    .from('agents')
+                    .insert([agentPayload]);
+                agentError = error;
+            }
 
             if (agentError) throw agentError;
 
