@@ -3,7 +3,7 @@
 -- Execute this entire file in your Supabase SQL Editor
 -- ================================================================
 
--- 1. ADD PORTAL CREDENTIALS & BILLING TO CLIENTS TABLE
+-- 1. ADD PORTAL CREDENTIALS, SLUG & BILLING TO CLIENTS TABLE
 -- ================================================================
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS portal_user text UNIQUE;
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS portal_password text;

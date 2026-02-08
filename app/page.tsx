@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, Plus, Trash2, Phone, Mail, User, Mic } from 'lucide-react';
+import { Search, Plus, Trash2 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
@@ -16,7 +16,26 @@ interface Client {
   contact_email: string;
   phone_ia: string;
   workspace_name: string;
+  status: string;
 }
+
+const STATUSES = [
+  'Cliente',
+  'Recogiendo briefing',
+  'Implementando agente',
+  'Entregado',
+  'Testeo',
+  'Mantenimiento mensual'
+];
+
+const COLUMN_GRADIENTS: Record<string, string> = {
+  'Cliente': 'from-blue-50/30 to-transparent',
+  'Recogiendo briefing': 'from-blue-100/30 to-purple-50/20',
+  'Implementando agente': 'from-purple-50/30 to-blue-50/20',
+  'Entregado': 'from-blue-50/30 to-purple-100/30',
+  'Testeo': 'from-purple-100/30 to-blue-50/20',
+  'Mantenimiento mensual': 'from-purple-50/30 to-transparent'
+};
 
 export default function Home() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -54,7 +73,7 @@ export default function Home() {
       try {
         const { data, error } = await supabase
           .from('clients')
-          .select('id, name, contact_name, contact_email, phone_ia, workspace_name')
+          .select('id, name, contact_name, contact_email, phone_ia, workspace_name, status')
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -78,6 +97,12 @@ export default function Home() {
     client.contact_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Group clients by status
+  const clientsByStatus = STATUSES.reduce((acc, status) => {
+    acc[status] = filteredClients.filter(c => (c.status || 'Cliente') === status);
+    return acc;
+  }, {} as Record<string, Client[]>);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -95,61 +120,37 @@ export default function Home() {
           </div>
 
           <Link href="/clients/new">
-            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-600/20 transition-all active:scale-95">
-              <Plus size={18} />
+            <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-bold shadow-xl shadow-blue-500/20 transition-all active:scale-95 group">
+              <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
               <span>Nuevo Cliente</span>
             </button>
           </Link>
         </div>
 
-        {/* Client Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {loading ? (
-            // Skeleton Loader
-            Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-64 rounded-2xl bg-slate-100 animate-pulse"></div>
-            ))
-          ) : filteredClients.map((client) => (
-            <Link href={`/clients/${client.id}`} key={client.id} className="group">
-              <Card className="h-full bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-slate-100 shadow-sm rounded-2xl group-hover:border-blue-100">
-                <div className="p-6 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                      <User size={24} />
-                    </div>
-                    <button
-                      onClick={(e) => handleDeleteClick(e, client.id)}
-                      className="text-slate-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-100"
-                      title="Eliminar Cliente"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate">{client.name}</h3>
-                    <p className="text-sm text-slate-500 truncate">{client.contact_name}</p>
-                  </div>
-
-                  <div className="space-y-2.5 pt-4 border-t border-slate-50">
-                    <div className="flex items-center gap-2.5 text-sm text-slate-500">
-                      <Phone size={14} className="text-blue-500" />
-                      <span className="truncate">{client.phone_ia || 'Sin asignar'}</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 text-sm text-slate-500">
-                      <Mail size={14} className="text-purple-500" />
-                      <span className="truncate">{client.contact_email || 'sincorreo@...'}</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 text-sm text-slate-500">
-                      <Mic size={14} className="text-emerald-500" />
-                      <span className="truncate">{client.workspace_name || 'Workflow 1'}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        {/* Pipeline View */}
+        {loading ? (
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {STATUSES.map((status) => (
+              <div key={status} className="min-w-[280px] space-y-3">
+                <div className="h-8 bg-slate-100 rounded-lg animate-pulse"></div>
+                <div className="h-32 bg-slate-100 rounded-2xl animate-pulse"></div>
+                <div className="h-32 bg-slate-100 rounded-2xl animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {STATUSES.map((status) => (
+              <PipelineColumn
+                key={status}
+                title={status}
+                gradient={COLUMN_GRADIENTS[status]}
+                clients={clientsByStatus[status]}
+                onDeleteClick={handleDeleteClick}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <ConfirmationModal
@@ -162,5 +163,95 @@ export default function Home() {
         destructive
       />
     </DashboardLayout>
+  );
+}
+
+function PipelineColumn({
+  title,
+  gradient,
+  clients,
+  onDeleteClick
+}: {
+  title: string;
+  gradient: string;
+  clients: Client[];
+  onDeleteClick: (e: React.MouseEvent, id: string) => void;
+}) {
+  return (
+    <div className={`min-w-[280px] flex flex-col bg-gradient-to-b ${gradient} rounded-2xl p-4 h-[calc(100vh-280px)]`}>
+      {/* Column Header */}
+      <div className="pb-4 mb-4 border-b border-slate-200/50">
+        <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide">{title}</h3>
+        <p className="text-xs text-slate-500 mt-1">{clients.length} cliente{clients.length !== 1 ? 's' : ''}</p>
+      </div>
+
+      {/* Clients List */}
+      <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+        {clients.length === 0 ? (
+          <div className="text-center py-8 text-slate-400 text-sm">
+            Sin clientes
+          </div>
+        ) : (
+          clients.map((client) => (
+            <ClientCard key={client.id} client={client} onDeleteClick={onDeleteClick} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClientCard({
+  client,
+  onDeleteClick
+}: {
+  client: Client;
+  onDeleteClick: (e: React.MouseEvent, id: string) => void;
+}) {
+  return (
+    <Link href={`/clients/${client.id}`}>
+      <Card className="bg-white border border-slate-100/50 hover:border-transparent hover:shadow-lg hover:shadow-blue-500/10 rounded-2xl p-5 transition-all duration-300 group relative overflow-hidden">
+        {/* Subtle gradient on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-purple-50/0 to-blue-50/0 group-hover:from-blue-50/30 group-hover:via-purple-50/20 group-hover:to-blue-50/30 transition-all duration-500 pointer-events-none"></div>
+
+        <div className="relative z-10">
+          {/* Header with delete button */}
+          <div className="flex justify-between items-start mb-3">
+            <h4 className="font-bold text-slate-800 text-base leading-tight pr-2 group-hover:text-blue-600 transition-colors">
+              {client.name}
+            </h4>
+            <button
+              onClick={(e) => onDeleteClick(e, client.id)}
+              className="text-slate-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50/80 transition-all flex-shrink-0"
+              title="Eliminar Cliente"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+
+          {/* Contact Info */}
+          <div className="space-y-1.5 text-sm">
+            {client.contact_name && (
+              <p className="text-slate-600 truncate">{client.contact_name}</p>
+            )}
+            {client.contact_email && (
+              <p className="text-slate-500 text-xs truncate">{client.contact_email}</p>
+            )}
+            {client.phone_ia && (
+              <p className="text-slate-500 text-xs truncate">{client.phone_ia}</p>
+            )}
+          </div>
+
+          {/* Workspace Badge */}
+          {client.workspace_name && (
+            <div className="mt-3 pt-3 border-t border-slate-100">
+              <span className="inline-block px-2.5 py-1 bg-slate-50 text-slate-600 text-xs rounded-lg">
+                {client.workspace_name}
+              </span>
+            </div>
+          )}
+        </div>
+      </Card>
+    </Link>
   );
 }

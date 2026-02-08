@@ -33,7 +33,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 if (isUuid) {
                     query = query.eq('id', slug);
                 } else {
-                    query = query.or(`id.eq.${slug},name.ilike.%${slug}%`);
+                    query = query.or(`slug.eq.${slug},id.eq.${slug},name.ilike.%${slug}%`);
                 }
                 const { data } = await query.single();
                 if (data) setClient(data);

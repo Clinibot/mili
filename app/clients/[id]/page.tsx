@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
     Save, ArrowLeft, Phone, Mail, User, CreditCard,
-    Bot, Calendar, Share2, Bell, ExternalLink, Key, Lock
+    Bot, Calendar, Share2, Bell, ExternalLink, Key, Lock, X, ChevronDown, ChevronUp
 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,7 @@ export default function ClientDetail() {
     // Form State
     const [client, setClient] = useState({
         name: '',
+        status: 'Cliente',
         phone_ia: '',
         contact_name: '',
         contact_email: '',
@@ -40,9 +41,11 @@ export default function ClientDetail() {
         personality: '',
         knowledge_base: '',
         agenda_config: { type: 'google', url: '' },
-        transfer_config: { number: '', who: '' },
+        transfer_config: [{ number: '', who: '' }] as { number: string; who: string }[],
         notice_config: { email: '', whatsapp: '' }
     });
+
+    const [isAgentConfigExpanded, setIsAgentConfigExpanded] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -73,10 +76,14 @@ export default function ClientDetail() {
 
                     if (agentData) {
                         try {
+                            const transfers = typeof agentData.transfer_config === 'string'
+                                ? JSON.parse(agentData.transfer_config)
+                                : agentData.transfer_config;
+
                             setAgent({
                                 ...agentData,
                                 agenda_config: typeof agentData.agenda_config === 'string' ? JSON.parse(agentData.agenda_config) : agentData.agenda_config || { type: 'google', url: '' },
-                                transfer_config: typeof agentData.transfer_config === 'string' ? JSON.parse(agentData.transfer_config) : agentData.transfer_config || { number: '', who: '' },
+                                transfer_config: Array.isArray(transfers) ? transfers : (transfers?.number ? [transfers] : [{ number: '', who: '' }]),
                                 notice_config: typeof agentData.notice_config === 'string' ? JSON.parse(agentData.notice_config) : agentData.notice_config || { email: '', whatsapp: '' }
                             });
                         } catch (e) {
@@ -105,16 +112,21 @@ export default function ClientDetail() {
                 const newToken = crypto.randomUUID();
                 const { data, error } = await supabase
                     .from('clients')
-                    .insert([{ ...client, webhook_token: newToken }])
+                    .insert([{
+                        ...client,
+                        slug: slugify(client.name),
+                        webhook_token: newToken
+                    }])
                     .select()
                     .single();
                 if (error) throw error;
                 clientData = data;
             } else {
                 // Ensure webhook_token exists even for old clients
+                // And update slug based on current name
                 const updatePayload = {
                     ...client,
-                    slug: client.slug || slugify(client.name),
+                    slug: slugify(client.name),
                     webhook_token: client.webhook_token || crypto.randomUUID()
                 };
 
@@ -126,7 +138,7 @@ export default function ClientDetail() {
                     .single();
                 if (error) throw error;
                 clientData = data;
-                setClient(clientData); // Update state to show the new token if it was generated
+                setClient(clientData);
             }
 
             if (!clientData || !clientData.id) throw new Error("No ID returned");
@@ -228,6 +240,19 @@ export default function ClientDetail() {
                                     const newSlug = client.slug || id === 'new' ? slugify(v) : client.slug;
                                     setClient({ ...client, name: v, slug: newSlug });
                                 }} placeholder="Ej. Clínica Dental" />
+                                <FormSelect
+                                    label="Estado"
+                                    value={client.status || 'Cliente'}
+                                    onChange={v => setClient({ ...client, status: v })}
+                                    options={[
+                                        'Cliente',
+                                        'Recogiendo briefing',
+                                        'Implementando agente',
+                                        'Entregado',
+                                        'Testeo',
+                                        'Mantenimiento mensual'
+                                    ]}
+                                />
                                 <FormInput label="Slug / URL (Opcional)" value={client.slug} onChange={v => setClient({ ...client, slug: v })} placeholder="clinica-dental" fontMono />
                                 <FormInput label="Nombre Contacto" value={client.contact_name} onChange={v => setClient({ ...client, contact_name: v })} placeholder="Ej. Juan Pérez" />
                                 <FormInput label="Email Contacto" value={client.contact_email} onChange={v => setClient({ ...client, contact_email: v })} type="email" />
@@ -237,62 +262,7 @@ export default function ClientDetail() {
                             </CardContent>
                         </Card>
 
-                        {/* Technical Info */}
-                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <Key size={18} className="text-purple-500" />
-                                    Configuración Técnica
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <FormInput label="Workspace Name" value={client.workspace_name} onChange={v => setClient({ ...client, workspace_name: v })} />
-                                <FormInput label="Agent ID" value={client.agent_id} onChange={v => setClient({ ...client, agent_id: v })} fontMono />
-                                <FormInput label="Retell API Key" value={client.api_key_retail} onChange={v => setClient({ ...client, api_key_retail: v })} type="password" fontMono />
-
-                                <div className="space-y-2 pt-4 border-t border-slate-100 mt-2">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Share2 size={14} className="text-blue-500" />
-                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Agent Level Webhook</label>
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 leading-relaxed mb-3">
-                                        Copia esta URL en la sección <span className="font-bold text-slate-700">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
-                                    </p>
-
-                                    {client.webhook_token ? (
-                                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 pr-1">
-                                            <code className="flex-1 px-2 text-[10px] font-mono text-slate-600 break-all leading-relaxed">
-                                                {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : 'URL se generará al guardar'}
-                                            </code>
-                                            <button
-                                                onClick={() => {
-                                                    const url = `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`;
-                                                    navigator.clipboard.writeText(url);
-                                                    toast.success('Webhook URL copiada');
-                                                }}
-                                                className="p-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg text-slate-400 transition-all shadow-sm"
-                                                title="Copiar URL"
-                                            >
-                                                <ExternalLink size={14} />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-[10px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium italic">
-                                            Pulsa "Guardar Cambios" para generar la URL del Webhook automáticamente.
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="pt-2">
-                                    <a href="https://beta.retellai.com/dashboard" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group border border-slate-100">
-                                        <span className="text-sm font-medium text-slate-600">Acceder a Retell Dashboard</span>
-                                        <ExternalLink size={16} className="text-slate-400 group-hover:text-blue-500" />
-                                    </a>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Client Access */}
+                        {/* Client Access - MOVED UP */}
                         <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100 shadow-sm rounded-2xl">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-indigo-900">
@@ -325,11 +295,15 @@ export default function ClientDetail() {
                                 </div>
                                 <div className="pt-2 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-xs text-indigo-600/80">Credenciales para que el cliente acceda a su panel.</p>
+                                        <div className="flex flex-col gap-1">
+                                            <p className="text-xs text-indigo-600/80">Credenciales para que el cliente acceda a su panel.</p>
+                                            <p className="text-[10px] text-indigo-400">URL actual: /portal/{client.slug || id}</p>
+                                        </div>
                                         <button
                                             onClick={() => {
                                                 if (saving) return;
-                                                window.open(`/portal/${(client as any).slug || id}`, '_blank');
+                                                const currentSlug = client.slug || id;
+                                                window.open(`/portal/${currentSlug}`, '_blank');
                                             }}
                                             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
                                         >
@@ -339,8 +313,58 @@ export default function ClientDetail() {
                                     </div>
                                     <p className="text-[10px] font-bold text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100 flex items-center gap-2">
                                         <span className="text-lg">⚠️</span>
-                                        Recuerda pulsar "Guardar Cambios" arriba antes de entrar al panel con las nuevas credenciales.
+                                        Recuerda pulsar "Guardar Cambios" arriba antes de entrar al panel si has cambiado el nombre o slug.
                                     </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Technical Info - MOVED DOWN */}
+                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-700">
+                                    <Key size={18} className="text-purple-500" />
+                                    Configuración Técnica
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <FormInput label="Workspace Name" value={client.workspace_name} onChange={v => setClient({ ...client, workspace_name: v })} />
+                                <FormInput label="Agent ID" value={client.agent_id} onChange={v => setClient({ ...client, agent_id: v })} fontMono />
+                                <FormInput label="Retell API Key" value={client.api_key_retail} onChange={v => setClient({ ...client, api_key_retail: v })} type="password" fontMono />
+
+                                <div className="space-y-2 pt-4 border-t border-slate-100 mt-2">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Share2 size={14} className="text-blue-500" />
+                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Agent Level Webhook</label>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 leading-relaxed mb-3">
+                                        Copia esta URL en la sección <span className="font-bold text-slate-700">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
+                                    </p>
+
+                                    {client.webhook_token ? (
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 pr-1">
+                                                <code className="flex-1 px-2 text-[10px] font-mono text-slate-600 break-all leading-relaxed">
+                                                    {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : 'URL se generará al guardar'}
+                                                </code>
+                                                <button
+                                                    onClick={() => {
+                                                        const url = `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast.success('Webhook URL copiada');
+                                                    }}
+                                                    className="p-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg text-slate-400 transition-all shadow-sm"
+                                                    title="Copiar URL"
+                                                >
+                                                    <ExternalLink size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-[10px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium italic">
+                                            Pulsa "Guardar Cambios" para generar la URL del Webhook automáticamente.
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -349,113 +373,159 @@ export default function ClientDetail() {
                     {/* Right Column: AI Agent Config */}
                     <div className="space-y-6 lg:col-span-2">
                         <Card className="border-t-4 border-t-pink-500 bg-white border-slate-100 shadow-sm rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <Bot size={18} className="text-pink-500" />
-                                    Configuración Agente IA
+                            <CardHeader className="cursor-pointer" onClick={() => setIsAgentConfigExpanded(!isAgentConfigExpanded)}>
+                                <CardTitle className="flex items-center justify-between text-slate-700">
+                                    <div className="flex items-center gap-2">
+                                        <Bot size={18} className="text-pink-500" />
+                                        Configuración Agente IA
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsAgentConfigExpanded(!isAgentConfigExpanded);
+                                        }}
+                                    >
+                                        {isAgentConfigExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                                    </button>
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormInput label="Nombre del Agente" value={agent.name} onChange={v => setAgent({ ...agent, name: v })} placeholder="Ej. Sofia" />
-                                    <FormInput label="Personalidad" value={agent.personality} onChange={v => setAgent({ ...agent, personality: v })} placeholder="Ej. Amable, profesional..." />
-                                </div>
-
-                                {/* Info / Knowledge Base */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                        Base de Conocimiento (Prompt/Info)
-                                    </label>
-                                    <textarea
-                                        className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none placeholder:text-slate-400"
-                                        placeholder="Pegar aquí la información base del agente..."
-                                        value={agent.knowledge_base}
-                                        onChange={(e) => setAgent({ ...agent, knowledge_base: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Calendar Task */}
-                                    <div className="space-y-3 p-4 rounded-xl bg-orange-50/50 border border-orange-100">
-                                        <div className="flex items-center gap-2 text-orange-600 font-medium pb-2 border-b border-orange-200/50">
-                                            <Calendar size={16} />
-                                            <span>Agenda / Citas</span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs text-slate-500">Proveedor</label>
-                                            <select
-                                                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-700 focus:outline-none focus:border-orange-400"
-                                                value={agent.agenda_config.type}
-                                                onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, type: e.target.value } })}
-                                            >
-                                                <option value="google">Google Calendar</option>
-                                                <option value="calcom">Cal.com</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs text-slate-500">URL / Link Agendamiento</label>
-                                            <input
-                                                type="text"
-                                                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-700 focus:outline-none focus:border-orange-400"
-                                                value={agent.agenda_config.url}
-                                                onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, url: e.target.value } })}
-                                                placeholder="https://..."
-                                            />
-                                        </div>
+                            {isAgentConfigExpanded && (
+                                <CardContent className="space-y-6 animate-in slide-in-from-top-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormInput label="Nombre del Agente" value={agent.name} onChange={v => setAgent({ ...agent, name: v })} placeholder="Ej. Sofia" />
+                                        <FormInput label="Personalidad" value={agent.personality} onChange={v => setAgent({ ...agent, personality: v })} placeholder="Ej. Amable, profesional..." />
                                     </div>
 
-                                    {/* Transfer Task */}
-                                    <div className="space-y-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
-                                        <div className="flex items-center gap-2 text-emerald-600 font-medium pb-2 border-b border-emerald-200/50">
-                                            <Share2 size={16} />
-                                            <span>Transferencias</span>
-                                        </div>
-                                        <FormInput
-                                            label="Número destino"
-                                            value={agent.transfer_config.number}
-                                            onChange={v => setAgent({ ...agent, transfer_config: { ...agent.transfer_config, number: v } })}
-                                            placeholder="+34..."
-                                            compact
-                                            bgWhite
-                                        />
-                                        <FormInput
-                                            label="Responsable (Quién)"
-                                            value={agent.transfer_config.who}
-                                            onChange={v => setAgent({ ...agent, transfer_config: { ...agent.transfer_config, who: v } })}
-                                            placeholder="Recepción / Dr. X"
-                                            compact
-                                            bgWhite
+                                    {/* Info / Knowledge Base */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                            Base de Conocimiento (Prompt/Info)
+                                        </label>
+                                        <textarea
+                                            className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none placeholder:text-slate-400"
+                                            placeholder="Pegar aquí la información base del agente..."
+                                            value={agent.knowledge_base}
+                                            onChange={(e) => setAgent({ ...agent, knowledge_base: e.target.value })}
                                         />
                                     </div>
 
-                                    {/* Notifications Task */}
-                                    <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
-                                        <div className="flex items-center gap-2 text-yellow-600 font-medium pb-2 border-b border-yellow-200/50">
-                                            <Bell size={16} />
-                                            <span>Avisos / Notificaciones</span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Calendar Task */}
+                                        <div className="space-y-3 p-4 rounded-xl bg-orange-50/50 border border-orange-100">
+                                            <div className="flex items-center gap-2 text-orange-600 font-medium pb-2 border-b border-orange-200/50">
+                                                <Calendar size={16} />
+                                                <span>Agenda / Citas</span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs text-slate-500">Proveedor</label>
+                                                <select
+                                                    className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-700 focus:outline-none focus:border-orange-400"
+                                                    value={agent.agenda_config.type}
+                                                    onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, type: e.target.value } })}
+                                                >
+                                                    <option value="google">Google Calendar</option>
+                                                    <option value="calcom">Cal.com</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs text-slate-500">URL / Link Agendamiento</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-700 focus:outline-none focus:border-orange-400"
+                                                    value={agent.agenda_config.url}
+                                                    onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, url: e.target.value } })}
+                                                    placeholder="https://..."
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <FormInput
-                                                label="Email Avisos"
-                                                value={agent.notice_config.email}
-                                                onChange={v => setAgent({ ...agent, notice_config: { ...agent.notice_config, email: v } })}
-                                                placeholder="avisos@empresa.com"
-                                                compact
-                                                bgWhite
-                                            />
-                                            <FormInput
-                                                label="WhatsApp Avisos"
-                                                value={agent.notice_config.whatsapp}
-                                                onChange={v => setAgent({ ...agent, notice_config: { ...agent.notice_config, whatsapp: v } })}
-                                                placeholder="+34 600..."
-                                                compact
-                                                bgWhite
-                                            />
+
+                                        {/* Transfer Task */}
+                                        <div className="space-y-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
+                                            <div className="flex items-center justify-between text-emerald-600 font-medium pb-2 border-b border-emerald-200/50">
+                                                <div className="flex items-center gap-2">
+                                                    <Share2 size={16} />
+                                                    <span>Transferencias</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setAgent({ ...agent, transfer_config: [...agent.transfer_config, { number: '', who: '' }] })}
+                                                    className="text-xs bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded-md transition-colors"
+                                                >
+                                                    + Añadir
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+                                                {agent.transfer_config.map((t, i) => (
+                                                    <div key={i} className="space-y-2 pb-3 border-b border-emerald-100 last:border-0 relative group/row">
+                                                        {agent.transfer_config.length > 1 && (
+                                                            <button
+                                                                onClick={() => setAgent({ ...agent, transfer_config: agent.transfer_config.filter((_, idx) => idx !== i) })}
+                                                                type="button"
+                                                                className="absolute -right-1 -top-1 p-1 text-slate-300 hover:text-red-500 transition-colors"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        )}
+                                                        <FormInput
+                                                            label={`Número destino ${i + 1}`}
+                                                            value={t.number}
+                                                            onChange={v => {
+                                                                const newTransfers = [...agent.transfer_config];
+                                                                newTransfers[i].number = v;
+                                                                setAgent({ ...agent, transfer_config: newTransfers });
+                                                            }}
+                                                            placeholder="+34..."
+                                                            compact
+                                                            bgWhite
+                                                        />
+                                                        <FormInput
+                                                            label="Responsable"
+                                                            value={t.who}
+                                                            onChange={v => {
+                                                                const newTransfers = [...agent.transfer_config];
+                                                                newTransfers[i].who = v;
+                                                                setAgent({ ...agent, transfer_config: newTransfers });
+                                                            }}
+                                                            placeholder="Recepción / Dr. X"
+                                                            compact
+                                                            bgWhite
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Notifications Task */}
+                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
+                                            <div className="flex items-center gap-2 text-yellow-600 font-medium pb-2 border-b border-yellow-200/50">
+                                                <Bell size={16} />
+                                                <span>Avisos / Notificaciones</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <FormInput
+                                                    label="Email Avisos"
+                                                    value={agent.notice_config.email}
+                                                    onChange={v => setAgent({ ...agent, notice_config: { ...agent.notice_config, email: v } })}
+                                                    placeholder="avisos@empresa.com"
+                                                    compact
+                                                    bgWhite
+                                                />
+                                                <FormInput
+                                                    label="WhatsApp Avisos"
+                                                    value={agent.notice_config.whatsapp}
+                                                    onChange={v => setAgent({ ...agent, notice_config: { ...agent.notice_config, whatsapp: v } })}
+                                                    placeholder="+34 600..."
+                                                    compact
+                                                    bgWhite
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </CardContent>
+                                </CardContent>
+                            )}
                         </Card>
 
                         {/* Stats / Invoices Placeholder */}
@@ -480,7 +550,7 @@ export default function ClientDetail() {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 }
 
@@ -516,6 +586,23 @@ function FormInput({ label, value, onChange, type = "text", placeholder, icon, c
                     onChange={(e) => onChange(e.target.value)}
                 />
             </div>
+        </div>
+    );
+}
+
+function FormSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+    return (
+        <div className="space-y-1.5">
+            <label className="text-xs font-medium text-slate-500">{label}</label>
+            <select
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+            >
+                {options.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                ))}
+            </select>
         </div>
     );
 }
