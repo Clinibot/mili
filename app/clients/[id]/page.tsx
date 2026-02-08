@@ -212,7 +212,11 @@ export default function ClientDetail({ params }: ClientDetailProps) {
                                     <h3 className="font-semibold text-indigo-300">Panel del Cliente</h3>
                                     <p className="text-xs text-indigo-400/60">Ver métricas y KPIs</p>
                                 </div>
-                                <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors">
+                                <button
+                                    onClick={() => window.open(`/portal/${id}`, '_blank')}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    <ExternalLink size={14} />
                                     Ver Panel
                                 </button>
                             </CardContent>

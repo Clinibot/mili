@@ -56,11 +56,8 @@ export default function DashboardLayout({
                 <div className="p-6 flex items-center justify-between">
                     {!collapsed && (
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg">
-                                M
-                            </div>
                             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                                Mili
+                                IA para llamadas
                             </span>
                         </div>
                     )}
