@@ -9,6 +9,9 @@ import { Toaster } from '@/components/ui/sonner';
 import KpiCards from './KpiCards';
 import WalletSection from './WalletSection';
 import NotificationBell from './NotificationBell';
+import DateRangeSelector from './DateRangeSelector';
+import AnalyticsCharts from './AnalyticsCharts';
+import { subDays } from 'date-fns';
 
 interface Client {
     id: string;
@@ -22,6 +25,14 @@ export default function ClientPortal() {
     const id = params?.id as string;
     const [client, setClient] = useState<Client | null>(null);
     const [loading, setLoading] = useState(true);
+    const [dateRange, setDateRange] = useState({
+        startDate: subDays(new Date(), 6),
+        endDate: new Date(),
+        viewMode: 'daily' as 'daily' | 'weekly' | 'monthly',
+        comparisonMode: 'none' as 'none' | 'previousPeriod' | 'custom',
+        comparisonStart: undefined as Date | undefined,
+        comparisonEnd: undefined as Date | undefined,
+    });
 
     useEffect(() => {
         if (!id) return;
@@ -91,29 +102,33 @@ export default function ClientPortal() {
                 {/* KPI Cards - Real Data */}
                 <KpiCards clientId={id} />
 
-                {/* Main Content Area - 3 Column Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left: Chart Section */}
-                    <Card className="lg:col-span-2 border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                        <CardHeader className="border-b border-slate-50 pb-4">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg font-bold text-slate-800">Actividad de Llamadas</CardTitle>
-                                <select className="bg-slate-50 border-none text-xs font-medium text-slate-500 rounded-lg px-2 py-1 outline-none cursor-pointer">
-                                    <option>Últimos 7 días</option>
-                                    <option>Este mes</option>
-                                </select>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-6">
-                            <div className="h-[300px] w-full bg-gradient-to-b from-blue-50/50 to-transparent rounded-xl border border-blue-100 border-dashed flex items-center justify-center text-blue-300 font-medium">
-                                GRÁFICO DE ACTIVIDAD
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Date Range Selector */}
+                <DateRangeSelector
+                    onRangeChange={(start, end, view, comparison, compStart, compEnd) => {
+                        setDateRange({
+                            startDate: start,
+                            endDate: end,
+                            viewMode: view,
+                            comparisonMode: comparison,
+                            comparisonStart: compStart,
+                            comparisonEnd: compEnd,
+                        });
+                    }}
+                />
 
-                    {/* Right Top: Wallet */}
-                    <WalletSection clientId={id} />
-                </div>
+                {/* Analytics Charts */}
+                <AnalyticsCharts
+                    clientId={id}
+                    startDate={dateRange.startDate}
+                    endDate={dateRange.endDate}
+                    viewMode={dateRange.viewMode}
+                    comparisonMode={dateRange.comparisonMode}
+                    comparisonStart={dateRange.comparisonStart}
+                    comparisonEnd={dateRange.comparisonEnd}
+                />
+
+                {/* Wallet Section */}
+                <WalletSection clientId={id} />
 
                 {/* Calls List - Full Width */}
                 <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
