@@ -98,13 +98,13 @@ export default function InvoicesPage() {
             if (newInvoice.file) {
                 const fileName = `${Date.now()}_${newInvoice.file.name}`;
                 const { data, error: uploadError } = await supabase.storage
-                    .from('invoices')
+                    .from('documentation')
                     .upload(fileName, newInvoice.file);
 
                 if (uploadError) throw uploadError;
 
                 const { data: { publicUrl } } = supabase.storage
-                    .from('invoices')
+                    .from('documentation')
                     .getPublicUrl(fileName);
 
                 documentUrl = publicUrl;
