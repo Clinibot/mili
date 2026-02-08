@@ -123,11 +123,11 @@ export default function ClientDetail() {
                 if (error) throw error;
                 clientData = data;
             } else {
-                // Ensure webhook_token exists even for old clients
-                // And update slug based on current name
+                // Para clientes existentes, usar el slug actual (no regenerar)
+                // Solo generar slug si por alguna razón no existe
                 const updatePayload = {
                     ...client,
-                    slug: slugify(client.name),
+                    slug: client.slug || slugify(client.name),
                     webhook_token: client.webhook_token || crypto.randomUUID()
                 };
 
