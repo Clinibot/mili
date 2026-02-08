@@ -16,7 +16,23 @@ interface KpiData {
     previousMonthCost: number;
 }
 
-export default function KpiCards({ clientId }: { clientId: string }) {
+interface KpiCardsProps {
+    clientId: string;
+    startDate: Date;
+    endDate: Date;
+    comparisonMode: 'none' | 'previousPeriod' | 'custom';
+    comparisonStart?: Date;
+    comparisonEnd?: Date;
+}
+
+export default function KpiCards({
+    clientId,
+    startDate,
+    endDate,
+    comparisonMode,
+    comparisonStart,
+    comparisonEnd
+}: KpiCardsProps) {
     const [kpis, setKpis] = useState<KpiData>({
         totalCalls: 0,
         totalMinutes: 0,
@@ -31,74 +47,83 @@ export default function KpiCards({ clientId }: { clientId: string }) {
 
     useEffect(() => {
         async function fetchKpis() {
-            const now = new Date();
-            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-            const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
-            const previousMonthEnd = currentMonthStart - 1;
+            setLoading(true);
+            try {
+                // Fetch current period data
+                const { data: currentCalls, error: currentError } = await supabase
+                    .from('calls')
+                    .select('duration_seconds, call_successful, start_timestamp, user_sentiment')
+                    .eq('client_id', clientId)
+                    .gte('start_timestamp', startDate.toISOString())
+                    .lte('start_timestamp', endDate.toISOString());
 
-            // Fetch current month data
-            const { data: currentCalls } = await supabase
-                .from('calls')
-                .select('duration_seconds, call_successful, start_timestamp, user_sentiment')
-                .eq('client_id', clientId)
-                .gte('start_timestamp', currentMonthStart);
+                if (currentError) throw currentError;
 
-            // Fetch previous month data for comparison
-            const { data: previousCalls } = await supabase
-                .from('calls')
-                .select('duration_seconds, start_timestamp, user_sentiment')
-                .eq('client_id', clientId)
-                .gte('start_timestamp', previousMonthStart)
-                .lte('start_timestamp', previousMonthEnd);
+                // Fetch comparison data if needed
+                let previousCalls: any[] = [];
+                if (comparisonMode !== 'none' && comparisonStart && comparisonEnd) {
+                    const { data: prevData, error: prevError } = await supabase
+                        .from('calls')
+                        .select('duration_seconds, start_timestamp, user_sentiment')
+                        .eq('client_id', clientId)
+                        .gte('start_timestamp', comparisonStart.toISOString())
+                        .lte('start_timestamp', comparisonEnd.toISOString());
 
-            // Fetch client cost per minute
-            const { data: client } = await supabase
-                .from('clients')
-                .select('cost_per_minute')
-                .eq('id', clientId)
-                .single();
+                    if (prevError) throw prevError;
+                    previousCalls = prevData || [];
+                }
 
-            const costPerMinute = client?.cost_per_minute || 0.12;
+                // Fetch client cost per minute
+                const { data: client } = await supabase
+                    .from('clients')
+                    .select('cost_per_minute')
+                    .eq('id', clientId)
+                    .single();
 
-            // Calculate current month KPIs
-            const totalCalls = currentCalls?.length || 0;
-            const totalSeconds = currentCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
-            const totalMinutes = Math.round(totalSeconds / 60);
-            const totalCost = (totalMinutes * costPerMinute);
-            const successfulCalls = currentCalls?.filter(call => call.call_successful).length || 0;
-            const successRate = totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
-            const colgadasShort = currentCalls?.filter(call => (call.duration_seconds || 0) < 15).length || 0;
+                const costPerMinute = client?.cost_per_minute || 0.12;
 
-            // Calculate actual sentiment score
-            const callsWithSentiment = currentCalls?.filter(c => c.user_sentiment) || [];
-            const positiveSentiments = callsWithSentiment.filter(c =>
-                c.user_sentiment.toLowerCase().includes('positive') ||
-                c.user_sentiment.toLowerCase().includes('positivo')
-            ).length;
-            const sentimentScore = callsWithSentiment.length > 0
-                ? Math.round((positiveSentiments / callsWithSentiment.length) * 100)
-                : 0;
+                // Calculate current period KPIs
+                const totalCalls = currentCalls?.length || 0;
+                const totalSeconds = currentCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
+                const totalMinutes = Math.round(totalSeconds / 60);
+                const totalCost = (totalMinutes * costPerMinute);
+                const successfulCalls = currentCalls?.filter(call => call.call_successful).length || 0;
+                const colgadasShort = currentCalls?.filter(call => (call.duration_seconds || 0) < 15).length || 0;
 
-            // Calculate previous month
-            const previousMonthCalls = previousCalls?.length || 0;
-            const previousSeconds = previousCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
-            const previousMonthMinutes = Math.round(previousSeconds / 60);
-            const previousMonthCost = (previousMonthMinutes * costPerMinute);
+                // Calculate actual sentiment score
+                const callsWithSentiment = currentCalls?.filter(c => c.user_sentiment) || [];
+                const positiveSentiments = callsWithSentiment.filter(c =>
+                    c.user_sentiment.toLowerCase().includes('positive') ||
+                    c.user_sentiment.toLowerCase().includes('positivo')
+                ).length;
+                const sentimentScore = callsWithSentiment.length > 0
+                    ? Math.round((positiveSentiments / callsWithSentiment.length) * 100)
+                    : 0;
 
-            setKpis({
-                totalCalls,
-                totalMinutes,
-                totalCost,
-                successRate: sentimentScore, // Using actual sentiment score now
-                colgadasShort,
-                previousMonthCalls,
-                previousMonthMinutes,
-                previousMonthCost
-            });
-            setLoading(false);
+                // Calculate previous period
+                const previousMonthCalls = previousCalls?.length || 0;
+                const previousSeconds = previousCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
+                const previousMonthMinutes = Math.round(previousSeconds / 60);
+                const previousMonthCost = (previousMonthMinutes * costPerMinute);
+
+                setKpis({
+                    totalCalls,
+                    totalMinutes,
+                    totalCost,
+                    successRate: sentimentScore,
+                    colgadasShort,
+                    previousMonthCalls,
+                    previousMonthMinutes,
+                    previousMonthCost
+                });
+            } catch (err) {
+                console.error('Error fetching KPIs:', err);
+            } finally {
+                setLoading(false);
+            }
         }
         fetchKpis();
-    }, [clientId]);
+    }, [clientId, startDate, endDate, comparisonMode, comparisonStart, comparisonEnd]);
 
     const calculateChange = (current: number, previous: number) => {
         if (previous === 0) return { value: '+0%', isPositive: true };

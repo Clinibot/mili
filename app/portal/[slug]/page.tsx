@@ -52,7 +52,14 @@ export default function ClientPortal() {
             </div>
 
             {/* KPI Cards */}
-            <KpiCards clientId={client.id} />
+            <KpiCards
+                clientId={client.id}
+                startDate={dateRange.startDate}
+                endDate={dateRange.endDate}
+                comparisonMode={dateRange.comparisonMode}
+                comparisonStart={dateRange.comparisonStart}
+                comparisonEnd={dateRange.comparisonEnd}
+            />
 
             {/* Charts Stack */}
             <div className="space-y-12">
