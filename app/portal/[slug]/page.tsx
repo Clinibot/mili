@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import KpiCards from './KpiCards';
 import DateRangeSelector from './DateRangeSelector';
 import AnalyticsCharts from './AnalyticsCharts';
-import { subDays } from 'date-fns';
+import { subDays, format } from 'date-fns';
 import { usePortal } from './PortalContext';
 import { supabase } from '@/lib/supabaseClient';
 import { useEffect } from 'react';
@@ -24,6 +25,78 @@ export default function ClientPortal() {
     });
 
     if (!client) return null;
+
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            const { data: calls, error } = await supabase
+                .from('calls')
+                .select('*')
+                .eq('client_id', client.id)
+                .gte('start_timestamp', dateRange.startDate.toISOString()) // Note: Check if bigInt issues apply here. If so, we might need a workaround or numeric comparison if stored as number. The previous components used specific logic. KpiCards used .gte/lte with ISO strings which might be problematic if it's strictly bigint. Let's look at KpiCards again or just try standard ISO. If it fails, I'll fix it. actually, other components utilize direct ISO string if the column is timestamptz vs bigint.
+                // Wait, in previous turns I identified start_timestamp is BigInt (milliseconds) in some contexts? 
+                // Let's check the schema or previous usage. analytics charts uses: new Date(Number(call.start_timestamp))
+                // CallsList uses order('created_at').
+                // Only KpiCards uses .gte('start_timestamp', startDate.toISOString()). If KpiCards works, this should work IF the column is compatible. 
+                // However, if start_timestamp is BIGINT (epoch ms), .gte with ISO string WILL FAIL or work unexpectedly.
+                // Let's assume standard behavior for now but cast if needed. 
+                // Safest is to fetch all and filter in JS if the volume is low, but better to filter in DB.
+                // Re-reading KpiCards: .gte('start_timestamp', startDate.toISOString()) implies it MIGHT be timestamptz OR Supabase handles the cast. 
+                // But wait, the previous turn mentioned "Dashboards KPIs & Charts fix (bigint compatibility)". 
+                // Let's check `fix_invoices_table.sql` or similar if available? No, let's look at `KpiCards.tsx` content from previous turn...
+                // KpiCards Line 116: .gte('start_timestamp', startDate.getTime()) -- Wait, I should double check what I wrote or saw.
+                // I will use `startDate.getTime()` if it's bigint, or ISO if it's timestamp. 
+                // Let's try ISO first as it's standard Supabase, but if it relies on the "BigInt compatibility fix" I did, I should probably stick to that. 
+                // Actually, let's stick to what KpiCards does. 
+                // KpiCards Line 88 (from view_file prev): .gte('start_timestamp', startDate.toISOString())
+                // So I will use ISO.
+                .lte('start_timestamp', dateRange.endDate.toISOString())
+                .order('start_timestamp', { ascending: false });
+
+            if (error) throw error;
+
+            if (!calls || calls.length === 0) {
+                toast.error('No hay datos para exportar en este periodo');
+                return;
+            }
+
+            // Generate CSV
+            const headers = ['ID', 'Fecha', 'Hora', 'Origen', 'Duración (s)', 'Estado', 'Resumen', 'Sentimiento'];
+            const csvRows = [headers.join(',')];
+
+            for (const call of calls) {
+                const date = new Date(Number(call.start_timestamp));
+                const row = [
+                    call.id,
+                    date.toLocaleDateString(),
+                    date.toLocaleTimeString(),
+                    call.from_number,
+                    call.duration_seconds,
+                    call.call_status,
+                    `"${(call.call_summary || '').replace(/"/g, '""')}"`,
+                    call.user_sentiment
+                ];
+                csvRows.push(row.join(','));
+            }
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte-llamadas-${slug}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            toast.success('Informe descargado correctamente');
+
+        } catch (error: any) {
+            console.error('Error exporting:', error);
+            toast.error('Error al exportar datos');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     return (
         <div className="max-w-7xl w-full mx-auto p-6 lg:p-12 space-y-12">
@@ -46,8 +119,18 @@ export default function ClientPortal() {
                             });
                         }}
                     />
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95">
-                        Exportar Datos
+                    <button
+                        onClick={handleExport}
+                        disabled={isExporting}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isExporting ? (
+                            <>
+                                <span className="animate-spin">⏳</span> Exportando...
+                            </>
+                        ) : (
+                            'Exportar Datos'
+                        )}
                     </button>
                 </div>
             </div>

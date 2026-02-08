@@ -4,7 +4,18 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { supabase } from '@/lib/supabaseClient';
-import { format, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import {
+    format,
+    eachDayOfInterval,
+    eachWeekOfInterval,
+    eachMonthOfInterval,
+    startOfWeek,
+    endOfWeek,
+    startOfMonth,
+    endOfMonth,
+    subDays,
+    endOfDay
+} from 'date-fns';
 import { es } from 'date-fns/locale';
 
 type ViewMode = 'daily' | 'weekly' | 'monthly';
@@ -142,7 +153,7 @@ export default function AnalyticsCharts({
         return intervals.map((date) => {
             let periodEnd: Date;
             if (mode === 'daily') {
-                periodEnd = date;
+                periodEnd = endOfDay(date);
             } else if (mode === 'weekly') {
                 periodEnd = endOfWeek(date);
             } else {

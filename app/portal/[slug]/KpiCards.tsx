@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { startOfDay, endOfDay, subDays } from 'date-fns';
 import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -50,12 +51,16 @@ export default function KpiCards({
             setLoading(true);
             try {
                 // Fetch current period data
+                // Fetch current period data
+                const msStart = startDate.getTime();
+                const msEnd = endOfDay(endDate).getTime();
+
                 const { data: currentCalls, error: currentError } = await supabase
                     .from('calls')
                     .select('duration_seconds, call_successful, start_timestamp, user_sentiment')
                     .eq('client_id', clientId)
-                    .gte('start_timestamp', startDate.getTime())
-                    .lte('start_timestamp', endDate.getTime());
+                    .gte('start_timestamp', msStart)
+                    .lte('start_timestamp', msEnd);
 
                 if (currentError) throw currentError;
 
