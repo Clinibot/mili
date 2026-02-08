@@ -154,11 +154,8 @@ export default function AnalyticsCharts({
                 return callDate >= date && callDate <= periodEnd;
             });
 
-            const totalMinutes = periodCalls.reduce((sum, call) => {
-                const billable = Math.ceil((call.duration_seconds || 0) / 60) || (call.duration_seconds > 0 ? 1 : 0);
-                return sum + billable;
-            }, 0);
-            const avgMinutes = periodCalls.length > 0 ? (periodCalls.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) / 60) / periodCalls.length : 0;
+            const totalMinutes = periodCalls.reduce((sum, call) => sum + ((call.duration_seconds || 0) / 60), 0);
+            const avgMinutes = periodCalls.length > 0 ? totalMinutes / periodCalls.length : 0;
 
             // Count transfers (assuming call_successful means transfer was successful)
             // TODO: Add actual transfer field to database

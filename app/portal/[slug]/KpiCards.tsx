@@ -84,15 +84,17 @@ export default function KpiCards({
 
                 // Calculate current period KPIs
                 const totalCalls = currentCalls?.length || 0;
-                const totalSeconds = currentCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
 
-                // Calculamos minutos totales basándonos en la lógica de facturación (cada llamada redondea al alza)
-                const totalMinutes = currentCalls?.reduce((sum, call) => {
-                    const billable = Math.ceil((call.duration_seconds || 0) / 60) || (call.duration_seconds > 0 ? 1 : 0);
-                    return sum + billable;
+                // Minutos reales sumados (para visualización)
+                const realMinutes = currentCalls?.reduce((sum, call) => sum + ((call.duration_seconds || 0) / 60), 0) || 0;
+
+                // Calculamos minutos de facturación (cada llamada redondea al alza para el coste)
+                const billableMinutes = currentCalls?.reduce((sum, call) => {
+                    const secs = Number(call.duration_seconds || 0);
+                    return sum + (secs > 0 ? Math.ceil(secs / 60) : 0);
                 }, 0) || 0;
 
-                const totalCost = (totalMinutes * costPerMinute);
+                const totalCost = (billableMinutes * costPerMinute);
                 const successfulCalls = currentCalls?.filter(call => call.call_successful).length || 0;
                 const colgadasShort = currentCalls?.filter(call => (call.duration_seconds || 0) < 15).length || 0;
 
@@ -108,18 +110,22 @@ export default function KpiCards({
 
                 // Calculate previous period
                 const previousMonthCalls = previousCalls?.length || 0;
-                const previousSeconds = previousCalls?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
-                const previousMonthMinutes = Math.round(previousSeconds / 60);
-                const previousMonthCost = (previousMonthMinutes * costPerMinute);
+                const previousRealMinutes = previousCalls?.reduce((sum, call) => sum + ((call.duration_seconds || 0) / 60), 0) || 0;
+
+                const prevBillableMinutes = previousCalls?.reduce((sum, call) => {
+                    const secs = Number(call.duration_seconds || 0);
+                    return sum + (secs > 0 ? Math.ceil(secs / 60) : 0);
+                }, 0) || 0;
+                const previousMonthCost = (prevBillableMinutes * costPerMinute);
 
                 setKpis({
                     totalCalls,
-                    totalMinutes,
+                    totalMinutes: realMinutes,
                     totalCost,
                     successRate: sentimentScore,
                     colgadasShort,
                     previousMonthCalls,
-                    previousMonthMinutes,
+                    previousMonthMinutes: previousRealMinutes,
                     previousMonthCost
                 });
             } catch (err) {
@@ -175,7 +181,7 @@ export default function KpiCards({
             />
             <KpiCard
                 title="MINUTOS"
-                value={kpis.totalMinutes.toLocaleString()}
+                value={kpis.totalMinutes.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                 change={minutesChange.value}
                 isPositive={minutesChange.isPositive}
                 subValue={`Ø ${avgMinutes} min por llamada`}
