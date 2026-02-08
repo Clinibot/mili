@@ -111,14 +111,22 @@ export default function ClientDetail() {
                 if (error) throw error;
                 clientData = data;
             } else {
+                // Ensure webhook_token exists even for old clients
+                const updatePayload = {
+                    ...client,
+                    slug: client.slug || slugify(client.name),
+                    webhook_token: client.webhook_token || crypto.randomUUID()
+                };
+
                 const { data, error } = await supabase
                     .from('clients')
-                    .update({ ...client, slug: client.slug || slugify(client.name) })
+                    .update(updatePayload)
                     .eq('id', id)
                     .select()
                     .single();
                 if (error) throw error;
                 clientData = data;
+                setClient(clientData); // Update state to show the new token if it was generated
             }
 
             if (!clientData || !clientData.id) throw new Error("No ID returned");
@@ -242,30 +250,42 @@ export default function ClientDetail() {
                                 <FormInput label="Agent ID" value={client.agent_id} onChange={v => setClient({ ...client, agent_id: v })} fontMono />
                                 <FormInput label="Retell API Key" value={client.api_key_retail} onChange={v => setClient({ ...client, api_key_retail: v })} type="password" fontMono />
 
-                                {client.webhook_token && (
-                                    <div className="space-y-1.5 pt-2 border-t border-slate-100 mt-2">
-                                        <label className="text-xs font-medium text-slate-500">Webhook URL (Para Retell)</label>
-                                        <div className="flex items-center gap-2">
-                                            <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-600 break-all">
-                                                {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : ''}
+                                <div className="space-y-2 pt-4 border-t border-slate-100 mt-2">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Share2 size={14} className="text-blue-500" />
+                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Agent Level Webhook</label>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 leading-relaxed mb-3">
+                                        Copia esta URL en la sección <span className="font-bold text-slate-700">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
+                                    </p>
+
+                                    {client.webhook_token ? (
+                                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 pr-1">
+                                            <code className="flex-1 px-2 text-[10px] font-mono text-slate-600 break-all leading-relaxed">
+                                                {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : 'URL se generará al guardar'}
                                             </code>
                                             <button
                                                 onClick={() => {
-                                                    navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`);
-                                                    toast.success('Copiado al portapapeles');
+                                                    const url = `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}`;
+                                                    navigator.clipboard.writeText(url);
+                                                    toast.success('Webhook URL copiada');
                                                 }}
-                                                className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
+                                                className="p-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg text-slate-400 transition-all shadow-sm"
                                                 title="Copiar URL"
                                             >
-                                                <ExternalLink size={16} />
+                                                <ExternalLink size={14} />
                                             </button>
                                         </div>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div className="text-[10px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium italic">
+                                            Pulsa "Guardar Cambios" para generar la URL del Webhook automáticamente.
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="pt-2">
-                                    <a href="#" className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group border border-slate-100">
-                                        <span className="text-sm font-medium text-slate-600">Acceder a Retell</span>
+                                    <a href="https://beta.retellai.com/dashboard" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group border border-slate-100">
+                                        <span className="text-sm font-medium text-slate-600">Acceder a Retell Dashboard</span>
                                         <ExternalLink size={16} className="text-slate-400 group-hover:text-blue-500" />
                                     </a>
                                 </div>

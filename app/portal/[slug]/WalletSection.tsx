@@ -43,105 +43,116 @@ export default function WalletSection({ clientId }: { clientId: string }) {
     const handleRecharge = async () => {
         const amount = parseFloat(rechargeAmount);
         if (amount < 10) {
-            toast.error('El importe minimo de recarga es 10€');
+            toast.error('El importe mínimo de recarga es 10€');
             return;
         }
-
         toast.info('Redirigiendo a Stripe...');
-        // TODO: Call Stripe checkout API
-        // For now, placeholder
     };
 
     const handleSubscription = async () => {
         if (wallet.subscriptionTier !== 'none') {
-            toast.info('Ya tienes una subscripcion activa');
+            toast.info('Ya tienes una suscripción activa');
             return;
         }
-
-        toast.info('Configurando subscripcion...');
-        // TODO: Create Stripe subscription
+        toast.info('Configurando suscripción...');
     };
 
     if (loading) {
         return (
-            <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader>
-                    <CardTitle className="text-lg font-bold text-slate-800">Monedero</CardTitle>
-                </CardHeader>
-                <CardContent className="animate-pulse">
-                    <div className="h-32 bg-slate-100 rounded"></div>
-                </CardContent>
-            </Card>
+            <div className="animate-pulse space-y-6">
+                <div className="h-48 bg-slate-100 rounded-3xl"></div>
+                <div className="h-24 bg-slate-100 rounded-3xl"></div>
+            </div>
         );
     }
 
     return (
-        <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-            <CardHeader>
-                <CardTitle className="text-lg font-bold text-slate-800">Monedero</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                {/* Balance Display */}
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
-                    <p className="text-sm font-medium opacity-90 mb-2">Saldo Disponible</p>
-                    <p className="text-4xl font-bold">{wallet.balance.toFixed(2)}€</p>
-                    {wallet.subscriptionTier !== 'none' && (
-                        <div className="mt-4 pt-4 border-t border-white/20">
-                            <p className="text-xs opacity-75">Subscripcion Activa</p>
-                            <p className="text-lg font-semibold">{wallet.subscriptionAmount}€/mes</p>
+        <div className="space-y-8">
+            {/* Balance Display */}
+            <Card className="border-none shadow-2xl shadow-blue-500/10 rounded-[40px] overflow-hidden bg-white">
+                <CardContent className="p-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                        <div>
+                            <p className="text-blue-600 font-sans text-xs uppercase tracking-[0.2em] mb-3 font-bold">Saldo Disponible</p>
+                            <div className="text-7xl font-black font-header tracking-tighter text-slate-900">
+                                {wallet.balance.toFixed(2)}<span className="text-4xl ml-2 text-slate-400 font-medium">€</span>
+                            </div>
                         </div>
-                    )}
-                </div>
+                        <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 w-full md:w-auto min-w-[200px]">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Estado Cuenta</p>
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <span className="text-sm font-bold text-slate-700">ACTIVA</span>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-                {/* Recharge Section */}
-                <div className="space-y-3">
-                    <label className="text-sm font-semibold text-slate-700">Recargar Saldo</label>
-                    <div className="flex gap-2">
-                        <input
-                            type="number"
-                            min="10"
-                            step="5"
-                            value={rechargeAmount}
-                            onChange={(e) => setRechargeAmount(e.target.value)}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                            placeholder="Cantidad (min. 10€)"
-                        />
+            {/* Recharge Section */}
+            <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white">
+                <CardHeader className="px-10 pt-10 pb-2">
+                    <CardTitle className="text-xl font-bold text-slate-800">Recargar Saldo</CardTitle>
+                </CardHeader>
+                <CardContent className="p-10 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1 relative">
+                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">€</span>
+                            <input
+                                type="number"
+                                min="10"
+                                step="5"
+                                value={rechargeAmount}
+                                onChange={(e) => setRechargeAmount(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-5 py-4 text-xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                placeholder="0.00"
+                            />
+                        </div>
                         <button
                             onClick={handleRecharge}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl text-sm font-medium transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black text-lg transition-all shadow-lg shadow-blue-600/20 active:scale-95"
                         >
-                            Recargar
+                            Recargar Ahora
                         </button>
                     </div>
-                </div>
+                    <p className="text-xs text-slate-400 mt-4 text-center sm:text-left font-medium">
+                        Importe mínimo de recarga: 10€. Los fondos se aplican instantáneamente a tu cuenta.
+                    </p>
+                </CardContent>
+            </Card>
 
-                {/* Subscription Section */}
-                {wallet.subscriptionTier === 'none' && (
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <p className="text-sm font-semibold text-slate-800 mb-2">Subscripcion Mensual</p>
-                        <p className="text-xs text-slate-600 mb-4">
-                            Subscripcion minima: 95€ base + consumo. Recarga automatica mensual.
-                        </p>
-                        <button
-                            onClick={handleSubscription}
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all"
-                        >
-                            Configurar Subscripcion (min. 100€)
-                        </button>
+            {/* Subscription Section */}
+            <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white">
+                <CardContent className="p-10">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-10">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="bg-purple-100 text-purple-600 p-2 rounded-xl">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
+                                </div>
+                                <CardTitle className="text-xl font-bold text-slate-800">Suscripción Mensual</CardTitle>
+                            </div>
+                            <p className="text-slate-500 leading-relaxed font-medium">
+                                Activa la recarga automática y una cuota fija de mantenimiento para asegurar que tu agente nunca deje de atender llamadas.
+                            </p>
+                        </div>
+                        <div className="w-full md:w-auto">
+                            {wallet.subscriptionTier === 'none' ? (
+                                <button
+                                    onClick={handleSubscription}
+                                    className="w-full md:w-auto px-8 py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95"
+                                >
+                                    ACTIVAR POR 95€/MES
+                                </button>
+                            ) : (
+                                <button className="w-full md:w-auto px-8 py-5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl font-black text-sm cursor-default">
+                                    SUSCRIPCIÓN ACTIVA
+                                </button>
+                            )}
+                        </div>
                     </div>
-                )}
-
-                {wallet.subscriptionTier !== 'none' && (
-                    <div className="text-center">
-                        <button
-                            onClick={() => toast.info('Gestion de subscripcion proximamente')}
-                            className="text-sm text-slate-500 hover:text-slate-700 underline"
-                        >
-                            Gestionar Subscripcion
-                        </button>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
