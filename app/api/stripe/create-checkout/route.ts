@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
             throw new Error('STRIPE_SECRET_KEY no está configurada');
         }
 
-        const { amount, clientId, type = 'recharge' } = await request.json();
+        const { amount, clientId, type = 'recharge', packName } = await request.json();
         const baseUrl = process.env.NEXT_PUBLIC_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
         const isSubscription = type === 'subscription';
 
@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
                     price_data: {
                         currency: 'eur',
                         product_data: {
-                            name: isSubscription ? 'Mantenimiento Mensual' : 'Recarga de Saldo',
+                            name: isSubscription ? `Mantenimiento + ${packName || ''}` : 'Recarga de Saldo',
                             description: isSubscription
-                                ? 'Suscripción mensual de mantenimiento para agente de IA'
+                                ? `Suscripción mensual: Mantenimiento + ${packName || 'Plan seleccionado'}`
                                 : `Recarga de €${amount} para tu agente de IA`
                         },
                         unit_amount: Math.round(amount * 100), // Stripe usa centavos
@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
             metadata: {
                 clientId,
                 amount: amount.toString(),
-                type: type
+                type: type,
+                packName: packName || 'none'
             }
         });
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface WalletData {
     balance: number;
@@ -19,6 +20,13 @@ export default function WalletSection({ clientId }: { clientId: string }) {
     });
     const [loading, setLoading] = useState(true);
     const [rechargeAmount, setRechargeAmount] = useState('100');
+    const [selectedPack, setSelectedPack] = useState<'none' | '100min' | '300min'>('none');
+
+    const SUBSCRIPTION_PACKS = {
+        none: { name: 'Solo Mantenimiento', price: 55, extraMinutes: 0 },
+        '100min': { name: 'Pack 100 min', price: 71, extraMinutes: 100, costExtra: 16 },
+        '300min': { name: 'Pack 300 min', price: 103, extraMinutes: 300, costExtra: 48 }
+    };
 
     useEffect(() => {
         async function fetchWallet() {
@@ -100,9 +108,10 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    amount: 55, // Precio fijo de la suscripci贸n solicitado en UI
+                    amount: SUBSCRIPTION_PACKS[selectedPack].price,
                     clientId,
-                    type: 'subscription'
+                    type: 'subscription',
+                    packName: SUBSCRIPTION_PACKS[selectedPack].name
                 })
             });
 
@@ -194,17 +203,49 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                 </div>
                                 <CardTitle className="text-xl font-bold text-slate-800">Suscripción Mensual</CardTitle>
                             </div>
-                            <p className="text-slate-500 leading-relaxed font-medium">
+                            <p className="text-slate-500 leading-relaxed font-medium mb-6">
                                 Activa la recarga automática y una cuota fija de mantenimiento para asegurar que tu agente nunca deje de atender llamadas.
                             </p>
+
+                            {/* Packs de Minutos */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {(Object.entries(SUBSCRIPTION_PACKS) as [keyof typeof SUBSCRIPTION_PACKS, any][]).map(([id, pack]) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => setSelectedPack(id)}
+                                        className={cn(
+                                            "flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 text-center",
+                                            selectedPack === id
+                                                ? "border-purple-500 bg-purple-50/50"
+                                                : "border-slate-100 hover:border-slate-200 bg-white"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "text-[10px] font-black uppercase tracking-widest mb-1",
+                                            selectedPack === id ? "text-purple-600" : "text-slate-400"
+                                        )}>
+                                            {id === 'none' ? 'Básico' : pack.name}
+                                        </div>
+                                        <div className="text-lg font-black text-slate-900 leading-tight">
+                                            {pack.price}€<span className="text-[10px] font-bold text-slate-400 ml-0.5">/mes</span>
+                                        </div>
+                                        {id !== 'none' && (
+                                            <div className="mt-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                                +{pack.extraMinutes} min incl.
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                         <div className="w-full md:w-auto">
-                            {wallet.subscriptionTier === 'none' ? (
+                            {wallet.subscriptionTier === 'none' || !wallet.subscriptionTier ? (
                                 <button
                                     onClick={handleSubscription}
-                                    className="w-full md:w-auto px-8 py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95"
+                                    className="w-full md:w-auto px-10 py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm transition-all shadow-xl active:scale-95 flex flex-col items-center"
                                 >
-                                    ACTIVAR POR 55€/MES
+                                    <span>ACTIVAR SUSCRIPCIÓN</span>
+                                    <span className="text-xs text-slate-400 font-bold mt-1">POR {SUBSCRIPTION_PACKS[selectedPack].price}€/MES</span>
                                 </button>
                             ) : (
                                 <button className="w-full md:w-auto px-8 py-5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl font-black text-sm cursor-default">

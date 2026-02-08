@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Manejar evento de pago exitoso
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
-        const { clientId, amount, type } = session.metadata || {};
+        const { clientId, amount, type, packName } = session.metadata || {};
 
         if (!clientId || !amount) {
             console.error('Missing metadata in session');
@@ -49,12 +49,29 @@ export async function POST(request: NextRequest) {
             const isSubscription = type === 'subscription';
 
             if (isSubscription) {
-                // 1. Actualizar estado de suscripción del cliente
+                // 1. Calcular balance a añadir (el excedente sobre los 55€ es saldo real)
+                const maintenanceFee = 55;
+                const balanceToAdd = Math.max(0, rechargeAmount - maintenanceFee);
+
+                // 2. Obtener balance actual para sumarlo
+                const { data: client, error: fetchError } = await supabase
+                    .from('clients')
+                    .select('balance')
+                    .eq('id', clientId)
+                    .single();
+
+                if (fetchError) console.error('Error fetching balance for sub:', fetchError);
+
+                const currentBalance = client?.balance || 0;
+                const newBalance = currentBalance + balanceToAdd;
+
+                // 3. Actualizar estado de suscripción y balance del cliente
                 const { error: updateError } = await supabase
                     .from('clients')
                     .update({
                         subscription_tier: 'monthly',
                         subscription_amount: rechargeAmount,
+                        balance: newBalance,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', clientId);
@@ -64,7 +81,7 @@ export async function POST(request: NextRequest) {
                     throw updateError;
                 }
 
-                // 2. Registrar transacción de suscripción
+                // 4. Registrar transacción de suscripción
                 await supabase
                     .from('transactions')
                     .insert({
@@ -73,11 +90,11 @@ export async function POST(request: NextRequest) {
                         type: 'subscription',
                         status: 'completed',
                         stripe_session_id: session.id,
-                        description: `Alta de suscripción mensual: €${rechargeAmount}`,
+                        description: `Alta de suscripción mensual (${packName || 'Básica'}): €${rechargeAmount}. Saldo añadido: €${balanceToAdd}`,
                         created_at: new Date().toISOString()
                     });
 
-                console.log(`✅ Subscription activated for client ${clientId}: €${rechargeAmount}/mes`);
+                console.log(`✅ Subscription activated for client ${clientId}: €${rechargeAmount}/mes. Added €${balanceToAdd} balance.`);
             } else {
                 // 1. Obtener balance actual
                 const { data: client, error: fetchError } = await supabase
