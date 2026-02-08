@@ -72,13 +72,16 @@ export default function ClientDetail({ params }: ClientDetailProps) {
                         .single();
 
                     if (agentData) {
-                        // Parse JSON fields if they come as strings, or use directly if Supabase returns objects
-                        setAgent({
-                            ...agentData,
-                            agenda_config: typeof agentData.agenda_config === 'string' ? JSON.parse(agentData.agenda_config) : agentData.agenda_config || { type: 'google', url: '' },
-                            transfer_config: typeof agentData.transfer_config === 'string' ? JSON.parse(agentData.transfer_config) : agentData.transfer_config || { number: '', who: '' },
-                            notice_config: typeof agentData.notice_config === 'string' ? JSON.parse(agentData.notice_config) : agentData.notice_config || { email: '', whatsapp: '' }
-                        });
+                        try {
+                            setAgent({
+                                ...agentData,
+                                agenda_config: typeof agentData.agenda_config === 'string' ? JSON.parse(agentData.agenda_config) : agentData.agenda_config || { type: 'google', url: '' },
+                                transfer_config: typeof agentData.transfer_config === 'string' ? JSON.parse(agentData.transfer_config) : agentData.transfer_config || { number: '', who: '' },
+                                notice_config: typeof agentData.notice_config === 'string' ? JSON.parse(agentData.notice_config) : agentData.notice_config || { email: '', whatsapp: '' }
+                            });
+                        } catch (e) {
+                            console.error("Error parsing JSON config:", e);
+                        }
                     }
                 }
             } catch (error) {
@@ -127,10 +130,7 @@ export default function ClientDetail({ params }: ClientDetailProps) {
 
             clientId = clientData.id;
 
-            // 2. Upsert Agent (Now utilizing the unique constraint on client_id)
-            // We need to fetch existing agent ID if generic upsert via client_id usage
-            // actually, typical upsert syntax: .upsert({ ...data }, { onConflict: 'client_id' })
-
+            // 2. Upsert Agent
             const agentPayload = {
                 client_id: clientId,
                 name: agent.name,
