@@ -105,7 +105,7 @@ export default function Home() {
                       }}
                       className="text-slate-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all"
                     >
-                      <MoreHorizontal size={20} />
+                      <Trash2 size={20} />
                     </button>
                   </div>
 
