@@ -105,7 +105,7 @@ export default function InvoicesPage() {
                 const fileName = `${Date.now()}_${newInvoice.file.name.replace(/\s+/g, '_')}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
-                    .from('documentation')
+                    .from('invoices')
                     .upload(fileName, newInvoice.file);
 
                 if (uploadError) {
@@ -116,7 +116,7 @@ export default function InvoicesPage() {
                 console.log('Upload success:', uploadData);
 
                 const { data } = supabase.storage
-                    .from('documentation')
+                    .from('invoices')
                     .getPublicUrl(fileName);
 
                 documentUrl = data?.publicUrl || null;
