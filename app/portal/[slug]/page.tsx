@@ -75,18 +75,17 @@ export default function ClientPortal() {
     }
 
     return (
-        <div className="min-h-screen bg-primary-dark text-white font-sans selection:bg-accent-blue/30 flex">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 flex">
             <Toaster />
 
             {/* Sidebar */}
-            <aside className="w-64 bg-surface-dark border-r border-white/5 flex flex-col sticky top-0 h-screen hidden lg:flex">
-                <div className="p-8 border-b border-white/5">
+            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen hidden lg:flex">
+                <div className="p-8 border-b border-slate-100">
                     <div className="flex items-center gap-2 mb-2">
-                        <h1 className="font-header text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-accent-blue to-accent-mineral">
+                        <h1 className="font-header text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                             IA para llamadas
                         </h1>
                     </div>
-                    <p className="font-serif text-sm text-accent-blue italic">"La IA que entiende a las pymes"</p>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2 mt-4">
@@ -97,31 +96,26 @@ export default function ClientPortal() {
                     <SidebarItem label="Métricas" />
                     <SidebarItem label="Configuración" />
                 </nav>
-
-                <div className="p-6 mt-auto">
-                    <div className="bg-primary-dark/50 rounded-2xl p-4 border border-white/5">
-                        <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-2 font-mono">Saldo Wallet</p>
-                        <WalletSection clientId={client.id} />
-                    </div>
-                </div>
             </aside>
 
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Navbar */}
-                <header className="h-20 bg-surface-dark/50 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
+                <header className="h-24 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
                     <div className="flex items-center gap-4">
-                        <h2 className="font-header text-xl font-bold tracking-tight">Dashboard</h2>
+                        <h2 className="font-header text-xl font-bold tracking-tight text-slate-800">Dashboard</h2>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-accent-mineral">
-                            <span className="w-2 h-2 rounded-full bg-accent-mineral animate-pulse"></span>
-                            <span className="text-xs font-medium">Agente activo 24/7</span>
+                    <div className="flex items-center gap-8">
+                        <div className="bg-slate-50 rounded-2xl px-6 py-3 border border-slate-100">
+                            <WalletSection clientId={client.id} />
                         </div>
-                        <NotificationBell clientId={client.id} />
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm font-bold">{client.name}</p>
-                            <p className="text-xs text-white/40">{client.contact_name}</p>
+
+                        <div className="flex items-center gap-4 pl-8 border-l border-slate-100">
+                            <NotificationBell clientId={client.id} />
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-bold text-slate-900 leading-tight">{client.name}</p>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{client.contact_name}</p>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -130,8 +124,8 @@ export default function ClientPortal() {
                     {/* Header Welcome */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div>
-                            <p className="text-accent-blue font-mono text-xs uppercase tracking-[0.2em] mb-2 font-bold">Resumen de actividad</p>
-                            <h2 className="font-header text-4xl font-bold tracking-tight text-white">Panel de Control</h2>
+                            <p className="text-blue-600 font-sans text-xs uppercase tracking-[0.2em] mb-2 font-bold">Resumen de actividad</p>
+                            <h2 className="font-header text-4xl font-black tracking-tight text-slate-900">Panel de Control</h2>
                         </div>
                         <div className="flex gap-4">
                             <DateRangeSelector
@@ -146,8 +140,8 @@ export default function ClientPortal() {
                                     });
                                 }}
                             />
-                            <button className="bg-accent-blue hover:bg-accent-blue/80 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-accent-blue/20 active:scale-95">
-                                Descargar Reporte
+                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+                                Exportar Datos
                             </button>
                         </div>
                     </div>
@@ -155,34 +149,37 @@ export default function ClientPortal() {
                     {/* KPI Cards */}
                     <KpiCards clientId={client.id} />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Main Chart */}
-                        <div className="lg:col-span-2">
-                            <AnalyticsCharts
-                                clientId={client.id}
-                                startDate={dateRange.startDate}
-                                endDate={dateRange.endDate}
-                                viewMode={dateRange.viewMode}
-                                comparisonMode={dateRange.comparisonMode}
-                                comparisonStart={dateRange.comparisonStart}
-                                comparisonEnd={dateRange.comparisonEnd}
-                            />
-                        </div>
+                    {/* Charts Stack */}
+                    <div className="space-y-12">
+                        <AnalyticsCharts
+                            clientId={client.id}
+                            startDate={dateRange.startDate}
+                            endDate={dateRange.endDate}
+                            viewMode={dateRange.viewMode}
+                            comparisonMode={dateRange.comparisonMode}
+                            comparisonStart={dateRange.comparisonStart}
+                            comparisonEnd={dateRange.comparisonEnd}
+                        />
 
-                        {/* Recent Calls List */}
-                        <div className="lg:col-span-1">
-                            <Card className="border-white/5 shadow-2xl rounded-3xl overflow-hidden bg-surface-dark flex flex-col h-full h-[600px]">
-                                <CardHeader className="border-b border-white/5 p-6 bg-white/[0.02]">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-lg font-bold font-header tracking-tight">Llamadas Recientes</CardTitle>
-                                        <span className="text-[10px] font-mono text-white/40 px-2 py-1 bg-white/5 rounded-full">LIVE</span>
+                        {/* Recent Calls List Full Width */}
+                        <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white">
+                            <CardHeader className="border-b border-slate-50 p-8 flex flex-row items-center justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <CardTitle className="text-2xl font-black font-header tracking-tight text-slate-900">Histórico de Llamadas</CardTitle>
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span className="text-[10px] font-bold">VIVO</span>
+                                        </div>
                                     </div>
-                                </CardHeader>
-                                <CardContent className="p-0 overflow-y-auto flex-1 custom-scrollbar">
-                                    <CallsList clientId={client.id} />
-                                </CardContent>
-                            </Card>
-                        </div>
+                                    <p className="text-slate-400 text-sm font-medium">Gestión y detalle de todas las interacciones.</p>
+                                </div>
+                                <button className="text-blue-600 font-bold text-sm hover:underline">Ver todo</button>
+                            </CardHeader>
+                            <CardContent className="p-0 max-h-[800px] overflow-y-auto custom-scrollbar">
+                                <CallsList clientId={client.id} />
+                            </CardContent>
+                        </Card>
                     </div>
                 </main>
             </div>
@@ -193,8 +190,8 @@ export default function ClientPortal() {
 function SidebarItem({ label, active }: { label: string, active?: boolean }) {
     return (
         <button className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
-            active ? "bg-accent-blue text-white shadow-lg shadow-accent-blue/20" : "text-white/50 hover:bg-white/5 hover:text-white"
+            "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all group",
+            active ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
         )}>
             {label}
         </button>

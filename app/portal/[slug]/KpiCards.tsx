@@ -181,20 +181,20 @@ export default function KpiCards({ clientId }: { clientId: string }) {
 function KpiCard({ title, value, change, isPositive, subValue, color }: any) {
     return (
         <Card className={cn(
-            "border-white/5 border-t-4 shadow-2xl rounded-3xl overflow-hidden bg-surface-dark transition-all duration-300",
+            "border-none border-t-4 shadow-xl shadow-slate-200/50 rounded-3xl overflow-hidden bg-white transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1",
             color
         )}>
             <CardContent className="p-8">
-                <h3 className="text-white/40 text-[10px] font-bold tracking-[0.2em] mb-6 font-mono uppercase">{title}</h3>
+                <h3 className="text-slate-400 text-[10px] font-bold tracking-[0.2em] mb-6 font-sans uppercase">{title}</h3>
                 <div className="flex items-baseline gap-3 mb-2">
-                    <div className="text-5xl font-bold font-header tracking-tight text-white">{value}</div>
+                    <div className="text-5xl font-black font-header tracking-tighter text-slate-900">{value}</div>
                 </div>
-                <div className="text-sm font-medium text-white/40 mb-6">{subValue}</div>
+                <div className="text-sm font-medium text-slate-400 mb-6">{subValue}</div>
                 <div className={cn(
-                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono",
-                    isPositive ? "bg-accent-mineral/10 text-accent-mineral" : "bg-accent-coral/10 text-accent-coral"
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold",
+                    isPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                 )}>
-                    {isPositive ? '↑' : '↓'} {change.replace('+', '').replace('-', '')} {isPositive ? 'vs ene' : 'en declive'}
+                    {isPositive ? '↑' : '↓'} {change.replace('+', '').replace('-', '')} {isPositive ? 'crecimiento' : 'descenso'}
                 </div>
             </CardContent>
         </Card>
