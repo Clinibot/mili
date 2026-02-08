@@ -67,7 +67,7 @@ export default function ClientPortal() {
                 />
 
                 {/* Recent Calls List Full Width */}
-                <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white">
+                <Card id="llamadas" className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white">
                     <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between">
                         <div>
                             <div className="flex items-center gap-3 mb-1">

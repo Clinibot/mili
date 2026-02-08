@@ -56,11 +56,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
     const navigation = [
         { name: 'Dashboard', href: `/portal/${slug}`, icon: LayoutDashboard },
-        { name: 'Llamadas', href: `#`, icon: Phone },
-        { name: 'Grabaciones', href: `#`, icon: Mic },
-        { name: 'Pagos', href: `/portal/${slug}/billing`, icon: CreditCard },
-        { name: 'Métricas', href: `#`, icon: BarChart3 },
-        { name: 'Configuración', href: `#`, icon: Settings },
+        { name: 'Llamadas', href: `/portal/${slug}#llamadas`, icon: Phone },
+        { name: 'Monedero', href: `/portal/${slug}/billing`, icon: CreditCard },
     ];
 
     return (
