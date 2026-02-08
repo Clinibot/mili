@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2026-01-28.clover'
-});
+import Stripe from 'stripe';
 
 // Server-side Supabase client with service role
 // Use placeholders during build if env vars not available

@@ -738,12 +738,4 @@ function FormSelect({ label, value, onChange, options }: { label: string; value:
     );
 }
 
-function slugify(text: string) {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w-]+/g, '')
-        .replace(/--+/g, '-');
-}
+
