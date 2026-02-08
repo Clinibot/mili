@@ -95,28 +95,55 @@ export default function ClientDetail({ params }: ClientDetailProps) {
         try {
             let clientId = id;
 
-            // 1. Upsert Client
-            const { data: savedClient, error: clientError } = await supabase
-                .from('clients')
-                .upsert(id === 'new' ? { ...client } : { ...client, id })
-                .select()
-                .single();
+            // 1. Save Client
+            let clientData;
 
-            if (clientError) throw clientError;
-            if (id === 'new' && savedClient) clientId = savedClient.id;
+            if (id === 'new') {
+                // INSERT
+                const { data, error } = await supabase
+                    .from('clients')
+                    .insert([{ ...client }])
+                    .select()
+                    .single();
 
-            // 2. Upsert Agent
+                if (error) throw error;
+                clientData = data;
+            } else {
+                // UPDATE
+                const { data, error } = await supabase
+                    .from('clients')
+                    .update({ ...client })
+                    .eq('id', id)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                clientData = data;
+            }
+
+            if (!clientData || !clientData.id) {
+                throw new Error("No se pudo obtener el ID del cliente guardado.");
+            }
+
+            clientId = clientData.id;
+
+            // 2. Upsert Agent (Now utilizing the unique constraint on client_id)
+            // We need to fetch existing agent ID if generic upsert via client_id usage
+            // actually, typical upsert syntax: .upsert({ ...data }, { onConflict: 'client_id' })
+
+            const agentPayload = {
+                client_id: clientId,
+                name: agent.name,
+                personality: agent.personality,
+                knowledge_base: agent.knowledge_base,
+                agenda_config: agent.agenda_config,
+                transfer_config: agent.transfer_config,
+                notice_config: agent.notice_config
+            };
+
             const { error: agentError } = await supabase
                 .from('agents')
-                .upsert({
-                    client_id: clientId,
-                    name: agent.name,
-                    personality: agent.personality,
-                    knowledge_base: agent.knowledge_base,
-                    agenda_config: agent.agenda_config,
-                    transfer_config: agent.transfer_config,
-                    notice_config: agent.notice_config
-                });
+                .upsert(agentPayload, { onConflict: 'client_id' });
 
             if (agentError) throw agentError;
 
