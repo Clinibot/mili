@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   status TEXT NOT NULL CHECK (status IN ('paid', 'unpaid')) DEFAULT 'unpaid',
   document_url TEXT,
   description TEXT,
-  date TIMESTAMP DEFAULT NOW(),
+  invoice_date TIMESTAMP DEFAULT NOW(),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS invoices (
 -- Create index for faster queries
 CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices(client_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_type ON invoices(type);
-CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(date DESC);
+CREATE INDEX IF NOT EXISTS idx_invoices_invoice_date ON invoices(invoice_date DESC);
 
 -- Enable RLS
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;

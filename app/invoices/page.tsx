@@ -17,7 +17,7 @@ interface Invoice {
     status: 'paid' | 'unpaid';
     document_url: string | null;
     description: string | null;
-    date: string;
+    invoice_date: string;
     created_at: string;
 }
 
@@ -45,7 +45,7 @@ export default function InvoicesPage() {
             const { data, error } = await supabase
                 .from('invoices')
                 .select('*')
-                .order('date', { ascending: false });
+                .order('invoice_date', { ascending: false });
 
             if (error) throw error;
             setInvoices(data || []);
@@ -92,7 +92,7 @@ export default function InvoicesPage() {
                     status: newInvoice.status,
                     description: newInvoice.description || null,
                     document_url: documentUrl,
-                    date: new Date().toISOString()
+                    invoice_date: new Date().toISOString()
                 });
 
             if (error) throw error;
@@ -393,7 +393,7 @@ function InvoiceCard({
                         <p className="text-sm text-slate-600 mb-1">{invoice.description}</p>
                     )}
                     <p className="text-xs text-slate-400">
-                        {format(new Date(invoice.date), "d 'de' MMMM, yyyy", { locale: es })}
+                        {format(new Date(invoice.invoice_date), "d 'de' MMMM, yyyy", { locale: es })}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
