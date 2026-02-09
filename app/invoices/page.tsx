@@ -55,6 +55,7 @@ export default function InvoicesPage() {
 
     const fetchUserEmail = async () => {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('[DEBUG] Session:', session?.user?.email);
         if (session?.user?.email) setUserEmail(session.user.email);
     };
 
