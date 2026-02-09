@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { logAdminAction } from '@/lib/logger';
 import { notifyBalanceRecharge } from '@/lib/notificationService';
 import slugify from 'slugify'; // Assuming slugify is used based on code context
 
@@ -197,12 +196,8 @@ export default function ClientDetail() {
             toast.success('Guardado correctamente');
 
             if (id === 'new') {
-                logAdminAction(userEmail, 'Crear Cliente', `Se ha creado el cliente "${client.name}"`, { clientId });
                 router.push(`/clients/${clientId}`);
-            } else {
-                logAdminAction(userEmail, 'Actualizar Cliente', `Se ha actualizado el cliente "${client.name}"`, { clientId });
             }
-
         } catch (error: any) {
             console.error("Error saving:", error);
             toast.error('Error al guardar: ' + error.message);
@@ -404,13 +399,6 @@ export default function ClientDetail() {
                                                     client.contact_email,
                                                     amount,
                                                     newBalance
-                                                );
-
-                                                logAdminAction(
-                                                    userEmail,
-                                                    'Regalar Saldo',
-                                                    `Se regalaron €${amount} a ${client.name}`,
-                                                    { clientId: id, amount, newBalance }
                                                 );
 
                                                 toast.success(`¡€${amount} regalados! Nuevo balance: €${newBalance.toFixed(2)}`);
