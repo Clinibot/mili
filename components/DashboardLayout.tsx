@@ -41,11 +41,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Qué está pasando?', icon: Activity, href: '/activity' },
     ];
 
-    const getWelcomeMessage = () => {
-        if (!userEmail) return 'Bienvenido';
-        if (userEmail.toLowerCase().includes('sonia')) return 'Hola Sonia!';
-        if (userEmail.toLowerCase().includes('mili')) return 'Hola Mili!';
-        return 'Hola Admin!';
+    const getGreeting = () => {
+        if (!userEmail) return 'Bienvenida';
+        if (userEmail.toLowerCase().includes('sonia')) return 'Hola, Sonia';
+        if (userEmail.toLowerCase().includes('mili')) return 'Hola, Mili';
+        return 'Bienvenida';
     };
 
     const getUserInitials = () => {
