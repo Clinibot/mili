@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { logAdminAction } from '@/lib/logger';
+import { notifyBalanceRecharge } from '@/lib/notificationService';
 import slugify from 'slugify'; // Assuming slugify is used based on code context
 
 export default function ClientDetail() {
@@ -389,6 +390,14 @@ export default function ClientDetail() {
 
                                                 // Actualizar estado local
                                                 setClient({ ...client, balance: newBalance });
+
+                                                // Enviar notificación al cliente
+                                                await notifyBalanceRecharge(
+                                                    id,
+                                                    client.contact_email,
+                                                    amount,
+                                                    newBalance
+                                                );
 
                                                 logAdminAction(
                                                     'Regalar Saldo',
