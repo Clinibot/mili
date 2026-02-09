@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { logAdminAction } from '@/lib/logger';
+import { useDashboard } from '@/components/DashboardContext';
 
 interface Invoice {
     id: string;
@@ -25,7 +26,7 @@ interface Invoice {
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
-    const [userEmail, setUserEmail] = useState<string>('');
+    const { userEmail } = useDashboard();
 
     // Form states for new invoice
     const [newInvoice, setNewInvoice] = useState({
@@ -49,15 +50,8 @@ export default function InvoicesPage() {
     });
 
     useEffect(() => {
-        fetchUserEmail();
         fetchInvoices();
     }, []);
-
-    const fetchUserEmail = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('[DEBUG] Session:', session?.user?.email);
-        if (session?.user?.email) setUserEmail(session.user.email);
-    };
 
     useEffect(() => {
         fetchInvoices();
@@ -160,12 +154,14 @@ export default function InvoicesPage() {
             }
 
             console.log('Invoice saved successfully:', savedData);
-            logAdminAction(
-                userEmail,
-                'Nuevo Gasto/Venta',
-                `Se ha registrado ${type === 'expense' ? 'un gasto' : 'una venta'} de €${amountValue}`,
-                { invoiceId: savedData.id, amount: amountValue, type }
-            );
+            if (userEmail) {
+                logAdminAction(
+                    userEmail,
+                    'Nuevo Gasto/Venta',
+                    `Se ha registrado ${type === 'expense' ? 'un gasto' : 'una venta'} de €${amountValue}`,
+                    { invoiceId: savedData.id, amount: amountValue, type }
+                );
+            }
             toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} añadido correctamente`);
 
             // Reset form
@@ -202,7 +198,9 @@ export default function InvoicesPage() {
                 .eq('id', idToDelete);
 
             if (error) throw error;
-            logAdminAction(userEmail, 'Eliminar Factura', `Se ha eliminado una factura (ID: ${idToDelete.substring(0, 8)}...)`);
+            if (userEmail) {
+                logAdminAction(userEmail, 'Eliminar Factura', `Se ha eliminado una factura (ID: ${idToDelete.substring(0, 8)}...)`);
+            }
             toast.success('Eliminado correctamente');
             fetchInvoices();
         } catch (err) {
