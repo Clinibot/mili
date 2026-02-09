@@ -51,8 +51,10 @@ export default function ClientDetail() {
     });
 
     const [isAgentConfigExpanded, setIsAgentConfigExpanded] = useState(true);
+    const [userEmail, setUserEmail] = useState<string>('');
 
     useEffect(() => {
+        fetchUserEmail();
         async function fetchData() {
             if (id === 'new') {
                 setLoading(false);
@@ -104,6 +106,11 @@ export default function ClientDetail() {
         }
         fetchData();
     }, [id]);
+
+    const fetchUserEmail = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.email) setUserEmail(session.user.email);
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -190,10 +197,10 @@ export default function ClientDetail() {
             toast.success('Guardado correctamente');
 
             if (id === 'new') {
-                logAdminAction('Crear Cliente', `Se ha creado el cliente "${client.name}"`, { clientId });
+                logAdminAction(userEmail, 'Crear Cliente', `Se ha creado el cliente "${client.name}"`, { clientId });
                 router.push(`/clients/${clientId}`);
             } else {
-                logAdminAction('Actualizar Cliente', `Se ha actualizado el cliente "${client.name}"`, { clientId });
+                logAdminAction(userEmail, 'Actualizar Cliente', `Se ha actualizado el cliente "${client.name}"`, { clientId });
             }
 
         } catch (error: any) {
