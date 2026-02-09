@@ -25,6 +25,7 @@ interface Invoice {
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
+    const [userEmail, setUserEmail] = useState<string>('');
 
     // Form states for new invoice
     const [newInvoice, setNewInvoice] = useState({
@@ -46,6 +47,16 @@ export default function InvoicesPage() {
         start: '',
         end: ''
     });
+
+    useEffect(() => {
+        fetchUserEmail();
+        fetchInvoices();
+    }, []);
+
+    const fetchUserEmail = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) setUserEmail(user.email);
+    };
 
     useEffect(() => {
         fetchInvoices();
@@ -149,6 +160,7 @@ export default function InvoicesPage() {
 
             console.log('Invoice saved successfully:', savedData);
             logAdminAction(
+                userEmail,
                 'Nuevo Gasto/Venta',
                 `Se ha registrado ${type === 'expense' ? 'un gasto' : 'una venta'} de €${amountValue}`,
                 { invoiceId: savedData.id, amount: amountValue, type }
@@ -189,7 +201,7 @@ export default function InvoicesPage() {
                 .eq('id', idToDelete);
 
             if (error) throw error;
-            logAdminAction('Eliminar Factura', `Se ha eliminado una factura (ID: ${idToDelete.substring(0, 8)}...)`);
+            logAdminAction(userEmail, 'Eliminar Factura', `Se ha eliminado una factura (ID: ${idToDelete.substring(0, 8)}...)`);
             toast.success('Eliminado correctamente');
             fetchInvoices();
         } catch (err) {

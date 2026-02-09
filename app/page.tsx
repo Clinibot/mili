@@ -41,8 +41,9 @@ const COLUMN_GRADIENTS: Record<string, string> = {
   'Mantenimiento mensual': 'from-purple-50/30 to-transparent'
 };
 
-export default function Home() {
+export default function HomePage() {
   const [clients, setClients] = useState<Client[]>([]);
+  const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
@@ -87,37 +88,46 @@ export default function Home() {
 
       setClients(clients.filter(c => c.id !== clientToDelete));
 
-      logAdminAction('Eliminar Cliente', `Se ha eliminado el cliente (ID: ${clientToDelete})`);
+      logAdminAction(userEmail, 'Eliminar Cliente', `Se ha eliminado el cliente (ID: ${clientToDelete})`);
       toast.success('Cliente eliminado correctamente');
     } catch (err) {
       toast.error('Error eliminando cliente');
       console.error(err);
+    } finally {
+      setDeleteModalOpen(false);
+      setClientToDelete(null);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, name, contact_name, contact_email, phone_ia, workspace_name, status')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching clients:', error);
+        setClients([]);
+      } else {
+        setClients(data || []);
+      }
+    } catch (err) {
+      console.error("Supabase client error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    async function fetchClients() {
-      try {
-        const { data, error } = await supabase
-          .from('clients')
-          .select('id, name, contact_name, contact_email, phone_ia, workspace_name, status')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching clients:', error);
-          setClients([]);
-        } else {
-          setClients(data || []);
-        }
-      } catch (err) {
-        console.error("Supabase client error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
+    fetchUserEmail();
     fetchClients();
   }, []);
+
+  const fetchUserEmail = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) setUserEmail(user.email);
+  };
 
   const handleDragStart = (event: DragEndEvent) => {
     setActiveId(event.active.id as string);

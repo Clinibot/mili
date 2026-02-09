@@ -3,32 +3,24 @@ import { toast } from 'sonner';
 
 /**
  * Registra una acción en el feed de actividad de administradores.
+ * @param adminEmail Email del admin que realiza la acción
  * @param action Nombre corto de la acción (ej: "Crear Cliente", "Nuevo Gasto")
  * @param details Descripción detallada (ej: "Se creó el cliente Empresa S.L.")
  * @param metadata Objeto opcional con datos técnicos (ej: { clientId: '...' })
  */
-export async function logAdminAction(action: string, details: string, metadata: any = {}) {
+export async function logAdminAction(adminEmail: string, action: string, details: string, metadata: any = {}) {
     try {
-        console.log('[LOGGER] Intentando registrar acción:', action, details);
+        console.log('[LOGGER] Registrando acción:', action, 'por', adminEmail);
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError) {
-            console.error('[LOGGER] Error obteniendo usuario:', userError);
+        if (!adminEmail) {
+            console.error('[LOGGER] No se proporcionó email del admin');
             return;
         }
-
-        if (!user || !user.email) {
-            console.error('[LOGGER] No hay usuario autenticado o email');
-            return;
-        }
-
-        console.log('[LOGGER] Usuario:', user.email);
 
         const { data, error } = await supabase
             .from('admin_activity_logs')
             .insert({
-                admin_email: user.email,
+                admin_email: adminEmail,
                 action,
                 details,
                 metadata
