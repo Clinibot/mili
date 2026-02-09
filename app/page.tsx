@@ -125,8 +125,8 @@ export default function HomePage() {
   }, []);
 
   const fetchUserEmail = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.email) setUserEmail(user.email);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.email) setUserEmail(session.user.email);
   };
 
   const handleDragStart = (event: DragEndEvent) => {
