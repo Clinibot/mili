@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize with dummy key if not in production to allow build to succeed
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_build');
 
 export async function POST(request: NextRequest) {
     try {
@@ -11,6 +12,15 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { error: 'Faltan campos requeridos: to, subject, message' },
                 { status: 400 }
+            );
+        }
+
+        // Check if API key is configured at runtime
+        if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_dummy_key_for_build') {
+            console.warn('[EMAIL] RESEND_API_KEY not configured - email will not be sent');
+            return NextResponse.json(
+                { error: 'Email service not configured' },
+                { status: 503 }
             );
         }
 
