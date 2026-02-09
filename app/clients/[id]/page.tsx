@@ -407,6 +407,7 @@ export default function ClientDetail() {
                                                 );
 
                                                 logAdminAction(
+                                                    userEmail,
                                                     'Regalar Saldo',
                                                     `Se regalaron €${amount} a ${client.name}`,
                                                     { clientId: id, amount, newBalance }
