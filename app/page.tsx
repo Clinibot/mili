@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { logAdminAction } from '@/lib/logger';
-import { useDashboard } from '@/components/DashboardContext';
 import { DndContext, DragEndEvent, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -44,7 +43,7 @@ const COLUMN_GRADIENTS: Record<string, string> = {
 
 export default function HomePage() {
   const [clients, setClients] = useState<Client[]>([]);
-  const { userEmail } = useDashboard();
+  const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
@@ -89,9 +88,7 @@ export default function HomePage() {
 
       setClients(clients.filter(c => c.id !== clientToDelete));
 
-      if (userEmail) {
-        logAdminAction(userEmail, 'Eliminar Cliente', `Se ha eliminado el cliente (ID: ${clientToDelete})`);
-      }
+      logAdminAction(userEmail, 'Eliminar Cliente', `Se ha eliminado el cliente (ID: ${clientToDelete})`);
       toast.success('Cliente eliminado correctamente');
     } catch (err) {
       toast.error('Error eliminando cliente');
@@ -123,8 +120,14 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    fetchUserEmail();
     fetchClients();
   }, []);
+
+  const fetchUserEmail = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.email) setUserEmail(session.user.email);
+  };
 
   const handleDragStart = (event: DragEndEvent) => {
     setActiveId(event.active.id as string);

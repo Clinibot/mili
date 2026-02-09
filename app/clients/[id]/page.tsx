@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { logAdminAction } from '@/lib/logger';
 import { notifyBalanceRecharge } from '@/lib/notificationService';
-import { useDashboard } from '@/components/DashboardContext';
 import slugify from 'slugify'; // Assuming slugify is used based on code context
 
 export default function ClientDetail() {
@@ -52,9 +51,10 @@ export default function ClientDetail() {
     });
 
     const [isAgentConfigExpanded, setIsAgentConfigExpanded] = useState(true);
-    const { userEmail } = useDashboard();
+    const [userEmail, setUserEmail] = useState<string>('');
 
     useEffect(() => {
+        fetchUserEmail();
         async function fetchData() {
             if (id === 'new') {
                 setLoading(false);
@@ -106,6 +106,11 @@ export default function ClientDetail() {
         }
         fetchData();
     }, [id]);
+
+    const fetchUserEmail = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.email) setUserEmail(session.user.email);
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -192,14 +197,10 @@ export default function ClientDetail() {
             toast.success('Guardado correctamente');
 
             if (id === 'new') {
-                if (userEmail) {
-                    logAdminAction(userEmail, 'Crear Cliente', `Se ha creado el cliente "${client.name}"`, { clientId });
-                }
+                logAdminAction(userEmail, 'Crear Cliente', `Se ha creado el cliente "${client.name}"`, { clientId });
                 router.push(`/clients/${clientId}`);
             } else {
-                if (userEmail) {
-                    logAdminAction(userEmail, 'Actualizar Cliente', `Se ha actualizado el cliente "${client.name}"`, { clientId });
-                }
+                logAdminAction(userEmail, 'Actualizar Cliente', `Se ha actualizado el cliente "${client.name}"`, { clientId });
             }
 
         } catch (error: any) {
@@ -406,7 +407,7 @@ export default function ClientDetail() {
                                                 );
 
                                                 logAdminAction(
-                                                    userEmail || '',
+                                                    userEmail,
                                                     'Regalar Saldo',
                                                     `Se regalaron €${amount} a ${client.name}`,
                                                     { clientId: id, amount, newBalance }

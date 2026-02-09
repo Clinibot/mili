@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
-import { DashboardProvider } from './DashboardContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -163,9 +162,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </div>
                     </header>
 
-                    <DashboardProvider userEmail={userEmail}>
-                        {children}
-                    </DashboardProvider>
+                    {children}
                 </div>
             </div>
         </div>
