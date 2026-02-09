@@ -138,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {/* Top Navbar */}
                     <header className="flex justify-between items-center mb-8 bg-white/60 backdrop-blur-md p-4 rounded-2xl sticky top-4 z-30 shadow-sm border border-slate-100">
                         <h2 className="text-2xl font-bold text-slate-800 ml-4">
-                            {getWelcomeMessage()}
+                            {getGreeting()}
                         </h2>
 
                         <div className="flex items-center gap-4">
