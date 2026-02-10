@@ -86,10 +86,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
             {/* Sidebar */}
             <aside className={cn(
-                "w-64 bg-white border-r border-slate-200 flex flex-col h-screen z-40",
+                "w-64 bg-white border-r border-slate-200 flex-col h-screen z-40",
                 "fixed inset-y-0 left-0 lg:sticky lg:top-0",
                 "transition-transform duration-300 ease-in-out",
-                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+                isMobileMenuOpen ? "flex translate-x-0" : "hidden lg:flex lg:translate-x-0"
             )}>
                 <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                     <h1 className="font-header text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
