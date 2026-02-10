@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, Plus, Trash2, LayoutGrid, Kanban, User, Phone, Mail, Mic } from 'lucide-react';
+import { Search, Plus, Trash2, LayoutGrid, Kanban, User, Phone, Mail, Mic, GripVertical } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
@@ -401,8 +401,13 @@ function DraggableClientCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <ClientCard client={client} onDeleteClick={onDeleteClick} isDragging={isDragging} />
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <ClientCard
+        client={client}
+        onDeleteClick={onDeleteClick}
+        isDragging={isDragging}
+        dragListeners={listeners}
+      />
     </div>
   );
 }
@@ -410,24 +415,38 @@ function DraggableClientCard({
 function ClientCard({
   client,
   onDeleteClick,
-  isDragging
+  isDragging,
+  dragListeners
 }: {
   client: Client;
   onDeleteClick: (e: React.MouseEvent, id: string) => void;
   isDragging?: boolean;
+  dragListeners?: any;
 }) {
   return (
     <Link href={`/clients/${client.id}`}>
-      <Card className={`bg-white border border-slate-100/50 hover:border-transparent hover:shadow-lg hover:shadow-blue-500/10 rounded-2xl p-5 transition-all duration-300 group relative overflow-hidden ${isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab'}`}>
+      <Card className={`bg-white border border-slate-100/50 hover:border-transparent hover:shadow-lg hover:shadow-blue-500/10 rounded-2xl p-5 transition-all duration-300 group relative overflow-hidden ${isDragging ? 'cursor-grabbing scale-105' : ''}`}>
         {/* Subtle gradient on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-purple-50/0 to-blue-50/0 group-hover:from-blue-50/30 group-hover:via-purple-50/20 group-hover:to-blue-50/30 transition-all duration-500 pointer-events-none"></div>
 
         <div className="relative z-10">
-          {/* Header with delete button */}
+          {/* Header with drag handle and delete button */}
           <div className="flex justify-between items-start mb-3">
-            <h4 className="font-bold text-slate-800 text-base leading-tight pr-2 group-hover:text-blue-600 transition-colors">
-              {client.name}
-            </h4>
+            <div className="flex items-start gap-2 flex-1 min-w-0">
+              {/* Drag Handle - only shown in pipeline view */}
+              {dragListeners && (
+                <div
+                  {...dragListeners}
+                  className="text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing p-1 -ml-1 flex-shrink-0 touch-none"
+                  title="Arrastrar para mover"
+                >
+                  <GripVertical size={18} />
+                </div>
+              )}
+              <h4 className="font-bold text-slate-800 text-base leading-tight group-hover:text-blue-600 transition-colors truncate">
+                {client.name}
+              </h4>
+            </div>
             <button
               onClick={(e) => onDeleteClick(e, client.id)}
               className="text-slate-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50/80 transition-all flex-shrink-0"
