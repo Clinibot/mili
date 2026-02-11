@@ -342,6 +342,137 @@ export default function ClientDetail() {
                         </Card>
 
 
+                        {/* Budget Template Card */}
+                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-700">
+                                    <div className="p-2 bg-rose-50 rounded-lg text-rose-500">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <line x1="10" y1="9" x2="8" y2="9"></line>
+                                        </svg>
+                                    </div>
+                                    Plantilla Presupuesto
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-sm text-slate-500">Sube aquí el presupuesto o plantilla PDF/Doc para este cliente.</p>
+
+                                {client.budget_template_url ? (
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm text-red-500">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-slate-700 truncate">Presupuesto_Cliente.pdf</p>
+                                            <a
+                                                href={client.budget_template_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-blue-500 hover:text-blue-700 hover:underline flex items-center gap-1 mt-0.5"
+                                            >
+                                                Ver / Descargar
+                                                <ExternalLink size={10} />
+                                            </a>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                if (!confirm('¿Estás segura de que quieres eliminar el presupuesto actual?')) return;
+
+                                                try {
+                                                    // 1. Remove from DB
+                                                    const { error: dbError } = await supabase
+                                                        .from('clients')
+                                                        .update({ budget_template_url: null })
+                                                        .eq('id', id);
+
+                                                    if (dbError) throw dbError;
+
+                                                    // 2. Remove from Storage (Optional/Advanced: extraction from URL logic needed)
+                                                    // keeping it simple: just unlinking from client for now.
+
+                                                    setClient({ ...client, budget_template_url: null });
+                                                    toast.success('Presupuesto eliminado');
+                                                } catch (error) {
+                                                    console.error('Error removing budget:', error);
+                                                    toast.error('Error al eliminar');
+                                                }
+                                            }}
+                                            className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                                            title="Eliminar"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="relative group">
+                                        <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 group-hover:border-blue-300 group-hover:bg-blue-50/10 transition-all cursor-pointer">
+                                            <div className="p-3 bg-slate-50 rounded-full group-hover:bg-blue-100/50 transition-colors">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 group-hover:text-blue-500">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                </svg>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600">Subir presupuesto</p>
+                                                <p className="text-xs text-slate-400">PDF, DOCX, IMG (Max 5MB)</p>
+                                            </div>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+
+                                                const toastId = toast.loading('Subiendo presupuesto...');
+
+                                                try {
+                                                    const fileExt = file.name.split('.').pop();
+                                                    const fileName = `budget_${id}_${Date.now()}.${fileExt}`;
+                                                    const filePath = `${fileName}`;
+
+                                                    const { error: uploadError } = await supabase.storage
+                                                        .from('documentation')
+                                                        .upload(filePath, file);
+
+                                                    if (uploadError) throw uploadError;
+
+                                                    const { data: { publicUrl } } = supabase.storage
+                                                        .from('documentation')
+                                                        .getPublicUrl(filePath);
+
+                                                    // Only update DB immediately if client already exists
+                                                    if (id !== 'new') {
+                                                        const { error: dbError } = await supabase
+                                                            .from('clients')
+                                                            .update({ budget_template_url: publicUrl })
+                                                            .eq('id', id);
+
+                                                        if (dbError) throw dbError;
+                                                    }
+
+                                                    setClient({ ...client, budget_template_url: publicUrl });
+                                                    toast.success(id === 'new' ? 'Presupuesto adjunto (Guarda para confirmar)' : 'Presupuesto subido correctamente', { id: toastId });
+                                                } catch (error) {
+                                                    console.error('Error uploading budget:', error);
+                                                    toast.error('Error al subir el presupuesto', { id: toastId });
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
                         {/* Gift Balance - Admin Only */}
                         <Card className="bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
                             <CardHeader>
@@ -557,136 +688,7 @@ export default function ClientDetail() {
                                 </div>
                             </CardContent>
                         </Card>
-                        {/* Budget Template Card */}
-                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <div className="p-2 bg-rose-50 rounded-lg text-rose-500">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                            <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                                            <line x1="10" y1="9" x2="8" y2="9"></line>
-                                        </svg>
-                                    </div>
-                                    Plantilla Presupuesto
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="text-sm text-slate-500">Sube aquí el presupuesto o plantilla PDF/Doc para este cliente.</p>
 
-                                {client.budget_template_url ? (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                        <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm text-red-500">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                                <polyline points="14 2 14 8 20 8"></polyline>
-                                            </svg>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-700 truncate">Presupuesto_Cliente.pdf</p>
-                                            <a
-                                                href={client.budget_template_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-xs text-blue-500 hover:text-blue-700 hover:underline flex items-center gap-1 mt-0.5"
-                                            >
-                                                Ver / Descargar
-                                                <ExternalLink size={10} />
-                                            </a>
-                                        </div>
-                                        <button
-                                            onClick={async () => {
-                                                if (!confirm('¿Estás segura de que quieres eliminar el presupuesto actual?')) return;
-
-                                                try {
-                                                    // 1. Remove from DB
-                                                    const { error: dbError } = await supabase
-                                                        .from('clients')
-                                                        .update({ budget_template_url: null })
-                                                        .eq('id', id);
-
-                                                    if (dbError) throw dbError;
-
-                                                    // 2. Remove from Storage (Optional/Advanced: extraction from URL logic needed)
-                                                    // keeping it simple: just unlinking from client for now.
-
-                                                    setClient({ ...client, budget_template_url: null });
-                                                    toast.success('Presupuesto eliminado');
-                                                } catch (error) {
-                                                    console.error('Error removing budget:', error);
-                                                    toast.error('Error al eliminar');
-                                                }
-                                            }}
-                                            className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                                            title="Eliminar"
-                                        >
-                                            <X size={18} />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="relative group">
-                                        <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-400 group-hover:border-blue-300 group-hover:bg-blue-50/10 transition-all cursor-pointer">
-                                            <div className="p-3 bg-slate-50 rounded-full group-hover:bg-blue-100/50 transition-colors">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 group-hover:text-blue-500">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                    <polyline points="17 8 12 3 7 8"></polyline>
-                                                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                                                </svg>
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600">Subir presupuesto</p>
-                                                <p className="text-xs text-slate-400">PDF, DOCX, IMG (Max 5MB)</p>
-                                            </div>
-                                        </div>
-                                        <input
-                                            type="file"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
-
-                                                const toastId = toast.loading('Subiendo presupuesto...');
-
-                                                try {
-                                                    const fileExt = file.name.split('.').pop();
-                                                    const fileName = `budget_${id}_${Date.now()}.${fileExt}`;
-                                                    const filePath = `${fileName}`;
-
-                                                    const { error: uploadError } = await supabase.storage
-                                                        .from('documentation')
-                                                        .upload(filePath, file);
-
-                                                    if (uploadError) throw uploadError;
-
-                                                    const { data: { publicUrl } } = supabase.storage
-                                                        .from('documentation')
-                                                        .getPublicUrl(filePath);
-
-                                                    // Only update DB immediately if client already exists
-                                                    if (id !== 'new') {
-                                                        const { error: dbError } = await supabase
-                                                            .from('clients')
-                                                            .update({ budget_template_url: publicUrl })
-                                                            .eq('id', id);
-
-                                                        if (dbError) throw dbError;
-                                                    }
-
-                                                    setClient({ ...client, budget_template_url: publicUrl });
-                                                    toast.success(id === 'new' ? 'Presupuesto adjunto (Guarda para confirmar)' : 'Presupuesto subido correctamente', { id: toastId });
-                                                } catch (error) {
-                                                    console.error('Error uploading budget:', error);
-                                                    toast.error('Error al subir el presupuesto', { id: toastId });
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
 
                         <Card className="bg-gradient-to-br from-indigo-50/40 via-blue-50/30 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
                             <CardHeader className="cursor-pointer" onClick={() => setIsAgentConfigExpanded(!isAgentConfigExpanded)}>
