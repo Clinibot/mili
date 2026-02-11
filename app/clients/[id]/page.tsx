@@ -25,7 +25,7 @@ export default function ClientDetail() {
     // Form State
     const [client, setClient] = useState({
         name: '',
-        status: 'Cliente',
+        status: 'Cita programada',
         phone_ia: '',
         contact_name: '',
         contact_email: '',
@@ -618,7 +618,7 @@ export default function ClientDetail() {
                                     setClient({ ...client, name: v });
                                 }} placeholder="Ej. Clínica Dental" />
                                 <StatusSelector
-                                    value={client.status || 'Cliente'}
+                                    value={client.status || 'Cita programada'}
                                     onChange={v => setClient({ ...client, status: v })}
                                 />
                                 <FormInput label="Slug / URL (Opcional)" value={client.slug} onChange={v => setClient({ ...client, slug: v })} placeholder="clinica-dental" fontMono />
