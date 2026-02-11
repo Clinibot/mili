@@ -43,15 +43,15 @@ export default function StatusSelector({ value, onChange }: StatusSelectorProps)
     const isPreSales = PRE_SALES_OPTIONS.includes(value);
 
     // Theme configurations
-    const miliGradient = "from-cyan-500 via-blue-500 to-indigo-500";
+    // Unified Theme configurations
+    // Mili: Cool Blue/Cyan
+    const miliGradient = "from-cyan-500 to-blue-600";
     const miliText = "text-blue-600";
     const miliBg = "bg-blue-50";
-    const miliBorder = "border-blue-200";
-
-    const soniaGradient = "from-amber-400 via-orange-500 to-rose-500";
+    // Sonia: Warm Orange/Rose
+    const soniaGradient = "from-orange-400 to-rose-500";
     const soniaText = "text-orange-600";
     const soniaBg = "bg-orange-50";
-    const soniaBorder = "border-orange-200";
 
     const currentGradient = isPreSales ? miliGradient : soniaGradient;
 
