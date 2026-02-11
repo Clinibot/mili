@@ -120,6 +120,24 @@ export default function ClientDetail() {
         fetchData();
     }, [id]);
 
+    const addContactRow = () => {
+        setExtraContacts([...extraContacts, { id: `temp-${Date.now()}`, name: '', role: '', email: '', phone: '' }]);
+    };
+
+    const removeContactRow = async (index: number) => {
+        const contact = extraContacts[index];
+        if (contact.id && !contact.id.startsWith('temp-')) {
+            const { error } = await supabase.from('client_contacts').delete().eq('id', contact.id);
+            if (error) {
+                toast.error('Error al eliminar contacto');
+                return;
+            }
+        }
+        const newContacts = [...extraContacts];
+        newContacts.splice(index, 1);
+        setExtraContacts(newContacts);
+    };
+
     const fetchUserEmail = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.email) setUserEmail(session.user.email);
@@ -190,23 +208,7 @@ export default function ClientDetail() {
                 notice_config: agent.notice_config
             };
 
-            const addContactRow = () => {
-                setExtraContacts([...extraContacts, { id: `temp-${Date.now()}`, name: '', role: '', email: '', phone: '' }]);
-            };
 
-            const removeContactRow = async (index: number) => {
-                const contact = extraContacts[index];
-                if (contact.id && !contact.id.startsWith('temp-')) {
-                    const { error } = await supabase.from('client_contacts').delete().eq('id', contact.id);
-                    if (error) {
-                        toast.error('Error al eliminar contacto');
-                        return;
-                    }
-                }
-                const newContacts = [...extraContacts];
-                newContacts.splice(index, 1);
-                setExtraContacts(newContacts);
-            };
 
             // Check if agent exists for this client
             const { data: existingAgent } = await supabase
