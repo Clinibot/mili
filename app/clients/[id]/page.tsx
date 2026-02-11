@@ -278,7 +278,7 @@ export default function ClientDetail() {
             toast.success('Guardado correctamente');
 
             if (id === 'new') {
-                router.push(`/clients/${clientId}`);
+                router.push('/');
             }
         } catch (error: any) {
             console.error("Error saving:", error);
