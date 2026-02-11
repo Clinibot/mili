@@ -341,7 +341,101 @@ export default function ClientDetail() {
                             </CardContent>
                         </Card>
 
-                        {/* Client Info */}
+
+                        {/* Gift Balance - Admin Only */}
+                        <Card className="bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-700">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
+                                        <rect x="3" y="8" width="18" height="4" rx="1"></rect>
+                                        <path d="M12 8v13"></path>
+                                        <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path>
+                                        <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path>
+                                    </svg>
+                                    Regalar Saldo
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-xs text-emerald-700">Añade saldo gratis al monedero del cliente como regalo o crédito promocional.</p>
+                                <div className="flex gap-3">
+                                    <div className="flex-1 relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold">€</span>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            step="5"
+                                            placeholder="0.00"
+                                            className="w-full bg-white/70 border border-emerald-200 rounded-lg pl-8 pr-3 py-2.5 text-emerald-900 font-bold placeholder:text-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                                            id="giftAmount"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            const input = document.getElementById('giftAmount') as HTMLInputElement;
+                                            const amount = parseFloat(input.value);
+
+                                            if (!amount || amount <= 0) {
+                                                toast.error('Introduce una cantidad válida');
+                                                return;
+                                            }
+
+                                            try {
+                                                // Actualizar balance
+                                                const currentBalance = client.balance || 0;
+                                                const newBalance = currentBalance + amount;
+
+                                                const { error: updateError } = await supabase
+                                                    .from('clients')
+                                                    .update({ balance: newBalance })
+                                                    .eq('id', id);
+
+                                                if (updateError) throw updateError;
+
+                                                // Registrar transacción
+                                                await supabase.from('transactions').insert({
+                                                    client_id: id,
+                                                    amount,
+                                                    type: 'gift',
+                                                    status: 'completed',
+                                                    description: `Regalo de saldo por administrador: €${amount}`
+                                                });
+
+                                                // Actualizar estado local
+                                                setClient({ ...client, balance: newBalance });
+
+                                                // Enviar notificación al cliente
+                                                await notifyBalanceRecharge(
+                                                    id,
+                                                    client.contact_email,
+                                                    amount,
+                                                    newBalance
+                                                );
+
+                                                toast.success(`¡€${amount} regalados! Nuevo balance: €${newBalance.toFixed(2)}`);
+                                                input.value = '';
+                                            } catch (error) {
+                                                console.error('Error gifting balance:', error);
+                                                toast.error('Error al regalar saldo');
+                                            }
+                                        }}
+                                        className="px-6 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold rounded-lg transition-all shadow-md shadow-slate-500/20 flex items-center gap-2 whitespace-nowrap"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 5v14M5 12h14"></path>
+                                        </svg>
+                                        Regalar
+                                    </button>
+                                </div>
+                                <div className="text-xs text-slate-600 bg-white/50 px-3 py-2 rounded-lg border border-slate-200">
+                                    <strong>Balance actual:</strong> €{(client.balance || 0).toFixed(2)}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Right Column: Budget Template + AI Agent Config + Technical Config */}
+                    <div className="space-y-6 lg:col-span-2">
+                        {/* Client Info (Moved from Left Column) */}
                         <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-slate-700">
@@ -463,100 +557,6 @@ export default function ClientDetail() {
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Gift Balance - Admin Only */}
-                        <Card className="bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-                                        <rect x="3" y="8" width="18" height="4" rx="1"></rect>
-                                        <path d="M12 8v13"></path>
-                                        <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path>
-                                        <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path>
-                                    </svg>
-                                    Regalar Saldo
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="text-xs text-emerald-700">Añade saldo gratis al monedero del cliente como regalo o crédito promocional.</p>
-                                <div className="flex gap-3">
-                                    <div className="flex-1 relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold">€</span>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            step="5"
-                                            placeholder="0.00"
-                                            className="w-full bg-white/70 border border-emerald-200 rounded-lg pl-8 pr-3 py-2.5 text-emerald-900 font-bold placeholder:text-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-                                            id="giftAmount"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            const input = document.getElementById('giftAmount') as HTMLInputElement;
-                                            const amount = parseFloat(input.value);
-
-                                            if (!amount || amount <= 0) {
-                                                toast.error('Introduce una cantidad válida');
-                                                return;
-                                            }
-
-                                            try {
-                                                // Actualizar balance
-                                                const currentBalance = client.balance || 0;
-                                                const newBalance = currentBalance + amount;
-
-                                                const { error: updateError } = await supabase
-                                                    .from('clients')
-                                                    .update({ balance: newBalance })
-                                                    .eq('id', id);
-
-                                                if (updateError) throw updateError;
-
-                                                // Registrar transacción
-                                                await supabase.from('transactions').insert({
-                                                    client_id: id,
-                                                    amount,
-                                                    type: 'gift',
-                                                    status: 'completed',
-                                                    description: `Regalo de saldo por administrador: €${amount}`
-                                                });
-
-                                                // Actualizar estado local
-                                                setClient({ ...client, balance: newBalance });
-
-                                                // Enviar notificación al cliente
-                                                await notifyBalanceRecharge(
-                                                    id,
-                                                    client.contact_email,
-                                                    amount,
-                                                    newBalance
-                                                );
-
-                                                toast.success(`¡€${amount} regalados! Nuevo balance: €${newBalance.toFixed(2)}`);
-                                                input.value = '';
-                                            } catch (error) {
-                                                console.error('Error gifting balance:', error);
-                                                toast.error('Error al regalar saldo');
-                                            }
-                                        }}
-                                        className="px-6 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold rounded-lg transition-all shadow-md shadow-slate-500/20 flex items-center gap-2 whitespace-nowrap"
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M12 5v14M5 12h14"></path>
-                                        </svg>
-                                        Regalar
-                                    </button>
-                                </div>
-                                <div className="text-xs text-slate-600 bg-white/50 px-3 py-2 rounded-lg border border-slate-200">
-                                    <strong>Balance actual:</strong> €{(client.balance || 0).toFixed(2)}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Right Column: Budget Template + AI Agent Config + Technical Config */}
-                    <div className="space-y-6 lg:col-span-2">
                         {/* Budget Template Card */}
                         <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
                             <CardHeader>
