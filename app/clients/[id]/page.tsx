@@ -236,6 +236,45 @@ export default function ClientDetail() {
 
             if (agentError) throw agentError;
 
+            // 3. Save Extra Contacts
+            if (clientId) {
+                const contactsToUpsert = extraContacts.map(c => {
+                    // Base payload
+                    const payload: any = {
+                        client_id: clientId,
+                        name: c.name,
+                        role: c.role,
+                        email: c.email,
+                        phone: c.phone
+                    };
+
+                    // Only include ID if it's a real UUID (not a temp one)
+                    if (c.id && !c.id.startsWith('temp-')) {
+                        payload.id = c.id;
+                    }
+
+                    return payload;
+                });
+
+                if (contactsToUpsert.length > 0) {
+                    const { error: contactsError } = await supabase
+                        .from('client_contacts')
+                        .upsert(contactsToUpsert); // Upsert handles both insert (no ID) and update (with ID)
+
+                    if (contactsError) throw contactsError;
+
+                    // Refresh contacts to get real IDs for new items
+                    const { data: refreshedContacts } = await supabase
+                        .from('client_contacts')
+                        .select('*')
+                        .eq('client_id', clientId);
+
+                    if (refreshedContacts) {
+                        setExtraContacts(refreshedContacts);
+                    }
+                }
+            }
+
             toast.success('Guardado correctamente');
 
             if (id === 'new') {
