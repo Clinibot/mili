@@ -23,6 +23,11 @@ interface Client {
 }
 
 const STATUSES = [
+  'Cita programada',
+  'Presupuesto enviado',
+  'Intención de compra',
+  'Cliente ganado',
+  'Cliente perdido',
   'Cliente',
   'Recogiendo briefing',
   'Implementando agente',
@@ -32,6 +37,11 @@ const STATUSES = [
 ];
 
 const COLUMN_GRADIENTS: Record<string, string> = {
+  'Cita programada': 'from-cyan-50/30 to-blue-50/20',
+  'Presupuesto enviado': 'from-blue-50/30 to-indigo-50/20',
+  'Intención de compra': 'from-indigo-50/30 to-purple-50/20',
+  'Cliente ganado': 'from-emerald-50/30 to-teal-50/20',
+  'Cliente perdido': 'from-slate-50/30 to-gray-50/20',
   'Cliente': 'from-blue-50/30 to-transparent',
   'Recogiendo briefing': 'from-blue-100/30 to-purple-50/20',
   'Implementando agente': 'from-purple-50/30 to-blue-50/20',

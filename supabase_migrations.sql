@@ -160,13 +160,14 @@ VALUES ('documentation', 'documentation', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage Policies for documentation bucket
+-- UPDATED: Used specific names to avoid collision with other buckets
 DO $$ 
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access' AND tablename = 'objects' AND schemaname = 'storage') THEN
-    CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'documentation');
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Documentation Bucket Select' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Documentation Bucket Select" ON storage.objects FOR SELECT USING (bucket_id = 'documentation');
   END IF;
   
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Full Access' AND tablename = 'objects' AND schemaname = 'storage') THEN
-    CREATE POLICY "Full Access" ON storage.objects FOR ALL USING (bucket_id = 'documentation') WITH CHECK (bucket_id = 'documentation');
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Documentation Bucket All Access' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Documentation Bucket All Access" ON storage.objects FOR ALL USING (bucket_id = 'documentation') WITH CHECK (bucket_id = 'documentation');
   END IF;
 END $$;
