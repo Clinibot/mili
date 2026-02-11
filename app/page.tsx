@@ -36,19 +36,19 @@ const STATUSES = [
 ];
 
 const COLUMN_GRADIENTS: Record<string, string> = {
-  // Mili (Pre-sales) - Cool Tones
+  // Mili (Pre-sales) - Unified Cool Tone
   'Cita programada': 'from-cyan-50 to-blue-50/50',
-  'Presupuesto enviado': 'from-blue-50 to-indigo-50/50',
-  'Intención de compra': 'from-indigo-50 to-violet-50/50',
-  'Cliente ganado': 'from-emerald-50 to-green-50/50',
-  'Cliente perdido': 'from-slate-50 to-gray-50/50',
+  'Presupuesto enviado': 'from-cyan-50 to-blue-50/50',
+  'Intención de compra': 'from-cyan-50 to-blue-50/50',
+  'Cliente ganado': 'from-cyan-50 to-blue-50/50',
+  'Cliente perdido': 'from-cyan-50 to-blue-50/50',
 
-  // Sonia (Post-sales) - Warm Tones
-  'Recogiendo briefing': 'from-amber-50 to-orange-50/50',
+  // Sonia (Post-sales) - Unified Warm Tone
+  'Recogiendo briefing': 'from-orange-50 to-rose-50/50',
   'Implementando agente': 'from-orange-50 to-rose-50/50',
-  'Entregado': 'from-rose-50 to-pink-50/50',
-  'Testeo': 'from-pink-50 to-purple-50/50',
-  'Mantenimiento mensual': 'from-purple-50 to-indigo-50/50'
+  'Entregado': 'from-orange-50 to-rose-50/50',
+  'Testeo': 'from-orange-50 to-rose-50/50',
+  'Mantenimiento mensual': 'from-orange-50 to-rose-50/50'
 };
 
 export default function HomePage() {
