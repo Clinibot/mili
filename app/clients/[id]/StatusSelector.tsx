@@ -18,7 +18,6 @@ const PRE_SALES_OPTIONS = [
 ];
 
 const POST_SALES_OPTIONS = [
-    'Cliente',
     'Recogiendo briefing',
     'Implementando agente',
     'Entregado',

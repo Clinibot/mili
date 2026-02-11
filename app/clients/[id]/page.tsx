@@ -547,15 +547,18 @@ export default function ClientDetail() {
                                                         .from('documentation')
                                                         .getPublicUrl(filePath);
 
-                                                    const { error: dbError } = await supabase
-                                                        .from('clients')
-                                                        .update({ budget_template_url: publicUrl })
-                                                        .eq('id', id);
+                                                    // Only update DB immediately if client already exists
+                                                    if (id !== 'new') {
+                                                        const { error: dbError } = await supabase
+                                                            .from('clients')
+                                                            .update({ budget_template_url: publicUrl })
+                                                            .eq('id', id);
 
-                                                    if (dbError) throw dbError;
+                                                        if (dbError) throw dbError;
+                                                    }
 
                                                     setClient({ ...client, budget_template_url: publicUrl });
-                                                    toast.success('Presupuesto subido correctamente', { id: toastId });
+                                                    toast.success(id === 'new' ? 'Presupuesto adjunto (Guarda para confirmar)' : 'Presupuesto subido correctamente', { id: toastId });
                                                 } catch (error) {
                                                     console.error('Error uploading budget:', error);
                                                     toast.error('Error al subir el presupuesto', { id: toastId });

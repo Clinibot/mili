@@ -28,7 +28,6 @@ const STATUSES = [
   'Intención de compra',
   'Cliente ganado',
   'Cliente perdido',
-  'Cliente',
   'Recogiendo briefing',
   'Implementando agente',
   'Entregado',
@@ -37,17 +36,19 @@ const STATUSES = [
 ];
 
 const COLUMN_GRADIENTS: Record<string, string> = {
-  'Cita programada': 'from-cyan-50/30 to-blue-50/20',
-  'Presupuesto enviado': 'from-blue-50/30 to-indigo-50/20',
-  'Intención de compra': 'from-indigo-50/30 to-purple-50/20',
-  'Cliente ganado': 'from-emerald-50/30 to-teal-50/20',
-  'Cliente perdido': 'from-slate-50/30 to-gray-50/20',
-  'Cliente': 'from-blue-50/30 to-transparent',
-  'Recogiendo briefing': 'from-blue-100/30 to-purple-50/20',
-  'Implementando agente': 'from-purple-50/30 to-blue-50/20',
-  'Entregado': 'from-blue-50/30 to-purple-100/30',
-  'Testeo': 'from-purple-100/30 to-blue-50/20',
-  'Mantenimiento mensual': 'from-purple-50/30 to-transparent'
+  // Mili (Pre-sales) - Cool Tones
+  'Cita programada': 'from-cyan-50 to-blue-50/50',
+  'Presupuesto enviado': 'from-blue-50 to-indigo-50/50',
+  'Intención de compra': 'from-indigo-50 to-violet-50/50',
+  'Cliente ganado': 'from-emerald-50 to-green-50/50',
+  'Cliente perdido': 'from-slate-50 to-gray-50/50',
+
+  // Sonia (Post-sales) - Warm Tones
+  'Recogiendo briefing': 'from-amber-50 to-orange-50/50',
+  'Implementando agente': 'from-orange-50 to-rose-50/50',
+  'Entregado': 'from-rose-50 to-pink-50/50',
+  'Testeo': 'from-pink-50 to-purple-50/50',
+  'Mantenimiento mensual': 'from-purple-50 to-indigo-50/50'
 };
 
 export default function HomePage() {
@@ -252,15 +253,24 @@ export default function HomePage() {
           >
             <div className="flex gap-4 overflow-x-auto pb-4">
               {STATUSES.map((status) => (
-                <PipelineColumn
-                  key={status}
-                  title={status}
-                  gradient={COLUMN_GRADIENTS[status]}
-                  clients={clientsByStatus[status]}
-                  columnFilter={columnFilters[status] || ''}
-                  onFilterChange={(value) => setColumnFilters({ ...columnFilters, [status]: value })}
-                  onDeleteClick={handleDeleteClick}
-                />
+                <>
+                  {/* Visual Gap / Divider between Pre-sales (Mili) and Post-sales (Sonia) */}
+                  {status === 'Recogiendo briefing' && (
+                    <div className="flex flex-col justify-center items-center px-2 min-h-full">
+                      <div className="h-full w-px bg-slate-200/50 my-4"></div>
+                    </div>
+                  )}
+
+                  <PipelineColumn
+                    key={status}
+                    title={status}
+                    gradient={COLUMN_GRADIENTS[status]}
+                    clients={clientsByStatus[status]}
+                    columnFilter={columnFilters[status] || ''}
+                    onFilterChange={(value) => setColumnFilters({ ...columnFilters, [status]: value })}
+                    onDeleteClick={handleDeleteClick}
+                  />
+                </>
               ))}
             </div>
             <DragOverlay>
