@@ -187,10 +187,6 @@ const EMBED_CODE = `<!DOCTYPE html>
                     <input type="number" id="workingDays" value="22" oninput="calculate()">
                 </div>
             </div>
-             <div class="input-item">
-                <label>Cantidad Números Virtuales</label>
-                <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
-            </div>
         </div>
     </div>
 
@@ -223,10 +219,6 @@ const EMBED_CODE = `<!DOCTYPE html>
             <tr>
                 <td class="text-muted">Mantenimiento Mensual</td>
                 <td class="text-right">55,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr>
-                <td class="text-muted">Números Virtuales</td>
-                <td class="text-right"><span id="numbersCostOutput">1,95 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
             </tr>
             <tr>
                 <td class="text-muted">
@@ -272,10 +264,9 @@ const EMBED_CODE = `<!DOCTYPE html>
 
         // Financials
         const onboardingCost = numAgents * AGENT_FEE;
-        const numbersCost = numVirtual * NUMBER;
         const aiCost = totalAiMinutes * RATE_AI;
 
-        const monthlySubtotal = MAINTENANCE + numbersCost + aiCost;
+        const monthlySubtotal = MAINTENANCE + aiCost;
         const monthlyTotal = monthlySubtotal * (1 + IVA);
 
         // Output Text Updates
@@ -302,7 +293,6 @@ export default function CalculatorPage() {
     const [callsPerDay, setCallsPerDay] = useState(50);
     const [avgDuration, setAvgDuration] = useState(2.5); // Minutes
     const [workingDays, setWorkingDays] = useState(22); // Month
-    const [numVirtualNumbers, setNumVirtualNumbers] = useState(1);
 
     // Modal state
     const [showWidgetModal, setShowWidgetModal] = useState(false);
@@ -321,23 +311,21 @@ export default function CalculatorPage() {
         const totalAiMinutes = totalCallsMonth * avgDuration;
 
         const aiConsumption = totalAiMinutes * AI_MINUTE_RATE;
-        const numbersCost = numVirtualNumbers * NUMBER_COST;
         const onboardingCost = numAgents * AGENT_FEE;
 
-        const monthlySubtotal = MAINTENANCE_COST + numbersCost + aiConsumption;
+        const monthlySubtotal = MAINTENANCE_COST + aiConsumption;
         const monthlyIva = monthlySubtotal * IVA_RATE;
         const monthlyTotal = monthlySubtotal + monthlyIva;
 
         return {
             totalAiMinutes,
             aiConsumption,
-            numbersCost,
             onboardingCost,
             monthlySubtotal,
             monthlyIva,
             monthlyTotal
         };
-    }, [numAgents, callsPerDay, avgDuration, workingDays, numVirtualNumbers]);
+    }, [numAgents, callsPerDay, avgDuration, workingDays]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -434,134 +422,119 @@ export default function CalculatorPage() {
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                        Números Virtuales
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={numVirtualNumbers}
-                                        onChange={(e) => setNumVirtualNumbers(Math.max(1, Number(e.target.value)))}
-                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                    />
-                                </div>
                             </div>
                         </div>
-
                     </div>
 
-                    {/* Summary Section */}
-                    <div className="lg:col-span-7 space-y-6">
-
-                        {/* 1. Pago Único (Onboarding) */}
-                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden opacity-90 mb-6">
-                            <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
-                                <h2 className="font-header font-bold text-xl text-[#E8ECF1]">1. Pago Único (Onboarding)</h2>
-                                <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Coste de alta y configuración inicial</p>
-                            </div>
-                            <div className="p-0">
-                                <table className="w-full text-left text-sm">
-                                    <tbody>
-                                        <tr className="bg-[rgba(0,141,203,0.03)] border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
-                                                Alta por Agente
-                                                <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
-                                                    {numAgents} Agente(s) x {formatCurrency(AGENT_FEE)}
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.onboardingCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* 2. Costes IA (Mili) */}
-                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden relative">
-                            <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
-                                <h2 className="font-header font-bold text-xl text-[#008DCB]">2. Costes IA (Mili Pérez & Son-ia)</h2>
-                                <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Servicios de Inteligencia Artificial y Mantenimiento</p>
-                            </div>
-                            <div className="p-0">
-                                <table className="w-full text-left text-sm">
-                                    <tbody>
-                                        <tr className="border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Mantenimiento Mensual</td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(MAINTENANCE_COST)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
-                                        <tr className="border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Números Virtuales ({numVirtualNumbers})</td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.numbersCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
-                                        <tr className="border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
-                                                Consumo IA
-                                                <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
-                                                    ~{Math.round(calculations.totalAiMinutes).toLocaleString()} min/mes
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.aiConsumption)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
-                                        <tr className="bg-[rgba(0,141,203,0.06)]">
-                                            <td className="py-4 px-6">
-                                                <div className="font-header font-bold text-[#E8ECF1]">Total Mensual Estimado</div>
-                                                <div className="text-[10px] text-[#008DCB] font-mono mt-0.5">IVA INCLUIDO</div>
-                                            </td>
-                                            <td className="py-4 px-6 text-right font-header font-bold text-xl text-[#008DCB]">
-                                                {formatCurrency(calculations.monthlyTotal)}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
                 </div>
 
-                {/* Widget Modal */}
-                {showWidgetModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-[#0E1219] border border-[#1F2937] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
-                            <div className="p-6 border-b border-[#1F2937] flex justify-between items-center bg-[#141A23]">
-                                <h3 className="text-[#E8ECF1] font-header font-bold text-xl flex items-center gap-2">
-                                    <Code size={20} className="text-[#008DCB]" />
-                                    Código del Widget
-                                </h3>
-                                <button onClick={() => setShowWidgetModal(false)} className="text-[rgba(255,255,255,0.5)] hover:text-white transition-colors">
-                                    <X size={24} />
+                {/* Summary Section */}
+                <div className="lg:col-span-7 space-y-6">
+
+                    {/* 1. Pago Único (Onboarding) */}
+                    <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden opacity-90 mb-6">
+                        <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
+                            <h2 className="font-header font-bold text-xl text-[#E8ECF1]">1. Pago Único (Onboarding)</h2>
+                            <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Coste de alta y configuración inicial</p>
+                        </div>
+                        <div className="p-0">
+                            <table className="w-full text-left text-sm">
+                                <tbody>
+                                    <tr className="bg-[rgba(0,141,203,0.03)] border-b border-[#1F2937]">
+                                        <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
+                                            Alta por Agente
+                                            <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
+                                                {numAgents} Agente(s) x {formatCurrency(AGENT_FEE)}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.onboardingCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* 2. Costes IA (Mili) */}
+                    <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden relative">
+                        <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
+                            <h2 className="font-header font-bold text-xl text-[#008DCB]">2. Costes IA (Mili Pérez & Son-ia)</h2>
+                            <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Servicios de Inteligencia Artificial y Mantenimiento</p>
+                        </div>
+                        <div className="p-0">
+                            <table className="w-full text-left text-sm">
+                                <tbody>
+                                    <tr className="border-b border-[#1F2937]">
+                                        <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Mantenimiento Mensual</td>
+                                        <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(MAINTENANCE_COST)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                    </tr>
+                                    <tr className="border-b border-[#1F2937]">
+                                        <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
+                                            Consumo IA
+                                            <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
+                                                ~{Math.round(calculations.totalAiMinutes).toLocaleString()} min/mes
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.aiConsumption)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                    </tr>
+                                    <tr className="bg-[rgba(0,141,203,0.06)]">
+                                        <td className="py-4 px-6">
+                                            <div className="font-header font-bold text-[#E8ECF1]">Total Mensual Estimado</div>
+                                            <div className="text-[10px] text-[#008DCB] font-mono mt-0.5">IVA INCLUIDO</div>
+                                        </td>
+                                        <td className="py-4 px-6 text-right font-header font-bold text-xl text-[#008DCB]">
+                                            {formatCurrency(calculations.monthlyTotal)}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {/* Widget Modal */}
+            {showWidgetModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#0E1219] border border-[#1F2937] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
+                        <div className="p-6 border-b border-[#1F2937] flex justify-between items-center bg-[#141A23]">
+                            <h3 className="text-[#E8ECF1] font-header font-bold text-xl flex items-center gap-2">
+                                <Code size={20} className="text-[#008DCB]" />
+                                Código del Widget
+                            </h3>
+                            <button onClick={() => setShowWidgetModal(false)} className="text-[rgba(255,255,255,0.5)] hover:text-white transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-[rgba(255,255,255,0.7)] text-sm mb-4">
+                                Copia este código e insértalo en tu sitio web para mostrar la calculadora de costes.
+                            </p>
+                            <div className="relative">
+                                <pre className="bg-[#070A0F] border border-[#1F2937] rounded-xl p-4 text-[10px] font-mono text-[#67B7AF] overflow-x-auto h-[300px] scrollbar-thin scrollbar-thumb-[#1F2937]">
+                                    {EMBED_CODE}
+                                </pre>
+                                <button
+                                    onClick={copyToClipboard}
+                                    className="absolute top-4 right-4 p-2 bg-[#1F2937] hover:bg-[#374151] rounded-lg text-white transition-all active:scale-95"
+                                    title="Copiar código"
+                                >
+                                    {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} />}
                                 </button>
                             </div>
-                            <div className="p-6">
-                                <p className="text-[rgba(255,255,255,0.7)] text-sm mb-4">
-                                    Copia este código e insértalo en tu sitio web para mostrar la calculadora de costes.
-                                </p>
-                                <div className="relative">
-                                    <pre className="bg-[#070A0F] border border-[#1F2937] rounded-xl p-4 text-[10px] font-mono text-[#67B7AF] overflow-x-auto h-[300px] scrollbar-thin scrollbar-thumb-[#1F2937]">
-                                        {EMBED_CODE}
-                                    </pre>
-                                    <button
-                                        onClick={copyToClipboard}
-                                        className="absolute top-4 right-4 p-2 bg-[#1F2937] hover:bg-[#374151] rounded-lg text-white transition-all active:scale-95"
-                                        title="Copiar código"
-                                    >
-                                        {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} />}
-                                    </button>
-                                </div>
-                                <div className="mt-6 flex justify-end">
-                                    <button
-                                        onClick={() => setShowWidgetModal(false)}
-                                        className="px-6 py-2 bg-[#008DCB] text-white rounded-lg font-bold hover:bg-[#008DCB]/90 transition-all"
-                                    >
-                                        Entendido
-                                    </button>
-                                </div>
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={() => setShowWidgetModal(false)}
+                                    className="px-6 py-2 bg-[#008DCB] text-white rounded-lg font-bold hover:bg-[#008DCB]/90 transition-all"
+                                >
+                                    Entendido
+                                </button>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
-        </DashboardLayout>
+                </div>
+            )}
+        </div>
+        </DashboardLayout >
     );
 }

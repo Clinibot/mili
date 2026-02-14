@@ -198,67 +198,59 @@
                         <input type="number" id="workingDays" value="22" oninput="calculate()">
                     </div>
                 </div>
-                <div class="input-item">
-                    <label>Cantidad Números Virtuales</label>
-                    <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
-                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Results Split -->
+    <!-- Results Split -->
 
-        <!-- 1. Pago Único (Onboarding) -->
-        <div class="card" style="margin-bottom: 24px;">
-            <div class="card-header">
-                <h4 class="card-title" style="color: var(--text);">1. Pago Único (Onboarding)</h4>
-            </div>
-            <table class="summary-table">
-                <tr class="onboarding-row">
-                    <td class="text-muted">
-                        Alta por Agente <br>
-                        <span class="subtext"><span id="numAgentsOutput">1</span> Agente(s) x 480€</span>
-                    </td>
-                    <td class="text-right">
-                        <span id="onboardingCostOutput">480,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+
-                            IVA</span>
-                    </td>
-                </tr>
-            </table>
+    <!-- 1. Pago Único (Onboarding) -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+            <h4 class="card-title" style="color: var(--text);">1. Pago Único (Onboarding)</h4>
         </div>
+        <table class="summary-table">
+            <tr class="onboarding-row">
+                <td class="text-muted">
+                    Alta por Agente <br>
+                    <span class="subtext"><span id="numAgentsOutput">1</span> Agente(s) x 480€</span>
+                </td>
+                <td class="text-right">
+                    <span id="onboardingCostOutput">480,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+
+                        IVA</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-        <!-- 2. Costes IA (Mili) -->
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title color-mili">2. Costes IA (Mili Pérez & Son-ia)</h4>
-            </div>
-            <table class="summary-table">
-                <tr>
-                    <td class="text-muted">Mantenimiento Mensual</td>
-                    <td class="text-right">55,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-                </tr>
-                <tr>
-                    <td class="text-muted">Números Virtuales</td>
-                    <td class="text-right"><span id="numbersCostOutput">1,95 €</span> <span
-                            style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-                </tr>
-                <tr>
-                    <td class="text-muted">
-                        Consumo IA <br>
-                        <span style="font-size: 0.8em; opacity: 0.6;" id="totalAiMinutes">0 min/mes</span>
-                    </td>
-                    <td class="text-right"><span id="aiCostOutput">0,00 €</span> <span
-                            style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-                </tr>
-                <tr class="bg-mili">
-                    <td>
-                        <div style="font-weight: bold; color: var(--text);">Total Mensual Estimado</div>
-                        <div style="font-size: 10px; color: var(--azul); font-family: var(--font-mono);">IVA INCLUIDO
-                        </div>
-                    </td>
-                    <td class="text-right color-mili" id="miliTotal">0,00 €</td>
-                </tr>
-            </table>
+    <!-- 2. Costes IA (Mili) -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title color-mili">2. Costes IA (Mili Pérez & Son-ia)</h4>
         </div>
+        <table class="summary-table">
+            <tr>
+                <td class="text-muted">Mantenimiento Mensual</td>
+                <td class="text-right">55,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+            </tr>
+            <tr>
+                <td class="text-muted">
+                    Consumo IA <br>
+                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalAiMinutes">0 min/mes</span>
+                </td>
+                <td class="text-right"><span id="aiCostOutput">0,00 €</span> <span
+                        style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+            </tr>
+            <tr class="bg-mili">
+                <td>
+                    <div style="font-weight: bold; color: var(--text);">Total Mensual Estimado</div>
+                    <div style="font-size: 10px; color: var(--azul); font-family: var(--font-mono);">IVA INCLUIDO
+                    </div>
+                </td>
+                <td class="text-right color-mili" id="miliTotal">0,00 €</td>
+            </tr>
+        </table>
+    </div>
 
     </div>
 
@@ -279,7 +271,6 @@
             const callsPerDay = parseFloat(document.getElementById('callsPerDay').value) || 0;
             const avgDuration = parseFloat(document.getElementById('avgDuration').value) || 0;
             const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
-            const numVirtual = parseFloat(document.getElementById('numVirtualNumbers').value) || 1;
 
             // Calculated Volumes
             const totalCallsMonth = callsPerDay * workingDays;
@@ -287,10 +278,9 @@
 
             // Financials
             const onboardingCost = numAgents * AGENT_FEE;
-            const numbersCost = numVirtual * NUMBER;
             const aiCost = totalAiMinutes * RATE_AI;
 
-            const monthlySubtotal = MAINTENANCE + numbersCost + aiCost;
+            const monthlySubtotal = MAINTENANCE + aiCost;
             const monthlyTotal = monthlySubtotal * (1 + IVA);
 
             // Output Text Updates

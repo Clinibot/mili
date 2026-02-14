@@ -9,7 +9,6 @@ export default function ClientPortalCalculator() {
     const [callsPerDay, setCallsPerDay] = useState(50);
     const [avgDuration, setAvgDuration] = useState(2.5); // Minutes
     const [workingDays, setWorkingDays] = useState(22); // Month
-    const [numVirtualNumbers, setNumVirtualNumbers] = useState(1);
 
     // Constants
     const AGENT_FEE = 480;
@@ -24,23 +23,21 @@ export default function ClientPortalCalculator() {
         const totalAiMinutes = totalCallsMonth * avgDuration;
 
         const aiConsumption = totalAiMinutes * AI_MINUTE_RATE;
-        const numbersCost = numVirtualNumbers * NUMBER_COST;
         const onboardingCost = numAgents * AGENT_FEE;
 
-        const monthlySubtotal = MAINTENANCE_COST + numbersCost + aiConsumption;
+        const monthlySubtotal = MAINTENANCE_COST + aiConsumption;
         const monthlyIva = monthlySubtotal * IVA_RATE;
         const monthlyTotal = monthlySubtotal + monthlyIva;
 
         return {
             totalAiMinutes,
             aiConsumption,
-            numbersCost,
             onboardingCost,
             monthlySubtotal,
             monthlyIva,
             monthlyTotal
         };
-    }, [numAgents, callsPerDay, avgDuration, workingDays, numVirtualNumbers]);
+    }, [numAgents, callsPerDay, avgDuration, workingDays]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -121,18 +118,6 @@ export default function ClientPortalCalculator() {
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                    Números Virtuales
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={numVirtualNumbers}
-                                    onChange={(e) => setNumVirtualNumbers(Math.max(1, Number(e.target.value)))}
-                                    className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                />
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -175,10 +160,6 @@ export default function ClientPortalCalculator() {
                                     <tr className="border-b border-[#1F2937]">
                                         <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Mantenimiento Mensual</td>
                                         <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(MAINTENANCE_COST)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                    </tr>
-                                    <tr className="border-b border-[#1F2937]">
-                                        <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Números Virtuales ({numVirtualNumbers})</td>
-                                        <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.numbersCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
                                     </tr>
                                     <tr className="border-b border-[#1F2937]">
                                         <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
