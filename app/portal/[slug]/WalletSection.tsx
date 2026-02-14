@@ -223,7 +223,7 @@ export default function WalletSection({ clientId }: { clientId: string }) {
             {/* Subscription Section */}
             <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-[32px] overflow-hidden bg-[#0E1219]">
                 <CardContent className="p-10">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-10">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="bg-[#141A23] text-[#E8ECF1] p-2 rounded-xl border border-[#1F2937]">
