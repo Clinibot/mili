@@ -13,7 +13,7 @@ export default function CalculatorPage() {
     const ONBOARDING_COST = 480;
     const MAINTENANCE_COST = 55;
     const NUMBER_COST = 1.95;
-    const AI_MINUTE_RATE = 0.075;
+    const AI_MINUTE_RATE = 0.16;
     const DIVERT_LANDLINE_RATE = 0.010;
     const DIVERT_MOBILE_RATE = 0.029;
     const IVA_RATE = 0.21;
