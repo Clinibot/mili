@@ -160,9 +160,9 @@ export default function KpiCards({
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map(i => (
-                    <Card key={i} className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white animate-pulse">
+                    <Card key={i} className="border-[var(--border)] shadow-sm rounded-2xl overflow-hidden bg-[var(--surface)] animate-pulse">
                         <CardContent className="p-6">
-                            <div className="h-32 bg-slate-100 rounded"></div>
+                            <div className="h-32 bg-[var(--surface-2)] rounded"></div>
                         </CardContent>
                     </Card>
                 ))}
@@ -189,7 +189,7 @@ export default function KpiCards({
                 change={callsChange.value}
                 isPositive={callsChange.isPositive}
                 subValue="Total de llamadas hoy"
-                color="border-t-accent-blue"
+                color="border-t-[var(--azul)]"
             />
             <KpiCard
                 title="MINUTOS"
@@ -197,7 +197,7 @@ export default function KpiCards({
                 change={minutesChange.value}
                 isPositive={minutesChange.isPositive}
                 subValue={`Ø ${avgMinutes} min por llamada`}
-                color="border-t-accent-mineral"
+                color="border-t-[var(--verde)]" // Originally Mineral, mapping to Verde
             />
             <KpiCard
                 title="TRANSFERENCIAS"
@@ -205,7 +205,7 @@ export default function KpiCards({
                 change="+5%"
                 isPositive={true}
                 subValue={`${kpis.successRate}% de efectividad`}
-                color="border-t-accent-coral"
+                color="border-t-[var(--coral)]"
             />
             <KpiCard
                 title="CITAS AGENDADAS"
@@ -213,7 +213,7 @@ export default function KpiCards({
                 change="+22%"
                 isPositive={true}
                 subValue="Sincronizado con Google Cal"
-                color="border-t-accent-blue"
+                color="border-t-[var(--azul)]"
             />
             <KpiCard
                 title="SENTIMIENTO"
@@ -221,7 +221,7 @@ export default function KpiCards({
                 change="+8%"
                 isPositive={true}
                 subValue="Feedback positivo"
-                color="border-t-accent-mineral"
+                color="border-t-[var(--verde)]"
             />
         </div>
     );
@@ -230,18 +230,20 @@ export default function KpiCards({
 function KpiCard({ title, value, change, isPositive, subValue, color }: any) {
     return (
         <Card className={cn(
-            "border-none border-t-4 shadow-xl shadow-slate-200/50 rounded-3xl overflow-hidden bg-white transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1",
-            color
+            "border-[#1F2937] border-t-4 shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] transition-all duration-300 hover:shadow-2xl hover:shadow-black/30 hover:-translate-y-1",
+            color.replace("var(--azul)", "#008DCB").replace("var(--verde)", "#67B7AF").replace("var(--coral)", "#F78E5E")
         )}>
             <CardContent className="p-8">
-                <h3 className="text-slate-400 text-[10px] font-bold tracking-[0.2em] mb-6 font-sans uppercase">{title}</h3>
+                <h3 className="text-[rgba(255,255,255,0.3)] text-[10px] font-bold tracking-[0.2em] mb-6 font-sans uppercase">{title}</h3>
                 <div className="flex items-baseline gap-3 mb-2">
-                    <div className="text-5xl font-black font-header tracking-tighter text-slate-900">{value}</div>
+                    <div className="text-5xl font-black font-header tracking-tighter text-[#E8ECF1]">{value}</div>
                 </div>
-                <div className="text-sm font-medium text-slate-400 mb-6">{subValue}</div>
+                <div className="text-sm font-medium text-[rgba(255,255,255,0.55)] mb-6">{subValue}</div>
                 <div className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold",
-                    isPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border",
+                    isPositive
+                        ? "bg-[rgba(103,183,175,0.1)] text-[#67B7AF] border-[rgba(103,183,175,0.2)]"
+                        : "bg-[rgba(247,142,94,0.1)] text-[#F78E5E] border-[rgba(247,142,94,0.2)]"
                 )}>
                     {isPositive ? '↑' : '↓'} {change.replace('+', '').replace('-', '')} {isPositive ? 'crecimiento' : 'descenso'}
                 </div>

@@ -70,7 +70,7 @@ export default function DateRangeSelector({ onRangeChange }: DateRangeSelectorPr
 
     return (
         <div className="flex flex-col gap-4 items-end">
-            <div className="flex bg-surface-dark border border-white/5 rounded-2xl p-1 shadow-2xl">
+            <div className="flex bg-[#0E1219] border border-[#1F2937] rounded-2xl p-1 shadow-2xl">
                 {[
                     { value: 'last7days', label: '7D' },
                     { value: 'last30days', label: '30D' },
@@ -80,19 +80,19 @@ export default function DateRangeSelector({ onRangeChange }: DateRangeSelectorPr
                         key={option.value}
                         onClick={() => handlePresetChange(option.value as DatePreset)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold font-mono tracking-wider transition-all duration-200 ${preset === option.value
-                            ? 'bg-accent-blue text-white shadow-lg shadow-accent-blue/30 scale-105'
-                            : 'text-white/40 hover:text-white hover:bg-white/5'
+                            ? 'bg-[#008DCB] text-[#070A0F] shadow-lg shadow-[#008DCB]/30 scale-105'
+                            : 'text-[rgba(255,255,255,0.3)] hover:text-[#E8ECF1] hover:bg-[#141A23]'
                             }`}
                     >
                         {option.label}
                     </button>
                 ))}
-                <div className="w-px bg-white/5 mx-2 my-2"></div>
+                <div className="w-px bg-[#1F2937] mx-2 my-2"></div>
                 <button
                     onClick={() => handlePresetChange('custom')}
                     className={`px-4 py-2 rounded-xl text-xs font-bold font-mono tracking-wider transition-all duration-200 ${preset === 'custom'
-                        ? 'bg-accent-coral text-white shadow-lg shadow-accent-coral/30 scale-105'
-                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                        ? 'bg-[#F78E5E] text-[#070A0F] shadow-lg shadow-[#F78E5E]/30 scale-105'
+                        : 'text-[rgba(255,255,255,0.3)] hover:text-[#E8ECF1] hover:bg-[#141A23]'
                         }`}
                 >
                     CUSTOM
@@ -100,28 +100,28 @@ export default function DateRangeSelector({ onRangeChange }: DateRangeSelectorPr
             </div>
 
             {preset === 'custom' && (
-                <div className="flex items-center gap-3 bg-surface-dark border border-white/10 p-2 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-xl border border-white/5">
-                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Desde</span>
+                <div className="flex items-center gap-3 bg-[#0E1219] border border-[#1F2937] p-2 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-[#141A23] rounded-xl border border-[#1F2937]">
+                        <span className="text-[10px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-widest">Desde</span>
                         <input
                             type="date"
                             value={customStart}
                             onChange={(e) => setCustomStart(e.target.value)}
-                            className="bg-transparent text-white text-xs font-mono focus:outline-none [color-scheme:dark]"
+                            className="bg-transparent text-[#E8ECF1] text-xs font-mono focus:outline-none [color-scheme:dark]"
                         />
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-xl border border-white/5">
-                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Hasta</span>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-[#141A23] rounded-xl border border-[#1F2937]">
+                        <span className="text-[10px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-widest">Hasta</span>
                         <input
                             type="date"
                             value={customEnd}
                             onChange={(e) => setCustomEnd(e.target.value)}
-                            className="bg-transparent text-white text-xs font-mono focus:outline-none [color-scheme:dark]"
+                            className="bg-transparent text-[#E8ECF1] text-xs font-mono focus:outline-none [color-scheme:dark]"
                         />
                     </div>
                     <button
                         onClick={handleApplyCustom}
-                        className="bg-accent-coral hover:bg-accent-coral/80 text-white px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+                        className="bg-[#F78E5E] hover:bg-[#F78E5E]/80 text-[#070A0F] px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
                     >
                         Aplicar
                     </button>

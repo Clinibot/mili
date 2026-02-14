@@ -211,9 +211,9 @@ export default function AnalyticsCharts({
         return (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {[1, 2].map((i) => (
-                    <Card key={i} className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white p-8 animate-pulse">
-                        <div className="h-6 bg-slate-100 rounded w-1/3 mb-8"></div>
-                        <div className="h-[300px] bg-slate-50 rounded"></div>
+                    <Card key={i} className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8 animate-pulse">
+                        <div className="h-6 bg-[#141A23] rounded w-1/3 mb-8"></div>
+                        <div className="h-[300px] bg-[#070A0F] rounded"></div>
                     </Card>
                 ))}
             </div>
@@ -223,11 +223,11 @@ export default function AnalyticsCharts({
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Calls Volume Chart */}
-            <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white p-8">
+            <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
                 <CardHeader className="p-0 mb-8 flex flex-row items-center justify-between space-y-0">
                     <div>
-                        <p className="text-blue-600 font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Volumen de Llamadas</p>
-                        <CardTitle className="text-2xl font-black font-header tracking-tight text-slate-900">Llamadas Totales</CardTitle>
+                        <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Volumen de Llamadas</p>
+                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Llamadas Totales</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -235,53 +235,53 @@ export default function AnalyticsCharts({
                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
-                                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#008DCB" stopOpacity={0.15} />
+                                    <stop offset="95%" stopColor="#008DCB" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
                             <XAxis
                                 dataKey="date"
-                                stroke="#e2e8f0"
+                                stroke="rgba(255,255,255,0.1)"
                                 fontSize={10}
-                                tick={{ fill: '#94a3b8' }}
+                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
                                 axisLine={false}
                                 tickLine={false}
                                 dy={10}
                                 className="font-sans"
                             />
                             <YAxis
-                                stroke="#e2e8f0"
+                                stroke="rgba(255,255,255,0.1)"
                                 fontSize={10}
-                                tick={{ fill: '#94a3b8' }}
+                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
                                 axisLine={false}
                                 tickLine={false}
                                 className="font-sans"
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: '#FFFFFF',
-                                    border: '1px solid #f1f5f9',
-                                    borderRadius: '16px',
-                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05)',
+                                    backgroundColor: '#0E1219',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 10px 15px -3px rgba(0 0 0 / 0.5)',
                                     fontSize: '12px',
-                                    color: '#1e293b'
+                                    color: '#E8ECF1'
                                 }}
-                                itemStyle={{ color: '#2563eb' }}
+                                itemStyle={{ color: '#008DCB' }}
                             />
                             <Area
                                 type="monotone"
                                 dataKey="calls"
-                                stroke="#2563eb"
+                                stroke="#008DCB"
                                 strokeWidth={4}
                                 fill="url(#callsGradient)"
                                 name="Llamadas"
                                 animationDuration={1000}
-                                dot={{ fill: '#2563eb', strokeWidth: 2, r: 4, stroke: '#fff' }}
+                                dot={{ fill: '#008DCB', strokeWidth: 2, r: 4, stroke: '#0E1219' }}
                                 activeDot={{ r: 6, strokeWidth: 0 }}
                             />
                             {comparisonMode !== 'none' && (
-                                <Area type="monotone" dataKey="compCalls" stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 5" fill="none" name="Anterior" />
+                                <Area type="monotone" dataKey="compCalls" stroke="rgba(255,255,255,0.3)" strokeWidth={2} strokeDasharray="5 5" fill="none" name="Anterior" />
                             )}
                         </AreaChart>
                     </ResponsiveContainer>
@@ -289,10 +289,10 @@ export default function AnalyticsCharts({
             </Card>
 
             {/* Sentiment Analysis Chart */}
-            <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white p-8">
+            <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
                 <CardHeader className="p-0 mb-8">
-                    <p className="text-emerald-600 font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Sentimiento del usuario</p>
-                    <CardTitle className="text-2xl font-black font-header tracking-tight text-slate-900">Análisis Global</CardTitle>
+                    <p className="text-[#67B7AF] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Sentimiento del usuario</p>
+                    <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Análisis Global</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 flex flex-col md:flex-row items-center gap-8">
                     <div className="w-full md:w-1/2 h-[250px]">
@@ -307,6 +307,7 @@ export default function AnalyticsCharts({
                                     paddingAngle={8}
                                     dataKey="value"
                                     animationBegin={200}
+                                    stroke="none"
                                 >
                                     {sentimentData.map((entry: any, index: number) => (
                                         <Cell
@@ -318,10 +319,10 @@ export default function AnalyticsCharts({
                                 </Pie>
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: '#FFFFFF',
-                                        border: '1px solid #f1f5f9',
-                                        borderRadius: '16px',
-                                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05)'
+                                        backgroundColor: '#0E1219',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 10px 15px -3px rgba(0 0 0 / 0.5)'
                                     }}
                                 />
                             </PieChart>
@@ -329,12 +330,12 @@ export default function AnalyticsCharts({
                     </div>
                     <div className="w-full md:w-1/2 space-y-4">
                         {sentimentData.map((item: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between group p-3 rounded-2xl transition-colors hover:bg-slate-50">
+                            <div key={idx} className="flex items-center justify-between group p-3 rounded-xl transition-colors hover:bg-[#141A23]">
                                 <div className="flex items-center gap-3">
                                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors uppercase tracking-wider">{item.name}</span>
+                                    <span className="text-sm font-bold text-[rgba(255,255,255,0.55)] group-hover:text-[#E8ECF1] transition-colors uppercase tracking-wider">{item.name}</span>
                                 </div>
-                                <span className="text-sm font-black text-slate-900">
+                                <span className="text-sm font-black text-[#E8ECF1]">
                                     {((item.value / (sentimentTotal.positive + sentimentTotal.neutral + sentimentTotal.negative || 1)) * 100).toFixed(1)}%
                                 </span>
                             </div>
@@ -344,43 +345,44 @@ export default function AnalyticsCharts({
             </Card>
 
             {/* Minutes & Transfers Row */}
-            <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden bg-white p-8 lg:col-span-2">
+            <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8 lg:col-span-2">
                 <CardHeader className="p-0 mb-8">
-                    <p className="text-purple-600 font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Rendimiento Operativo</p>
-                    <CardTitle className="text-2xl font-black font-header tracking-tight text-slate-900">Minutos y Transferencias</CardTitle>
+                    <p className="text-[var(--coral)] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Rendimiento Operativo</p>
+                    <CardTitle className="text-2xl font-black font-header tracking-tight text-[var(--text)]">Minutos y Transferencias</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                             <XAxis
                                 dataKey="date"
-                                stroke="#e2e8f0"
+                                stroke="rgba(255,255,255,0.1)"
                                 fontSize={10}
-                                tick={{ fill: '#94a3b8' }}
+                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
                                 axisLine={false}
                                 tickLine={false}
                                 dy={10}
                                 className="font-sans"
                             />
                             <YAxis
-                                stroke="#e2e8f0"
+                                stroke="rgba(255,255,255,0.1)"
                                 fontSize={10}
-                                tick={{ fill: '#94a3b8' }}
+                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
                                 axisLine={false}
                                 tickLine={false}
                                 className="font-sans"
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: '#FFFFFF',
-                                    border: '1px solid #f1f5f9',
-                                    borderRadius: '16px',
-                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05)'
+                                    backgroundColor: '#0E1219',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 10px 15px -3px rgba(0 0 0 / 0.5)',
+                                    color: '#E8ECF1'
                                 }}
                             />
-                            <Bar dataKey="minutes" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={24} name="Minutos" />
-                            <Bar dataKey="transfers" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={24} name="Transferencias" />
+                            <Bar dataKey="minutes" fill="#008DCB" radius={[6, 6, 0, 0]} barSize={24} name="Minutos" />
+                            <Bar dataKey="transfers" fill="#67B7AF" radius={[6, 6, 0, 0]} barSize={24} name="Transferencias" />
                         </BarChart>
                     </ResponsiveContainer>
                 </CardContent>
