@@ -14,12 +14,27 @@
 }
 
 :root {
-  --background: #0F1115;
-  --foreground: #FFFFFF;
+  --background: #070A0F;
+  --foreground: #E8ECF1;
+
+  /* SPEC-01 Color Palette */
+  --azul: #008DCB;
+  --coral: #F78E5E;
+  --verde: #67B7AF;
+  --bg: #070A0F;
+  --surface: #0E1219;
+  --surface-2: #141A23;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255, 255, 255, 0.1);
+  --text: #E8ECF1;
+  --text-2: rgba(255, 255, 255, 0.55);
+  --text-3: rgba(255, 255, 255, 0.3);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
 }
