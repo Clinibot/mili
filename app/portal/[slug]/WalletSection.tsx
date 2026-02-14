@@ -236,7 +236,7 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                             </p>
 
                             {/* Packs de Minutos */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {(Object.entries(SUBSCRIPTION_PACKS) as [keyof typeof SUBSCRIPTION_PACKS, any][]).map(([id, pack]) => (
                                     <button
                                         key={id}
