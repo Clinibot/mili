@@ -93,8 +93,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 isMobileMenuOpen ? "flex translate-x-0" : "hidden lg:flex lg:translate-x-0"
             )}>
                 <div className="p-8 border-b border-[#1F2937] flex items-center justify-between">
-                    <h1 className="font-header text-xl font-black tracking-tight text-[#E8ECF1]">
-                        IA para llamadas
+                    <h1 className="text-xl font-header font-black tracking-tighter text-[#E8ECF1]">
+                        Mili Pérez <span className="text-[#008DCB]">&</span> Son-ia
                     </h1>
                     {/* Close button for mobile */}
                     <button
