@@ -249,6 +249,15 @@ const EMBED_CODE = `<!DOCTYPE html>
 
     </div>
 
+    <div style="background: rgba(247,142,94,0.06); border-left: 4px solid #F78E5E; padding: 24px; border-radius: 0 12px 12px 0; margin-bottom: 24px;">
+        <h3 style="font-family: var(--font-mono); font-weight: bold; font-size: 0.9em; color: #F78E5E; margin: 0 0 8px 0;">NOTA IMPORTANTE</h3>
+        <p style="color: var(--text); font-size: 0.9em; margin: 0; line-height: 1.5;">
+            <strong>Mili Pérez & Son-ia</strong> factura el mantenimiento y los minutos de IA.
+            <br/>
+            <strong>Netelip</strong> cobra directamente la numeración y los desvíos.
+        </p>
+    </div>
+
     <!-- Results Split -->
     
     <!-- 1. Costes Netelip -->
@@ -650,7 +659,7 @@ export default function CalculatorPage() {
                         <div className="note bg-[rgba(247,142,94,0.06)] border-l-4 border-[#F78E5E] p-6 rounded-r-xl">
                             <h3 className="font-mono font-bold text-sm text-[#F78E5E] mb-2">NOTA IMPORTANTE</h3>
                             <p className="text-[#E8ECF1] text-sm">
-                                <strong>Mili</strong> factura el mantenimiento y los minutos de IA.
+                                <strong>Mili Pérez & Son-ia</strong> factura el mantenimiento y los minutos de IA.
                                 <br />
                                 <strong>Netelip</strong> cobra directamente la numeración y los desvíos.
                             </p>
