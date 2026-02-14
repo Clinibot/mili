@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="h-full px-3 py-4 overflow-y-auto pb-24 custom-scrollbar">
                     <div className="flex items-center justify-between mb-10 px-4 h-10">
                         <span className="text-xl font-header font-black tracking-tighter text-[#E8ECF1] whitespace-nowrap">
-                            IA para llamadas
+                            Mili Pérez <span className="text-[#008DCB]">&</span> Son-ia
                         </span>
                         {/* Close button for mobile */}
                         <button

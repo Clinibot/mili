@@ -699,7 +699,7 @@ export default function CalculatorPage() {
                                 <Calculator size={120} />
                             </div>
                             <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
-                                <h2 className="font-header font-bold text-xl text-[#008DCB]">2. Costes IA (Mili)</h2>
+                                <h2 className="font-header font-bold text-xl text-[#008DCB]">2. Costes IA (Mili Pérez & Son-ia)</h2>
                                 <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Servicios de Inteligencia Artificial y Mantenimiento</p>
                             </div>
                             <div className="p-0">
