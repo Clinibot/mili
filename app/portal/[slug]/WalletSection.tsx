@@ -223,96 +223,17 @@ export default function WalletSection({ clientId }: { clientId: string }) {
             {/* Subscription Section */}
             <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-[32px] overflow-hidden bg-[#0E1219]">
                 <CardContent className="p-10">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-10 mb-8">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="bg-[#141A23] text-[#E8ECF1] p-2 rounded-xl border border-[#1F2937]">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z" /></svg>
                                 </div>
                                 <CardTitle className="text-xl font-bold text-[#E8ECF1]">Suscripción Mensual</CardTitle>
                             </div>
-                            <p className="text-[rgba(255,255,255,0.55)] leading-relaxed font-medium mb-6">
+                            <p className="text-[rgba(255,255,255,0.55)] leading-relaxed font-medium">
                                 Activa la recarga automática y una cuota fija de mantenimiento para asegurar que tu agente nunca deje de atender llamadas.
                             </p>
-
-                            {/* Packs de Minutos */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                {(Object.entries(SUBSCRIPTION_PACKS) as [keyof typeof SUBSCRIPTION_PACKS, any][]).map(([id, pack]) => (
-                                    <button
-                                        key={id}
-                                        onClick={() => setSelectedPack(id as any)}
-                                        className={cn(
-                                            "flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 text-center h-full",
-                                            selectedPack === id
-                                                ? "border-[#008DCB] bg-[#141A23]"
-                                                : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "text-[10px] font-black uppercase tracking-widest mb-1",
-                                            selectedPack === id ? "text-[#008DCB]" : "text-[rgba(255,255,255,0.3)]"
-                                        )}>
-                                            {id === 'none' ? 'Básico' : pack.name}
-                                        </div>
-                                        <div className="text-lg font-black text-[#E8ECF1] leading-tight">
-                                            {pack.price}€<span className="text-[10px] font-bold text-[rgba(255,255,255,0.3)] ml-0.5">/mes</span>
-                                        </div>
-                                        {id === 'none' ? (
-                                            <div className="mt-1 text-[9px] font-bold text-[rgba(255,255,255,0.3)] bg-[#141A23] px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                                                0 min (Recarga manual)
-                                            </div>
-                                        ) : (
-                                            <div className="mt-1 text-[9px] font-bold text-[#67B7AF] bg-[rgba(103,183,175,0.1)] px-2 py-0.5 rounded-full">
-                                                +{pack.extraMinutes} min incl.
-                                            </div>
-                                        )}
-                                    </button>
-                                ))}
-                                {/* Opción Personalizada */}
-                                <button
-                                    onClick={() => setSelectedPack('custom')}
-                                    className={cn(
-                                        "flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 text-center relative h-full",
-                                        selectedPack === 'custom'
-                                            ? "border-[#008DCB] bg-[#141A23]"
-                                            : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
-                                    )}
-                                >
-                                    <div className={cn(
-                                        "text-[10px] font-black uppercase tracking-widest mb-1",
-                                        selectedPack === 'custom' ? "text-[#008DCB]" : "text-[rgba(255,255,255,0.3)]"
-                                    )}>
-                                        Personalizado
-                                    </div>
-                                    <div className="text-lg font-black text-[#E8ECF1] leading-tight">
-                                        A Medida
-                                    </div>
-                                    <div className="mt-1 text-[9px] font-bold text-[rgba(255,255,255,0.3)] bg-[#141A23] px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                                        Tú eliges
-                                    </div>
-                                </button>
-                            </div>
-
-                            {/* Input para Personalizado */}
-                            {selectedPack === 'custom' && (
-                                <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 bg-[rgba(0,141,203,0.05)] p-4 rounded-2xl border border-[#008DCB]/20">
-                                    <div className="flex-1 text-center sm:text-left">
-                                        <p className="text-[#E8ECF1] font-bold text-sm">Define tu suscripción mensual</p>
-                                        <p className="text-[xs] text-[rgba(255,255,255,0.5)]">Incluye mantenimiento (55€) + Saldo extra</p>
-                                    </div>
-                                    <div className="relative w-full sm:w-auto">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E8ECF1] font-bold">€</span>
-                                        <input
-                                            type="number"
-                                            min="55"
-                                            step="5"
-                                            value={customAmount}
-                                            onChange={(e) => setCustomAmount(e.target.value)}
-                                            className="w-full sm:w-32 bg-[#070A0F] border border-[#1F2937] rounded-xl pl-8 pr-4 py-3 text-[#E8ECF1] font-bold focus:outline-none focus:border-[#008DCB] transition-colors"
-                                        />
-                                    </div>
-                                </div>
-                            )}
                         </div>
                         <div className="w-full md:w-auto">
                             {wallet.subscriptionTier === 'none' || !wallet.subscriptionTier ? (
@@ -332,6 +253,85 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                             )}
                         </div>
                     </div>
+
+                    {/* Packs de Minutos */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {(Object.entries(SUBSCRIPTION_PACKS) as [keyof typeof SUBSCRIPTION_PACKS, any][]).map(([id, pack]) => (
+                            <button
+                                key={id}
+                                onClick={() => setSelectedPack(id as any)}
+                                className={cn(
+                                    "flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 text-center h-full",
+                                    selectedPack === id
+                                        ? "border-[#008DCB] bg-[#141A23]"
+                                        : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
+                                )}
+                            >
+                                <div className={cn(
+                                    "text-[10px] font-black uppercase tracking-widest mb-1",
+                                    selectedPack === id ? "text-[#008DCB]" : "text-[rgba(255,255,255,0.3)]"
+                                )}>
+                                    {id === 'none' ? 'Básico' : pack.name}
+                                </div>
+                                <div className="text-lg font-black text-[#E8ECF1] leading-tight">
+                                    {pack.price}€<span className="text-[10px] font-bold text-[rgba(255,255,255,0.3)] ml-0.5">/mes</span>
+                                </div>
+                                {id === 'none' ? (
+                                    <div className="mt-1 text-[9px] font-bold text-[rgba(255,255,255,0.3)] bg-[#141A23] px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                        0 min (Recarga manual)
+                                    </div>
+                                ) : (
+                                    <div className="mt-1 text-[9px] font-bold text-[#67B7AF] bg-[rgba(103,183,175,0.1)] px-2 py-0.5 rounded-full">
+                                        +{pack.extraMinutes} min incl.
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                        {/* Opción Personalizada */}
+                        <button
+                            onClick={() => setSelectedPack('custom')}
+                            className={cn(
+                                "flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 text-center relative h-full",
+                                selectedPack === 'custom'
+                                    ? "border-[#008DCB] bg-[#141A23]"
+                                    : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
+                            )}
+                        >
+                            <div className={cn(
+                                "text-[10px] font-black uppercase tracking-widest mb-1",
+                                selectedPack === 'custom' ? "text-[#008DCB]" : "text-[rgba(255,255,255,0.3)]"
+                            )}>
+                                Personalizado
+                            </div>
+                            <div className="text-lg font-black text-[#E8ECF1] leading-tight">
+                                A Medida
+                            </div>
+                            <div className="mt-1 text-[9px] font-bold text-[rgba(255,255,255,0.3)] bg-[#141A23] px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                Tú eliges
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Input para Personalizado */}
+                    {selectedPack === 'custom' && (
+                        <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 bg-[rgba(0,141,203,0.05)] p-4 rounded-2xl border border-[#008DCB]/20">
+                            <div className="flex-1 text-center sm:text-left">
+                                <p className="text-[#E8ECF1] font-bold text-sm">Define tu suscripción mensual</p>
+                                <p className="text-[xs] text-[rgba(255,255,255,0.5)]">Incluye mantenimiento (55€) + Saldo extra</p>
+                            </div>
+                            <div className="relative w-full sm:w-auto">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E8ECF1] font-bold">€</span>
+                                <input
+                                    type="number"
+                                    min="55"
+                                    step="5"
+                                    value={customAmount}
+                                    onChange={(e) => setCustomAmount(e.target.value)}
+                                    className="w-full sm:w-32 bg-[#070A0F] border border-[#1F2937] rounded-xl pl-8 pr-4 py-3 text-[#E8ECF1] font-bold focus:outline-none focus:border-[#008DCB] transition-colors"
+                                />
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
