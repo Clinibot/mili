@@ -271,13 +271,36 @@ export default function ClientPortalCalculator() {
                         </div>
                     </div>
 
-                    {/* 2. Factura Mili */}
+                    {/* 2. Pago Único (Onboarding) */}
+                    <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden opacity-90 mb-6">
+                        <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
+                            <h2 className="font-header font-bold text-xl text-[#E8ECF1]">2. Pago Único (Onboarding)</h2>
+                            <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Coste de alta y configuración inicial</p>
+                        </div>
+                        <div className="p-0">
+                            <table className="w-full text-left text-sm">
+                                <tbody>
+                                    <tr className="bg-[rgba(0,141,203,0.03)] border-b border-[#1F2937]">
+                                        <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
+                                            Alta por Agente
+                                            <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
+                                                {numAgents} Agente(s) x {formatCurrency(AGENT_FEE)}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.onboardingCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* 3. Costes IA (Mili) */}
                     <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden relative">
                         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                             <Calculator size={120} />
                         </div>
                         <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
-                            <h2 className="font-header font-bold text-xl text-[#008DCB]">2. Costes IA (Mili Pérez & Son-ia)</h2>
+                            <h2 className="font-header font-bold text-xl text-[#008DCB]">3. Costes IA (Mili Pérez & Son-ia)</h2>
                             <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Servicios de Inteligencia Artificial y Mantenimiento</p>
                         </div>
                         <div className="p-0">
@@ -295,15 +318,6 @@ export default function ClientPortalCalculator() {
                                             </div>
                                         </td>
                                         <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.aiConsumption)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                    </tr>
-                                    <tr className="bg-[rgba(0,141,203,0.03)] border-b border-[#1F2937]">
-                                        <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
-                                            Alta por Agente (Pago Único)
-                                            <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
-                                                {numAgents} Agente(s) x {formatCurrency(AGENT_FEE)}
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.onboardingCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
                                     </tr>
                                     <tr className="bg-[rgba(0,141,203,0.06)]">
                                         <td className="py-4 px-6">
