@@ -242,7 +242,7 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                         key={id}
                                         onClick={() => setSelectedPack(id as any)}
                                         className={cn(
-                                            "flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 text-center h-full",
+                                            "flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 text-center h-full",
                                             selectedPack === id
                                                 ? "border-[#008DCB] bg-[#141A23]"
                                                 : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
@@ -272,7 +272,7 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                 <button
                                     onClick={() => setSelectedPack('custom')}
                                     className={cn(
-                                        "flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 text-center relative h-full",
+                                        "flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 text-center relative h-full",
                                         selectedPack === 'custom'
                                             ? "border-[#008DCB] bg-[#141A23]"
                                             : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
