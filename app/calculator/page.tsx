@@ -226,19 +226,22 @@ const EMBED_CODE = `<!DOCTYPE html>
             <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Transferencias a Humano</h4>
             
             <div class="input-item">
-                <label>% Transferencia a Móvil</label>
+                <label>% Llamadas Transferidas</label>
                 <div class="range-container">
-                    <input type="range" id="transferMobile" min="0" max="100" value="10" oninput="updateRange('transferMobile', 'transferMobileVal'); calculate()">
-                    <span id="transferMobileVal" class="range-value">10%</span>
+                    <input type="range" id="percentTransferred" min="0" max="100" value="15" oninput="updateRange('percentTransferred', 'percentTransferredVal'); calculate()">
+                    <span id="percentTransferredVal" class="range-value">15%</span>
                 </div>
             </div>
             
              <div class="input-item">
-                <label>% Transferencia a Fijo</label>
+                <label>% Transferencia a Móvil (vs Fijo)</label>
                 <div class="range-container">
-                    <input type="range" id="transferLandline" min="0" max="100" value="5" oninput="updateRange('transferLandline', 'transferLandlineVal'); calculate()">
-                    <span id="transferLandlineVal" class="range-value">5%</span>
+                    <input type="range" id="percentMobileVsLandline" min="0" max="100" value="90" oninput="updateRange('percentMobileVsLandline', 'percentMobileVsLandlineVal'); calculate()">
+                    <span id="percentMobileVsLandlineVal" class="range-value">90%</span>
                 </div>
+                 <div style="text-align: right; font-size: 0.65em; font-family: monospace; opacity: 0.5; margin-top: 2px;">
+                    Resto a Fijo
+                 </div>
             </div>
             
              <div class="input-item">
@@ -365,8 +368,8 @@ const EMBED_CODE = `<!DOCTYPE html>
         const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
         const numVirtual = parseFloat(document.getElementById('numVirtualNumbers').value) || 1;
         
-        const transferMobilePct = parseFloat(document.getElementById('transferMobile').value) || 0;
-        const transferLandlinePct = parseFloat(document.getElementById('transferLandline').value) || 0;
+        const percentTransferred = parseFloat(document.getElementById('percentTransferred').value) || 0;
+        const percentMobileVsLandline = parseFloat(document.getElementById('percentMobileVsLandline').value) || 0;
         const avgHumanDuration = parseFloat(document.getElementById('avgHumanDuration').value) || 0;
 
         // Derived Volumes
@@ -376,8 +379,12 @@ const EMBED_CODE = `<!DOCTYPE html>
         const totalAiMinutes = totalCallsMonth * avgDuration;
         
         // Transfers
-        const transfersMobile = totalCallsMonth * (transferMobilePct / 100);
-        const transfersLandline = totalCallsMonth * (transferLandlinePct / 100);
+        // 1. Calculate total transferred calls
+        const totalTransferredCalls = totalCallsMonth * (percentTransferred / 100);
+        
+        // 2. Split into Mobile vs Landline
+        const transfersMobile = totalTransferredCalls * (percentMobileVsLandline / 100);
+        const transfersLandline = totalTransferredCalls * ((100 - percentMobileVsLandline) / 100);
         
         const humanMinutesMobile = transfersMobile * avgHumanDuration;
         const humanMinutesLandline = transfersLandline * avgHumanDuration;
@@ -432,8 +439,8 @@ export default function CalculatorPage() {
     const [numVirtualNumbers, setNumVirtualNumbers] = useState(1);
 
     // Transfer Inputs
-    const [transferMobile, setTransferMobile] = useState(10); // %
-    const [transferLandline, setTransferLandline] = useState(5); // %
+    const [percentTransferred, setPercentTransferred] = useState(15); // % Total calls transferred
+    const [percentMobileVsLandline, setPercentMobileVsLandline] = useState(90); // % of transfers going to mobile
     const [avgHumanDuration, setAvgHumanDuration] = useState(3.0); // Minutes
 
     // Modal state
@@ -458,8 +465,12 @@ export default function CalculatorPage() {
         const totalAiMinutes = totalCallsMonth * avgDuration;
 
         // Transfers
-        const transfersMobile = totalCallsMonth * (transferMobile / 100);
-        const transfersLandline = totalCallsMonth * (transferLandline / 100);
+        // 1. Calculate total transferred calls
+        const totalTransferredCalls = totalCallsMonth * (percentTransferred / 100);
+
+        // 2. Split into Mobile vs Landline
+        const transfersMobile = totalTransferredCalls * (percentMobileVsLandline / 100);
+        const transfersLandline = totalTransferredCalls * ((100 - percentMobileVsLandline) / 100);
 
         const humanMinutesMobile = transfersMobile * avgHumanDuration;
         const humanMinutesLandline = transfersLandline * avgHumanDuration;
@@ -500,7 +511,7 @@ export default function CalculatorPage() {
             grandTotal,
             onboardingCost
         };
-    }, [numAgents, callsPerDay, avgDuration, workingDays, numVirtualNumbers, transferMobile, transferLandline, avgHumanDuration]);
+    }, [numAgents, callsPerDay, avgDuration, workingDays, numVirtualNumbers, percentTransferred, percentMobileVsLandline, avgHumanDuration]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -616,38 +627,44 @@ export default function CalculatorPage() {
                         <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl p-6 shadow-sm">
                             <h2 className="font-header font-bold text-xl text-[#E8ECF1] mb-6">Transferencias a Humano</h2>
                             <div className="space-y-6">
+
+                                {/* Input 1: % Llamadas Transferidas */}
                                 <div>
                                     <div className="flex justify-between mb-2">
                                         <label className="text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
-                                            % Transferencia a Móvil
+                                            % Llamadas Transferidas
                                         </label>
-                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{transferMobile}%</span>
+                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{percentTransferred}%</span>
                                     </div>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        value={transferMobile}
-                                        onChange={(e) => setTransferMobile(Number(e.target.value))}
+                                        value={percentTransferred}
+                                        onChange={(e) => setPercentTransferred(Number(e.target.value))}
                                         className="w-full accent-[#008DCB] cursor-pointer"
                                     />
                                 </div>
 
+                                {/* Input 2: % Móvil vs Fijo */}
                                 <div>
                                     <div className="flex justify-between mb-2">
                                         <label className="text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
-                                            % Transferencia a Fijo
+                                            % Transferencia a Móvil (vs Fijo)
                                         </label>
-                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{transferLandline}%</span>
+                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{percentMobileVsLandline}%</span>
                                     </div>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        value={transferLandline}
-                                        onChange={(e) => setTransferLandline(Number(e.target.value))}
+                                        value={percentMobileVsLandline}
+                                        onChange={(e) => setPercentMobileVsLandline(Number(e.target.value))}
                                         className="w-full accent-[#008DCB] cursor-pointer"
                                     />
+                                    <div className="text-right text-[10px] text-[rgba(255,255,255,0.3)] mt-1 font-mono">
+                                        El {100 - percentMobileVsLandline}% restante se transferirá a Fijo.
+                                    </div>
                                 </div>
 
                                 <div>

@@ -22,7 +22,8 @@ export default function WalletSection({ clientId }: { clientId: string }) {
     });
     const [loading, setLoading] = useState(true);
     const [rechargeAmount, setRechargeAmount] = useState('100');
-    const [selectedPack, setSelectedPack] = useState<'none' | '100min' | '300min'>('none');
+    const [selectedPack, setSelectedPack] = useState<'none' | '100min' | '300min' | 'custom'>('none');
+    const [customAmount, setCustomAmount] = useState('120');
 
     const SUBSCRIPTION_PACKS = {
         none: { name: 'Solo Mantenimiento', price: 55, extraMinutes: 0 },
@@ -107,14 +108,29 @@ export default function WalletSection({ clientId }: { clientId: string }) {
         try {
             toast.info('Redirigiendo a suscripciones...');
 
+            let price = 0;
+            let packName = '';
+
+            if (selectedPack === 'custom') {
+                price = parseFloat(customAmount);
+                if (price < 55) {
+                    toast.error('La suscripción mínima es de 55€ (Mantenimiento)');
+                    return;
+                }
+                packName = 'Suscripción Personalizada';
+            } else {
+                price = SUBSCRIPTION_PACKS[selectedPack].price;
+                packName = SUBSCRIPTION_PACKS[selectedPack].name;
+            }
+
             const response = await fetch('/api/stripe/create-checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    amount: SUBSCRIPTION_PACKS[selectedPack].price,
+                    amount: price,
                     clientId,
                     type: 'subscription',
-                    packName: SUBSCRIPTION_PACKS[selectedPack].name
+                    packName: packName
                 })
             });
 
@@ -220,11 +236,11 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                             </p>
 
                             {/* Packs de Minutos */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                 {(Object.entries(SUBSCRIPTION_PACKS) as [keyof typeof SUBSCRIPTION_PACKS, any][]).map(([id, pack]) => (
                                     <button
                                         key={id}
-                                        onClick={() => setSelectedPack(id)}
+                                        onClick={() => setSelectedPack(id as any)}
                                         className={cn(
                                             "flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 text-center",
                                             selectedPack === id
@@ -252,7 +268,51 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                         )}
                                     </button>
                                 ))}
+                                {/* Opción Personalizada */}
+                                <button
+                                    onClick={() => setSelectedPack('custom')}
+                                    className={cn(
+                                        "flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 text-center relative",
+                                        selectedPack === 'custom'
+                                            ? "border-[#008DCB] bg-[#141A23]"
+                                            : "border-[#1F2937] hover:border-[rgba(255,255,255,0.3)] bg-[#070A0F]"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "text-[10px] font-black uppercase tracking-widest mb-1",
+                                        selectedPack === 'custom' ? "text-[#008DCB]" : "text-[rgba(255,255,255,0.3)]"
+                                    )}>
+                                        Personalizado
+                                    </div>
+                                    <div className="text-lg font-black text-[#E8ECF1] leading-tight">
+                                        A Medida
+                                    </div>
+                                    <div className="mt-1 text-[9px] font-bold text-[rgba(255,255,255,0.3)] bg-[#141A23] px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                        Tú eliges
+                                    </div>
+                                </button>
                             </div>
+
+                            {/* Input para Personalizado */}
+                            {selectedPack === 'custom' && (
+                                <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 bg-[rgba(0,141,203,0.05)] p-4 rounded-2xl border border-[#008DCB]/20">
+                                    <div className="flex-1 text-center sm:text-left">
+                                        <p className="text-[#E8ECF1] font-bold text-sm">Define tu suscripción mensual</p>
+                                        <p className="text-[xs] text-[rgba(255,255,255,0.5)]">Incluye mantenimiento (55€) + Saldo extra</p>
+                                    </div>
+                                    <div className="relative w-full sm:w-auto">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E8ECF1] font-bold">€</span>
+                                        <input
+                                            type="number"
+                                            min="55"
+                                            step="5"
+                                            value={customAmount}
+                                            onChange={(e) => setCustomAmount(e.target.value)}
+                                            className="w-full sm:w-32 bg-[#070A0F] border border-[#1F2937] rounded-xl pl-8 pr-4 py-3 text-[#E8ECF1] font-bold focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="w-full md:w-auto">
                             {wallet.subscriptionTier === 'none' || !wallet.subscriptionTier ? (
@@ -261,7 +321,9 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                                     className="w-full md:w-auto px-10 py-5 bg-[#E8ECF1] hover:bg-[#E8ECF1]/90 text-[#070A0F] rounded-2xl font-black text-sm transition-all shadow-xl active:scale-95 flex flex-col items-center"
                                 >
                                     <span>ACTIVAR SUSCRIPCIÓN</span>
-                                    <span className="text-xs text-[rgba(255,255,255,0.3)] font-bold mt-1">POR {SUBSCRIPTION_PACKS[selectedPack].price}€/MES</span>
+                                    <span className="text-xs text-[#070A0F]/60 font-bold mt-1">
+                                        POR {selectedPack === 'custom' ? `${parseFloat(customAmount || '0').toFixed(2)}` : SUBSCRIPTION_PACKS[selectedPack as keyof typeof SUBSCRIPTION_PACKS].price}€/MES
+                                    </span>
                                 </button>
                             ) : (
                                 <button className="w-full md:w-auto px-8 py-5 bg-[rgba(103,183,175,0.1)] text-[#67B7AF] border border-[#67B7AF]/20 rounded-2xl font-black text-sm cursor-default">
