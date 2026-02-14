@@ -190,7 +190,7 @@ const EMBED_CODE = `<!DOCTYPE html>
                     <input type="number" id="callsPerDay" value="50" oninput="calculate()">
                 </div>
                  <div class="input-item">
-                    <label>Duración Media (Min)</label>
+                    <label>Duración Media IA (Min)</label>
                     <input type="number" id="avgDuration" value="2.5" step="0.1" oninput="calculate()">
                 </div>
             </div>
@@ -209,20 +209,19 @@ const EMBED_CODE = `<!DOCTYPE html>
             <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Transferencias a Humano</h4>
             
             <div class="input-item">
-                <label>% Llamadas Transferidas</label>
+                <label>% Transferencia a Móvil</label>
                 <div class="range-container">
-                    <input type="range" id="transferRate" min="0" max="100" value="20" oninput="updateRange('transferRate', 'transferRateVal'); calculate()">
-                    <span id="transferRateVal" class="range-value">20%</span>
+                    <input type="range" id="transferMobile" min="0" max="100" value="10" oninput="updateRange('transferMobile', 'transferMobileVal'); calculate()">
+                    <span id="transferMobileVal" class="range-value">10%</span>
                 </div>
             </div>
             
              <div class="input-item">
-                <label>% Transferencia a Móvil (vs Fijo)</label>
+                <label>% Transferencia a Fijo</label>
                 <div class="range-container">
-                    <input type="range" id="mobileSplit" min="0" max="100" value="80" oninput="updateRange('mobileSplit', 'mobileSplitVal'); calculate()">
-                    <span id="mobileSplitVal" class="range-value">80%</span>
+                    <input type="range" id="transferLandline" min="0" max="100" value="5" oninput="updateRange('transferLandline', 'transferLandlineVal'); calculate()">
+                    <span id="transferLandlineVal" class="range-value">5%</span>
                 </div>
-                 <div class="tooltip">El resto se asume como transferencia a Fijo via Trunk SIP o similar.</div>
             </div>
             
              <div class="input-item">
@@ -235,10 +234,34 @@ const EMBED_CODE = `<!DOCTYPE html>
 
     <!-- Results Split -->
     
-    <!-- 1. Mili Invoice -->
+    <!-- 1. Costes Netelip -->
+    <div class="card" style="opacity: 0.9;">
+        <div class="card-header">
+            <h4 class="card-title color-netelip">1. Costes Directos (Netelip)</h4>
+        </div>
+        <table class="summary-table">
+            <tr>
+                <td class="text-muted">Números Virtuales</td>
+                <td class="text-right"><span id="numbersCostOutput">1,95 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+            </tr>
+            <tr>
+                <td class="text-muted">
+                    Desvío a Humano <br>
+                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalDivertMinutes">0 min/mes</span>
+                </td>
+                <td class="text-right"><span id="divertsCostOutput">0,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+            </tr>
+            <tr class="bg-netelip">
+                <td>Total Netelip (con IVA)</td>
+                <td class="text-right color-netelip" id="netelipTotal">0,00 €</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 2. Costes IA (Mili) -->
     <div class="card">
         <div class="card-header">
-            <h4 class="card-title color-mili">1. Costes IA</h4>
+            <h4 class="card-title color-mili">2. Costes IA (Mili)</h4>
         </div>
         <table class="summary-table">
             <tr>
@@ -262,30 +285,6 @@ const EMBED_CODE = `<!DOCTYPE html>
         </table>
     </div>
 
-    <!-- 2. Netelip Invoice -->
-    <div class="card" style="opacity: 0.9;">
-        <div class="card-header">
-            <h4 class="card-title color-netelip">2. Costes Directos (Netelip)</h4>
-        </div>
-        <table class="summary-table">
-            <tr>
-                <td class="text-muted">Números Virtuales</td>
-                <td class="text-right"><span id="numbersCostOutput">1,95 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr>
-                <td class="text-muted">
-                    Desvío a Humano <br>
-                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalDivertMinutes">0 min/mes</span>
-                </td>
-                <td class="text-right"><span id="divertsCostOutput">0,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr class="bg-netelip">
-                <td>Total Netelip (con IVA)</td>
-                <td class="text-right color-netelip" id="netelipTotal">0,00 €</td>
-            </tr>
-        </table>
-    </div>
-
     <!-- Grand Total -->
     <div style="margin-top: 24px; padding: 20px; background: var(--surface-2); border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -296,7 +295,7 @@ const EMBED_CODE = `<!DOCTYPE html>
     </div>
     
     <div style="margin-top: 15px; text-align: center;">
-        <small class="text-muted" style="font-family: var(--font-mono);">Pago Único (Onboarding): <strong style="color: var(--text);">480,00 € + IVA</strong></small>
+        <small class="text-muted" style="font-family: var(--font-mono);">Alta por Agente (Pago Único): <strong style="color: var(--text);">480,00 € + IVA</strong></small>
     </div>
 
 </div>
@@ -324,17 +323,19 @@ const EMBED_CODE = `<!DOCTYPE html>
         const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
         const numVirtual = parseFloat(document.getElementById('numVirtualNumbers').value) || 1;
         
-        const transferRate = parseFloat(document.getElementById('transferRate').value) || 0;
-        const mobileSplit = parseFloat(document.getElementById('mobileSplit').value) || 0; // % to mobile
+        const transferMobilePct = parseFloat(document.getElementById('transferMobile').value) || 0;
+        const transferLandlinePct = parseFloat(document.getElementById('transferLandline').value) || 0;
         const avgHumanDuration = parseFloat(document.getElementById('avgHumanDuration').value) || 0;
 
         // Derived Volumes
         const totalCallsMonth = callsPerDay * workingDays;
+        
+        // AI Minutes = Total calls * AI Duration (assuming AI speaks in all calls)
         const totalAiMinutes = totalCallsMonth * avgDuration;
         
-        const totalTransfers = totalCallsMonth * (transferRate / 100);
-        const transfersMobile = totalTransfers * (mobileSplit / 100);
-        const transfersLandline = totalTransfers * ((100 - mobileSplit) / 100);
+        // Transfers
+        const transfersMobile = totalCallsMonth * (transferMobilePct / 100);
+        const transfersLandline = totalCallsMonth * (transferLandlinePct / 100);
         
         const humanMinutesMobile = transfersMobile * avgHumanDuration;
         const humanMinutesLandline = transfersLandline * avgHumanDuration;
@@ -383,8 +384,8 @@ export default function CalculatorPage() {
     const [numVirtualNumbers, setNumVirtualNumbers] = useState(1);
 
     // Transfer Inputs
-    const [transferRate, setTransferRate] = useState(20); // %
-    const [mobileSplit, setMobileSplit] = useState(80); // % of transfers going to mobile
+    const [transferMobile, setTransferMobile] = useState(10); // %
+    const [transferLandline, setTransferLandline] = useState(5); // %
     const [avgHumanDuration, setAvgHumanDuration] = useState(3.0); // Minutes
 
     // Modal state
@@ -404,11 +405,13 @@ export default function CalculatorPage() {
     const calculations = useMemo(() => {
         // 1. Derive Volumes
         const totalCallsMonth = callsPerDay * workingDays;
+
+        // AI Minutes
         const totalAiMinutes = totalCallsMonth * avgDuration;
 
-        const totalTransfers = totalCallsMonth * (transferRate / 100);
-        const transfersMobile = totalTransfers * (mobileSplit / 100);
-        const transfersLandline = totalTransfers * ((100 - mobileSplit) / 100);
+        // Transfers
+        const transfersMobile = totalCallsMonth * (transferMobile / 100);
+        const transfersLandline = totalCallsMonth * (transferLandline / 100);
 
         const humanMinutesMobile = transfersMobile * avgHumanDuration;
         const humanMinutesLandline = transfersLandline * avgHumanDuration;
@@ -451,7 +454,7 @@ export default function CalculatorPage() {
             onboardingTotal,
             onboardingIva
         };
-    }, [callsPerDay, avgDuration, workingDays, numVirtualNumbers, transferRate, mobileSplit, avgHumanDuration]);
+    }, [callsPerDay, avgDuration, workingDays, numVirtualNumbers, transferMobile, transferLandline, avgHumanDuration]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -512,7 +515,7 @@ export default function CalculatorPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                            Duración Media (Min)
+                                            Duración Media IA (Min)
                                         </label>
                                         <input
                                             type="number"
@@ -558,16 +561,16 @@ export default function CalculatorPage() {
                                 <div>
                                     <div className="flex justify-between mb-2">
                                         <label className="text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
-                                            % Llamadas Transferidas
+                                            % Transferencia a Móvil
                                         </label>
-                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{transferRate}%</span>
+                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{transferMobile}%</span>
                                     </div>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        value={transferRate}
-                                        onChange={(e) => setTransferRate(Number(e.target.value))}
+                                        value={transferMobile}
+                                        onChange={(e) => setTransferMobile(Number(e.target.value))}
                                         className="w-full accent-[#008DCB] cursor-pointer"
                                     />
                                 </div>
@@ -575,21 +578,18 @@ export default function CalculatorPage() {
                                 <div>
                                     <div className="flex justify-between mb-2">
                                         <label className="text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
-                                            % Transferencia a Móvil (vs Fijo)
+                                            % Transferencia a Fijo
                                         </label>
-                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{mobileSplit}%</span>
+                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{transferLandline}%</span>
                                     </div>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        value={mobileSplit}
-                                        onChange={(e) => setMobileSplit(Number(e.target.value))}
+                                        value={transferLandline}
+                                        onChange={(e) => setTransferLandline(Number(e.target.value))}
                                         className="w-full accent-[#008DCB] cursor-pointer"
                                     />
-                                    <p className="text-[rgba(255,255,255,0.3)] text-xs mt-2">
-                                        El {100 - mobileSplit}% restante se transferirá a Fijo.
-                                    </p>
                                 </div>
 
                                 <div>
@@ -619,13 +619,47 @@ export default function CalculatorPage() {
 
                     {/* Summary Section */}
                     <div className="lg:col-span-7 space-y-6">
-                        {/* 1. Factura Mili */}
+
+                        {/* 1. Factura Netelip (Moved first per request) */}
+                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden opacity-90">
+                            <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
+                                <h2 className="font-header font-bold text-xl text-[#F78E5E]">1. Costes Directos (Netelip)</h2>
+                                <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Numeración y Telecomunicaciones</p>
+                            </div>
+                            <div className="p-0">
+                                <table className="w-full text-left text-sm">
+                                    <tbody>
+                                        <tr className="border-b border-[#1F2937]">
+                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Números Virtuales ({numVirtualNumbers})</td>
+                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.numbersCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                        </tr>
+                                        <tr className="border-b border-[#1F2937]">
+                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans flex items-center gap-2">
+                                                Desvío a Humano
+                                                <div className="text-xs text-[rgba(255,255,255,0.4)] ml-auto mr-2">
+                                                    ~{Math.round(calculations.totalHumanMinutes).toLocaleString()} min/mes
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.landlineConsumption + calculations.mobileConsumption)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                        </tr>
+                                        <tr className="bg-[rgba(247,142,94,0.06)]">
+                                            <td className="py-4 px-6 font-header font-bold text-[#E8ECF1]">Total Netelip (con IVA)</td>
+                                            <td className="py-4 px-6 text-right font-header font-bold text-xl text-[#F78E5E]">
+                                                {formatCurrency(calculations.netelipTotal)}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* 2. Factura Mili */}
                         <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden relative">
                             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                                 <Calculator size={120} />
                             </div>
                             <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
-                                <h2 className="font-header font-bold text-xl text-[#008DCB]">1. Costes IA</h2>
+                                <h2 className="font-header font-bold text-xl text-[#008DCB]">2. Costes IA (Mili)</h2>
                                 <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Servicios de Inteligencia Artificial y Mantenimiento</p>
                             </div>
                             <div className="p-0">
@@ -658,45 +692,12 @@ export default function CalculatorPage() {
                             </div>
                         </div>
 
-                        {/* 2. Factura Netelip */}
-                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl overflow-hidden opacity-90">
-                            <div className="p-6 border-b border-[#1F2937] bg-[#141A23]">
-                                <h2 className="font-header font-bold text-xl text-[#F78E5E]">2. Costes Directos (Netelip)</h2>
-                                <p className="text-[rgba(255,255,255,0.55)] text-sm mt-1">Numeración y Telecomunicaciones</p>
-                            </div>
-                            <div className="p-0">
-                                <table className="w-full text-left text-sm">
-                                    <tbody>
-                                        <tr className="border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Números Virtuales ({numVirtualNumbers})</td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.numbersCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
-                                        <tr className="border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans flex items-center gap-2">
-                                                Desvío a Humano
-                                                <div className="text-xs text-[rgba(255,255,255,0.4)] ml-auto mr-2">
-                                                    ~{Math.round(calculations.totalHumanMinutes).toLocaleString()} min/mes
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.landlineConsumption + calculations.mobileConsumption)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
-                                        <tr className="bg-[rgba(247,142,94,0.06)]">
-                                            <td className="py-4 px-6 font-header font-bold text-[#E8ECF1]">Total Netelip (con IVA)</td>
-                                            <td className="py-4 px-6 text-right font-header font-bold text-xl text-[#F78E5E]">
-                                                {formatCurrency(calculations.netelipTotal)}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
                         {/* One-time Costs */}
                         <div className="card bg-[#0E1219]/50 border border-[#1F2937] rounded-xl overflow-hidden mt-6">
                             <div className="p-4 flex justify-between items-center">
                                 <div>
-                                    <h3 className="font-bold text-[#E8ECF1]">Pago Único (Onboarding)</h3>
-                                    <p className="text-xs text-[rgba(255,255,255,0.5)]">Setup inicial y configuración</p>
+                                    <h3 className="font-bold text-[#E8ECF1]">Alta por Agente (Pago Único)</h3>
+                                    <p className="text-xs text-[rgba(255,255,255,0.5)]">Setup y configuración inicial</p>
                                 </div>
                                 <span className="font-mono font-bold text-[#E8ECF1] text-lg">480,00 € <span className="text-[10px] opacity-60">+ IVA</span></span>
                             </div>
