@@ -54,8 +54,20 @@ const EMBED_CODE = `<!DOCTYPE html>
             margin-top: 0;
         }
 
+        .input-group {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .input-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
         .input-item {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         label {
@@ -75,7 +87,7 @@ const EMBED_CODE = `<!DOCTYPE html>
             line-height: 1.4;
         }
 
-        input[type="number"] {
+        input[type="number"], input[type="range"] {
             width: 100%;
             background: var(--surface-2);
             border: 1px solid var(--border-2);
@@ -91,6 +103,20 @@ const EMBED_CODE = `<!DOCTYPE html>
         input[type="number"]:focus {
             outline: none;
             border-color: var(--azul);
+        }
+        
+        .range-container {
+             display: flex;
+             align-items: center;
+             gap: 12px;
+        }
+        
+        .range-value {
+             font-family: var(--font-mono);
+             color: var(--azul);
+             font-weight: bold;
+             min-width: 40px;
+             text-align: right;
         }
 
         .card {
@@ -150,36 +176,61 @@ const EMBED_CODE = `<!DOCTYPE html>
 <div class="container">
     <div style="margin-bottom: 24px;">
         <h2 style="color: var(--text); margin-bottom: 5px;">Calculadora de Costes</h2>
-        <p style="margin:0; font-size: 0.9em; color: var(--text-2);">Desglose: Facturación Mili (IA) vs. Costes Directos (Telefónica)</p>
+        <p style="margin:0; font-size: 0.9em; color: var(--text-2);">Estimación basada en volumen de llamadas.</p>
     </div>
 
     <!-- Inputs -->
     <div class="card" style="padding: 20px;">
-        <h3 style="margin-bottom: 20px; font-size: 1em; color: var(--text);">Configurar Consumo</h3>
+        <!-- Volume Inputs -->
+        <div class="input-group">
+            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Duración</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                 <div class="input-item">
+                    <label>Llamadas al Día</label>
+                    <input type="number" id="callsPerDay" value="50" oninput="calculate()">
+                </div>
+                 <div class="input-item">
+                    <label>Duración Media (Min)</label>
+                    <input type="number" id="avgDuration" value="2.5" step="0.1" oninput="calculate()">
+                </div>
+            </div>
+             <div class="input-item">
+                <label>Días Laborables / Mes</label>
+                <input type="number" id="workingDays" value="22" oninput="calculate()">
+            </div>
+             <div class="input-item">
+                <label>Cantidad Números Virtuales</label>
+                <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
+            </div>
+        </div>
         
-        <div class="input-item">
-            <label>Minutos IA Mensuales</label>
-            <input type="number" id="aiMinutes" value="2000" oninput="calculate()">
-            <small class="text-muted" style="display:block; margin-top:6px;">Calculado a 0.16€/min</small>
+        <!-- Transfer Inputs -->
+         <div class="input-group">
+            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Transferencias a Humano</h4>
+            
+            <div class="input-item">
+                <label>% Llamadas Transferidas</label>
+                <div class="range-container">
+                    <input type="range" id="transferRate" min="0" max="100" value="20" oninput="updateRange('transferRate', 'transferRateVal'); calculate()">
+                    <span id="transferRateVal" class="range-value">20%</span>
+                </div>
+            </div>
+            
+             <div class="input-item">
+                <label>% Transferencia a Móvil (vs Fijo)</label>
+                <div class="range-container">
+                    <input type="range" id="mobileSplit" min="0" max="100" value="80" oninput="updateRange('mobileSplit', 'mobileSplitVal'); calculate()">
+                    <span id="mobileSplitVal" class="range-value">80%</span>
+                </div>
+                 <div class="tooltip">El resto se asume como transferencia a Fijo via Trunk SIP o similar.</div>
+            </div>
+            
+             <div class="input-item">
+                <label>Duración Media Humano (Min)</label>
+                 <input type="number" id="avgHumanDuration" value="3.0" step="0.5" oninput="calculate()">
+            </div>
         </div>
 
-        <div class="input-item">
-            <label>Cantidad Números Virtuales</label>
-            <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div class="input-item" style="margin-bottom: 0;">
-                <label>Desvío a Fijo</label>
-                <input type="number" id="divertsLandline" value="0" oninput="calculate()">
-                <div class="tooltip">Minutos que habla humano</div>
-            </div>
-            <div class="input-item" style="margin-bottom: 0;">
-                <label>Desvío a Móvil</label>
-                <input type="number" id="divertsMobile" value="0" oninput="calculate()">
-                <div class="tooltip">Minutos que habla humano</div>
-            </div>
-        </div>
     </div>
 
     <!-- Results Split -->
@@ -195,7 +246,10 @@ const EMBED_CODE = `<!DOCTYPE html>
                 <td class="text-right">55,00 €</td>
             </tr>
             <tr>
-                <td class="text-muted">Consumo IA</td>
+                <td class="text-muted">
+                    Consumo IA <br>
+                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalAiMinutes">0 min/mes</span>
+                </td>
                 <td class="text-right" id="aiCostOutput">0,00 €</td>
             </tr>
             <tr class="bg-mili">
@@ -219,7 +273,10 @@ const EMBED_CODE = `<!DOCTYPE html>
                 <td class="text-right" id="numbersCostOutput">1,95 €</td>
             </tr>
             <tr>
-                <td class="text-muted">Desvío a Humano</td>
+                <td class="text-muted">
+                    Desvío a Humano <br>
+                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalDivertMinutes">0 min/mes</span>
+                </td>
                 <td class="text-right" id="divertsCostOutput">0,00 €</td>
             </tr>
             <tr class="bg-netelip">
@@ -248,34 +305,59 @@ const EMBED_CODE = `<!DOCTYPE html>
     const MAINTENANCE = 55;
     const NUMBER = 1.95;
     const RATE_AI = 0.16;
-    const RATE_LANDLINE = 0.010;
-    const RATE_MOBILE = 0.029;
+    const RATE_LANDLINE = 0.010; // Fijo
+    const RATE_MOBILE = 0.029;   // Movil
     const IVA = 0.21;
 
     function format(num) {
         return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
     }
+    
+    function updateRange(id, valId) {
+        document.getElementById(valId).innerText = document.getElementById(id).value + '%';
+    }
 
     function calculate() {
-        const aiMin = parseFloat(document.getElementById('aiMinutes').value) || 0;
+        // Inputs
+        const callsPerDay = parseFloat(document.getElementById('callsPerDay').value) || 0;
+        const avgDuration = parseFloat(document.getElementById('avgDuration').value) || 0;
+        const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
         const numVirtual = parseFloat(document.getElementById('numVirtualNumbers').value) || 1;
-        const landlineMin = parseFloat(document.getElementById('divertsLandline').value) || 0;
-        const mobileMin = parseFloat(document.getElementById('divertsMobile').value) || 0;
+        
+        const transferRate = parseFloat(document.getElementById('transferRate').value) || 0;
+        const mobileSplit = parseFloat(document.getElementById('mobileSplit').value) || 0; // % to mobile
+        const avgHumanDuration = parseFloat(document.getElementById('avgHumanDuration').value) || 0;
+
+        // Derived Volumes
+        const totalCallsMonth = callsPerDay * workingDays;
+        const totalAiMinutes = totalCallsMonth * avgDuration;
+        
+        const totalTransfers = totalCallsMonth * (transferRate / 100);
+        const transfersMobile = totalTransfers * (mobileSplit / 100);
+        const transfersLandline = totalTransfers * ((100 - mobileSplit) / 100);
+        
+        const humanMinutesMobile = transfersMobile * avgHumanDuration;
+        const humanMinutesLandline = transfersLandline * avgHumanDuration;
+        const totalHumanMinutes = humanMinutesMobile + humanMinutesLandline;
 
         // Mili Calc
-        const aiCost = aiMin * RATE_AI;
+        const aiCost = totalAiMinutes * RATE_AI;
         const miliSubtotal = MAINTENANCE + aiCost;
         const miliTotal = miliSubtotal * (1 + IVA);
 
         // Netelip Calc
         const numbersCost = numVirtual * NUMBER;
-        const divertsCost = (landlineMin * RATE_LANDLINE) + (mobileMin * RATE_MOBILE);
+        const divertsCost = (humanMinutesLandline * RATE_LANDLINE) + (humanMinutesMobile * RATE_MOBILE);
         const netelipSubtotal = numbersCost + divertsCost;
         const netelipTotal = netelipSubtotal * (1 + IVA);
 
         const grandTotal = miliTotal + netelipTotal;
 
-        // Output
+        // Output Text Updates
+        document.getElementById('totalAiMinutes').innerText = Math.round(totalAiMinutes) + ' min/mes';
+        document.getElementById('totalDivertMinutes').innerText = Math.round(totalHumanMinutes) + ' min/mes';
+
+        // Output Financials
         document.getElementById('aiCostOutput').innerText = format(aiCost);
         document.getElementById('miliTotal').innerText = format(miliTotal);
         
@@ -294,11 +376,16 @@ const EMBED_CODE = `<!DOCTYPE html>
 </html>`;
 
 export default function CalculatorPage() {
-    // State for inputs
-    const [aiMinutes, setAiMinutes] = useState(2000);
+    // Volume Inputs
+    const [callsPerDay, setCallsPerDay] = useState(50);
+    const [avgDuration, setAvgDuration] = useState(2.5); // Minutes
+    const [workingDays, setWorkingDays] = useState(22); // Month
     const [numVirtualNumbers, setNumVirtualNumbers] = useState(1);
-    const [divertsLandline, setDivertsLandline] = useState(0);
-    const [divertsMobile, setDivertsMobile] = useState(0);
+
+    // Transfer Inputs
+    const [transferRate, setTransferRate] = useState(20); // %
+    const [mobileSplit, setMobileSplit] = useState(80); // % of transfers going to mobile
+    const [avgHumanDuration, setAvgHumanDuration] = useState(3.0); // Minutes
 
     // Modal state
     const [showWidgetModal, setShowWidgetModal] = useState(false);
@@ -315,28 +402,41 @@ export default function CalculatorPage() {
 
     // Calculations
     const calculations = useMemo(() => {
-        // Mili Costs
-        const aiConsumption = aiMinutes * AI_MINUTE_RATE;
+        // 1. Derive Volumes
+        const totalCallsMonth = callsPerDay * workingDays;
+        const totalAiMinutes = totalCallsMonth * avgDuration;
+
+        const totalTransfers = totalCallsMonth * (transferRate / 100);
+        const transfersMobile = totalTransfers * (mobileSplit / 100);
+        const transfersLandline = totalTransfers * ((100 - mobileSplit) / 100);
+
+        const humanMinutesMobile = transfersMobile * avgHumanDuration;
+        const humanMinutesLandline = transfersLandline * avgHumanDuration;
+        const totalHumanMinutes = humanMinutesMobile + humanMinutesLandline;
+
+        // 2. Mili Costs
+        const aiConsumption = totalAiMinutes * AI_MINUTE_RATE;
         const miliSubtotal = MAINTENANCE_COST + aiConsumption;
         const miliIva = miliSubtotal * IVA_RATE;
         const miliTotal = miliSubtotal + miliIva;
 
-        // Netelip Costs (Direct to Provider)
+        // 3. Netelip Costs
         const numbersCost = numVirtualNumbers * NUMBER_COST;
-        const landlineConsumption = divertsLandline * DIVERT_LANDLINE_RATE;
-        const mobileConsumption = divertsMobile * DIVERT_MOBILE_RATE;
+        const landlineConsumption = humanMinutesLandline * DIVERT_LANDLINE_RATE;
+        const mobileConsumption = humanMinutesMobile * DIVERT_MOBILE_RATE;
         const netelipSubtotal = numbersCost + landlineConsumption + mobileConsumption;
         const netelipIva = netelipSubtotal * IVA_RATE;
         const netelipTotal = netelipSubtotal + netelipIva;
 
-
         const onboardingIva = ONBOARDING_COST * IVA_RATE;
         const onboardingTotal = ONBOARDING_COST + onboardingIva;
 
-        // Grand Total (Estimated Client Spend)
+        // Grand Total
         const grandTotal = miliTotal + netelipTotal;
 
         return {
+            totalAiMinutes,
+            totalHumanMinutes,
             aiConsumption,
             numbersCost,
             landlineConsumption,
@@ -351,7 +451,7 @@ export default function CalculatorPage() {
             onboardingTotal,
             onboardingIva
         };
-    }, [aiMinutes, numVirtualNumbers, divertsLandline, divertsMobile]);
+    }, [callsPerDay, avgDuration, workingDays, numVirtualNumbers, transferRate, mobileSplit, avgHumanDuration]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -377,7 +477,7 @@ export default function CalculatorPage() {
                             Calculadora de Costes
                         </h1>
                         <p className="text-[rgba(255,255,255,0.7)] mt-2 text-lg font-sans">
-                            Desglose de costes: Facturación Mili (IA) vs. Costes Directos (Telefónica).
+                            Estimación basada en volumen de llamadas.
                         </p>
                     </div>
 
@@ -393,74 +493,116 @@ export default function CalculatorPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Inputs Section */}
                     <div className="lg:col-span-5 space-y-6">
-                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl p-6 shadow-sm">
-                            <h2 className="font-header font-bold text-xl text-[#E8ECF1] mb-6">Configurar Consumo</h2>
 
+                        {/* Group 1: Volume */}
+                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl p-6 shadow-sm">
+                            <h2 className="font-header font-bold text-xl text-[#E8ECF1] mb-6">Volumen y Duración</h2>
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
+                                            Llamadas/Día
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={callsPerDay}
+                                            onChange={(e) => setCallsPerDay(Number(e.target.value))}
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
+                                            Duración Media (Min)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            value={avgDuration}
+                                            onChange={(e) => setAvgDuration(Number(e.target.value))}
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
+                                            Días Laborables
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={workingDays}
+                                            onChange={(e) => setWorkingDays(Number(e.target.value))}
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
+                                            Núm. Virtuales
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={numVirtualNumbers}
+                                            onChange={(e) => setNumVirtualNumbers(Math.max(1, Number(e.target.value)))}
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Group 2: Transfers */}
+                        <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl p-6 shadow-sm">
+                            <h2 className="font-header font-bold text-xl text-[#E8ECF1] mb-6">Transferencias a Humano</h2>
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                        Minutos IA Mensuales
-                                    </label>
+                                    <div className="flex justify-between mb-2">
+                                        <label className="text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
+                                            % Llamadas Transferidas
+                                        </label>
+                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{transferRate}%</span>
+                                    </div>
                                     <input
-                                        type="number"
-                                        value={aiMinutes}
-                                        onChange={(e) => setAiMinutes(Number(e.target.value))}
-                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        value={transferRate}
+                                        onChange={(e) => setTransferRate(Number(e.target.value))}
+                                        className="w-full accent-[#008DCB] cursor-pointer"
                                     />
-                                    <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
-                                        Estimado: {formatCurrency(calculations.aiConsumption)} ({AI_MINUTE_RATE}€/min)
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <label className="text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
+                                            % Transferencia a Móvil (vs Fijo)
+                                        </label>
+                                        <span className="text-[#008DCB] font-mono font-bold text-sm">{mobileSplit}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        value={mobileSplit}
+                                        onChange={(e) => setMobileSplit(Number(e.target.value))}
+                                        className="w-full accent-[#008DCB] cursor-pointer"
+                                    />
+                                    <p className="text-[rgba(255,255,255,0.3)] text-xs mt-2">
+                                        El {100 - mobileSplit}% restante se transferirá a Fijo.
                                     </p>
                                 </div>
 
                                 <div>
                                     <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                        Cantidad de Números Virtuales
+                                        Duración Media Humano (Min)
                                     </label>
                                     <input
                                         type="number"
-                                        min="1"
-                                        value={numVirtualNumbers}
-                                        onChange={(e) => setNumVirtualNumbers(Math.max(1, Number(e.target.value)))}
+                                        step="0.5"
+                                        value={avgHumanDuration}
+                                        onChange={(e) => setAvgHumanDuration(Number(e.target.value))}
                                         className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
                                     />
-                                    <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
-                                        Total: {formatCurrency(calculations.numbersCost)} ({NUMBER_COST}€/num)
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2" title="Minutos que habla un humano (no la IA) tras un desvío a teléfono fijo.">
-                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider cursor-help">
-                                            Desvío a Fijo
-                                        </label>
-                                        <HelpCircle size={14} className="text-[rgba(255,255,255,0.3)] hover:text-[#008DCB] transition-colors cursor-help" />
-                                    </div>
-                                    <input
-                                        type="number"
-                                        value={divertsLandline}
-                                        onChange={(e) => setDivertsLandline(Number(e.target.value))}
-                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                    />
-                                    <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
-                                        Total: {formatCurrency(calculations.landlineConsumption)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2" title="Minutos que habla un humano (no la IA) tras un desvío a teléfono móvil.">
-                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider cursor-help">
-                                            Desvío a Móvil
-                                        </label>
-                                        <HelpCircle size={14} className="text-[rgba(255,255,255,0.3)] hover:text-[#008DCB] transition-colors cursor-help" />
-                                    </div>
-                                    <input
-                                        type="number"
-                                        value={divertsMobile}
-                                        onChange={(e) => setDivertsMobile(Number(e.target.value))}
-                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                    />
-                                    <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
-                                        Total: {formatCurrency(calculations.mobileConsumption)}
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -494,7 +636,12 @@ export default function CalculatorPage() {
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(MAINTENANCE_COST)}</td>
                                         </tr>
                                         <tr className="border-b border-[#1F2937]">
-                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Consumo IA ({aiMinutes} min)</td>
+                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
+                                                Consumo IA
+                                                <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
+                                                    ~{Math.round(calculations.totalAiMinutes).toLocaleString()} min/mes
+                                                </div>
+                                            </td>
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.aiConsumption)}</td>
                                         </tr>
                                         <tr className="bg-[rgba(0,141,203,0.06)]">
@@ -527,8 +674,8 @@ export default function CalculatorPage() {
                                         <tr className="border-b border-[#1F2937]">
                                             <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans flex items-center gap-2">
                                                 Desvío a Humano
-                                                <div title="Consumo de minutos en llamadas desviadas">
-                                                    <Info size={14} className="text-[rgba(255,255,255,0.3)] cursor-help" />
+                                                <div className="text-xs text-[rgba(255,255,255,0.4)] ml-auto mr-2">
+                                                    ~{Math.round(calculations.totalHumanMinutes).toLocaleString()} min/mes
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.landlineConsumption + calculations.mobileConsumption)}</td>
