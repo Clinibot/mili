@@ -15,7 +15,7 @@ export default function ClientPortalCalculator() {
     const AGENT_FEE = 480;
     const MAINTENANCE_COST = 55;
     const NUMBER_COST = 1.95;
-    const AI_MINUTE_RATE = 0.16;
+    const AI_MINUTE_RATE = 0.21;
     const IVA_RATE = 0.21;
 
     // Calculations

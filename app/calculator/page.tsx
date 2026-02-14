@@ -250,7 +250,7 @@ const EMBED_CODE = `<!DOCTYPE html>
 <script>
     const MAINTENANCE = 55;
     const NUMBER = 1.95;
-    const RATE_AI = 0.16;
+    const RATE_AI = 0.21;
     const IVA = 0.21;
     const AGENT_FEE = 480;
 
@@ -312,7 +312,7 @@ export default function CalculatorPage() {
     const AGENT_FEE = 480;
     const MAINTENANCE_COST = 55;
     const NUMBER_COST = 1.95;
-    const AI_MINUTE_RATE = 0.16;
+    const AI_MINUTE_RATE = 0.21;
     const IVA_RATE = 0.21;
 
     // Calculations

@@ -27,8 +27,8 @@ export default function WalletSection({ clientId }: { clientId: string }) {
 
     const SUBSCRIPTION_PACKS = {
         none: { name: 'Solo Mantenimiento', price: 55, extraMinutes: 0 },
-        '100min': { name: 'Pack 100 min', price: 71, extraMinutes: 100, costExtra: 16 },
-        '300min': { name: 'Pack 300 min', price: 103, extraMinutes: 300, costExtra: 48 }
+        '100min': { name: 'Pack 100 min', price: 76, extraMinutes: 100, costExtra: 21 },
+        '300min': { name: 'Pack 300 min', price: 118, extraMinutes: 300, costExtra: 63 }
     };
 
     useEffect(() => {
