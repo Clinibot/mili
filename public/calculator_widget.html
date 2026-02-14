@@ -1,9 +1,13 @@
+<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Costes - Sonia IA & Mili Pérez</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <title>Calculadora de Costes IA - Sonia IA & Mili Pérez</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --azul: #008DCB;
@@ -23,7 +27,7 @@
         }
 
         body {
-            background-color: transparent; /* Allows embedding */
+            background-color: var(--bg);
             color: var(--text);
             font-family: var(--font-sans);
             margin: 0;
@@ -41,7 +45,10 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
-        h1, h2, h3, h4 {
+        h1,
+        h2,
+        h3,
+        h4 {
             font-family: var(--font-header);
             margin-top: 0;
         }
@@ -51,7 +58,7 @@
             padding-bottom: 24px;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .input-group:last-child {
             border-bottom: none;
             padding-bottom: 0;
@@ -71,15 +78,8 @@
             letter-spacing: 1px;
             margin-bottom: 8px;
         }
-        
-        .tooltip {
-            font-size: 0.85em;
-            color: var(--text-3);
-            margin-top: 4px;
-            line-height: 1.4;
-        }
 
-        input[type="number"], input[type="range"] {
+        input[type="number"] {
             width: 100%;
             background: var(--surface-2);
             border: 1px solid var(--border-2);
@@ -91,24 +91,10 @@
             box-sizing: border-box;
             transition: all 0.2s;
         }
-        
+
         input[type="number"]:focus {
             outline: none;
             border-color: var(--azul);
-        }
-        
-        .range-container {
-             display: flex;
-             align-items: center;
-             gap: 12px;
-        }
-        
-        .range-value {
-             font-family: var(--font-mono);
-             color: var(--azul);
-             font-weight: bold;
-             min-width: 40px;
-             text-align: right;
         }
 
         .card {
@@ -129,9 +115,6 @@
             font-size: 1.1em;
             font-weight: bold;
             margin: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .summary-table {
@@ -151,7 +134,7 @@
             font-size: 1.1em;
             font-family: var(--font-header);
         }
-        
+
         .summary-table .subtext {
             font-size: 0.75em;
             opacity: 0.5;
@@ -159,264 +142,172 @@
             margin-top: 4px;
         }
 
-        .text-right { text-align: right; font-family: var(--font-mono); }
-        .text-muted { color: var(--text-2); }
-        
-        /* Specific Colors */
-        .color-mili { color: var(--azul); }
-        .bg-mili { background: rgba(0,141,203,0.06); }
-        .color-netelip { color: var(--coral); }
-        .bg-netelip { background: rgba(247,142,94,0.06); }
-        
-        .onboarding-row {
-            background: rgba(0,141,203,0.03); 
+        .text-right {
+            text-align: right;
+            font-family: var(--font-mono);
         }
 
+        .text-muted {
+            color: var(--text-2);
+        }
+
+        .color-mili {
+            color: var(--azul);
+        }
+
+        .bg-mili {
+            background: rgba(0, 141, 203, 0.06);
+        }
+
+        .onboarding-row {
+            background: rgba(0, 141, 203, 0.03);
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div style="margin-bottom: 24px;">
-        <h2 style="color: var(--text); margin-bottom: 5px;">Calculadora de Costes</h2>
-        <p style="margin:0; font-size: 0.9em; color: var(--text-2);">Estimación basada en volumen de llamadas.</p>
-    </div>
-
-    <!-- Inputs -->
-    <div class="card" style="padding: 20px;">
-        <!-- Volume Inputs -->
-        <div class="input-group">
-            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Configuración</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                 <div class="input-item">
-                    <label>Nº Agentes IA</label>
-                    <input type="number" id="numAgents" value="1" min="1" oninput="calculate()">
-                </div>
-                 <div class="input-item">
-                    <label>Llamadas al Día</label>
-                    <input type="number" id="callsPerDay" value="50" oninput="calculate()">
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                 <div class="input-item">
-                    <label>Duración Media IA (Min)</label>
-                    <input type="number" id="avgDuration" value="2.5" step="0.1" oninput="calculate()">
-                </div>
-                 <div class="input-item">
-                    <label>Días Laborables / Mes</label>
-                    <input type="number" id="workingDays" value="22" oninput="calculate()">
-                </div>
-            </div>
-             <div class="input-item">
-                <label>Cantidad Números Virtuales (Netelip)</label>
-                <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
-            </div>
+    <div class="container">
+        <div style="margin-bottom: 24px;">
+            <h2 style="color: var(--text); margin-bottom: 5px;">Calculadora de Costes IA</h2>
+            <p style="margin:0; font-size: 0.9em; color: var(--text-2);">Estimación de inversión en Inteligencia
+                Artificial (Sonia IA & Mili Pérez).</p>
         </div>
-        
-        <!-- Transfer Inputs -->
-         <div class="input-group">
-            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Transferencias a Humano</h4>
-            
-            <div class="input-item">
-                <label>% Llamadas Transferidas</label>
-                <div class="range-container">
-                    <input type="range" id="percentTransferred" min="0" max="100" value="15" oninput="updateRange('percentTransferred', 'percentTransferredVal'); calculate()">
-                    <span id="percentTransferredVal" class="range-value">15%</span>
+
+        <!-- Inputs -->
+        <div class="card" style="padding: 20px;">
+            <div class="input-group">
+                <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Configuración</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-item">
+                        <label>Nº Agentes IA</label>
+                        <input type="number" id="numAgents" value="1" min="1" oninput="calculate()">
+                    </div>
+                    <div class="input-item">
+                        <label>Llamadas al Día</label>
+                        <input type="number" id="callsPerDay" value="50" oninput="calculate()">
+                    </div>
                 </div>
-            </div>
-            
-             <div class="input-item">
-                <label>% Transferencia a Móvil (vs Fijo)</label>
-                <div class="range-container">
-                    <input type="range" id="percentMobileVsLandline" min="0" max="100" value="90" oninput="updateRange('percentMobileVsLandline', 'percentMobileVsLandlineVal'); calculate()">
-                    <span id="percentMobileVsLandlineVal" class="range-value">90%</span>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-item">
+                        <label>Duración Media IA (Min)</label>
+                        <input type="number" id="avgDuration" value="2.5" step="0.1" oninput="calculate()">
+                    </div>
+                    <div class="input-item">
+                        <label>Días Laborables / Mes</label>
+                        <input type="number" id="workingDays" value="22" oninput="calculate()">
+                    </div>
                 </div>
-                 <div style="text-align: right; font-size: 0.65em; font-family: monospace; opacity: 0.5; margin-top: 2px;">
-                    Resto a Fijo
-                 </div>
-            </div>
-            
-             <div class="input-item">
-                <label>Duración Media Humano (Min)</label>
-                 <input type="number" id="avgHumanDuration" value="3.0" step="0.5" oninput="calculate()">
+                <div class="input-item">
+                    <label>Cantidad Números Virtuales</label>
+                    <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
+                </div>
             </div>
         </div>
 
-    </div>
+        <!-- Results Split -->
 
-    <div style="background: rgba(247,142,94,0.06); border-left: 4px solid #F78E5E; padding: 24px; border-radius: 0 12px 12px 0; margin-bottom: 24px;">
-        <h3 style="font-family: var(--font-mono); font-weight: bold; font-size: 0.9em; color: #F78E5E; margin: 0 0 8px 0;">NOTA IMPORTANTE</h3>
-        <p style="color: var(--text); font-size: 0.9em; margin: 0; line-height: 1.5;">
-            <strong>Mili Pérez & Son-ia</strong> factura el mantenimiento y los minutos de IA.
-            <br/>
-            <strong>Netelip</strong> cobra directamente la numeración y los desvíos.
-        </p>
-    </div>
-
-    <!-- Results Split -->
-    
-    <!-- 1. Costes Netelip -->
-    <div class="card" style="opacity: 0.9;">
-        <div class="card-header">
-            <h4 class="card-title color-netelip">1. Costes Directos (Netelip)</h4>
+        <!-- 1. Pago Único (Onboarding) -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h4 class="card-title" style="color: var(--text);">1. Pago Único (Onboarding)</h4>
+            </div>
+            <table class="summary-table">
+                <tr class="onboarding-row">
+                    <td class="text-muted">
+                        Alta por Agente <br>
+                        <span class="subtext"><span id="numAgentsOutput">1</span> Agente(s) x 480€</span>
+                    </td>
+                    <td class="text-right">
+                        <span id="onboardingCostOutput">480,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+
+                            IVA</span>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <table class="summary-table">
-            <tr>
-                <td class="text-muted">Números Virtuales</td>
-                <td class="text-right"><span id="numbersCostOutput">1,95 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr>
-                <td class="text-muted">
-                    Desvío a Humano <br>
-                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalDivertMinutes">0 min/mes</span>
-                </td>
-                <td class="text-right"><span id="divertsCostOutput">0,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr class="bg-netelip">
-                <td>Total Netelip (con IVA)</td>
-                <td class="text-right color-netelip" id="netelipTotal">0,00 €</td>
-            </tr>
-        </table>
-    </div>
 
-    <!-- 2. Pago Único (Onboarding) -->
-    <div class="card" style="margin-bottom: 24px;">
-        <div class="card-header">
-            <h4 class="card-title" style="color: var(--text);">2. Pago Único (Onboarding)</h4>
+        <!-- 2. Costes IA (Mili) -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title color-mili">2. Costes IA (Mili Pérez & Son-ia)</h4>
+            </div>
+            <table class="summary-table">
+                <tr>
+                    <td class="text-muted">Mantenimiento Mensual</td>
+                    <td class="text-right">55,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Números Virtuales</td>
+                    <td class="text-right"><span id="numbersCostOutput">1,95 €</span> <span
+                            style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">
+                        Consumo IA <br>
+                        <span style="font-size: 0.8em; opacity: 0.6;" id="totalAiMinutes">0 min/mes</span>
+                    </td>
+                    <td class="text-right"><span id="aiCostOutput">0,00 €</span> <span
+                            style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
+                </tr>
+                <tr class="bg-mili">
+                    <td>
+                        <div style="font-weight: bold; color: var(--text);">Total Mensual Estimado</div>
+                        <div style="font-size: 10px; color: var(--azul); font-family: var(--font-mono);">IVA INCLUIDO
+                        </div>
+                    </td>
+                    <td class="text-right color-mili" id="miliTotal">0,00 €</td>
+                </tr>
+            </table>
         </div>
-        <table class="summary-table">
-            <tr class="onboarding-row">
-                 <td class="text-muted">
-                    Alta por Agente <br>
-                    <span class="subtext"><span id="numAgentsOutput">1</span> Agente(s) x 480€</span>
-                </td>
-                <td class="text-right">
-                    <span id="onboardingCostOutput">480,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span>
-                </td>
-            </tr>
-        </table>
+
     </div>
 
-    <!-- 3. Costes IA (Mili) -->
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title color-mili">3. Costes IA (Mili)</h4>
-        </div>
-        <table class="summary-table">
-            <tr>
-                <td class="text-muted">Mantenimiento Mensual</td>
-                <td class="text-right">55,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr>
-                <td class="text-muted">
-                    Consumo IA <br>
-                    <span style="font-size: 0.8em; opacity: 0.6;" id="totalAiMinutes">0 min/mes</span>
-                </td>
-                <td class="text-right"><span id="aiCostOutput">0,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
-            <tr class="bg-mili">
-                <td>
-                    <div style="font-weight: bold; color: var(--text);">Total Recarga Monedero</div>
-                    <div style="font-size: 10px; color: var(--azul); font-family: var(--font-mono);">COSTES IA + MANTENIMIENTO</div>
-                </td>
-                <td class="text-right color-mili" id="miliTotal">0,00 €</td>
-            </tr>
-        </table>
-    </div>
+    <script>
+        const MAINTENANCE = 55;
+        const NUMBER = 1.95;
+        const RATE_AI = 0.16;
+        const IVA = 0.21;
+        const AGENT_FEE = 480;
 
-    <!-- Grand Total -->
-    <div style="margin-top: 24px; padding: 20px; background: var(--surface-2); border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <div style="text-transform: uppercase; font-weight: bold; font-family: var(--font-header); letter-spacing: 1px;">Total Mensual Estimado</div>
-            <div style="font-size: 0.8em; color: var(--text-3); margin-top: 4px;">Suma de ambas facturas (Sin incluir Pago Único)</div>
-        </div>
-        <div id="grandTotal" style="font-size: 2em; font-weight: bold; font-family: var(--font-header);">0,00 €</div>
-    </div>
+        function format(num) {
+            return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
+        }
 
-</div>
+        function calculate() {
+            // Inputs
+            const numAgents = Math.max(1, parseFloat(document.getElementById('numAgents').value) || 1);
+            const callsPerDay = parseFloat(document.getElementById('callsPerDay').value) || 0;
+            const avgDuration = parseFloat(document.getElementById('avgDuration').value) || 0;
+            const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
+            const numVirtual = parseFloat(document.getElementById('numVirtualNumbers').value) || 1;
 
-<script>
-    const MAINTENANCE = 55;
-    const NUMBER = 1.95;
-    const RATE_AI = 0.16;
-    const RATE_LANDLINE = 0.010; // Fijo
-    const RATE_MOBILE = 0.029;   // Movil
-    const IVA = 0.21;
-    const AGENT_FEE = 480;
+            // Calculated Volumes
+            const totalCallsMonth = callsPerDay * workingDays;
+            const totalAiMinutes = totalCallsMonth * avgDuration;
 
-    function format(num) {
-        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
-    }
-    
-    function updateRange(id, valId) {
-        document.getElementById(valId).innerText = document.getElementById(id).value + '%';
-    }
+            // Financials
+            const onboardingCost = numAgents * AGENT_FEE;
+            const numbersCost = numVirtual * NUMBER;
+            const aiCost = totalAiMinutes * RATE_AI;
 
-    function calculate() {
-        // Inputs
-        const numAgents = Math.max(1, parseFloat(document.getElementById('numAgents').value) || 1);
-        const callsPerDay = parseFloat(document.getElementById('callsPerDay').value) || 0;
-        const avgDuration = parseFloat(document.getElementById('avgDuration').value) || 0;
-        const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
-        const numVirtual = parseFloat(document.getElementById('numVirtualNumbers').value) || 1;
-        
-        const percentTransferred = parseFloat(document.getElementById('percentTransferred').value) || 0;
-        const percentMobileVsLandline = parseFloat(document.getElementById('percentMobileVsLandline').value) || 0;
-        const avgHumanDuration = parseFloat(document.getElementById('avgHumanDuration').value) || 0;
+            const monthlySubtotal = MAINTENANCE + numbersCost + aiCost;
+            const monthlyTotal = monthlySubtotal * (1 + IVA);
 
-        // Derived Volumes
-        const totalCallsMonth = callsPerDay * workingDays;
-        
-        // AI Minutes = Total calls * AI Duration (assuming AI speaks in all calls)
-        const totalAiMinutes = totalCallsMonth * avgDuration;
-        
-        // Transfers
-        // 1. Calculate total transferred calls
-        const totalTransferredCalls = totalCallsMonth * (percentTransferred / 100);
-        
-        // 2. Split into Mobile vs Landline
-        const transfersMobile = totalTransferredCalls * (percentMobileVsLandline / 100);
-        const transfersLandline = totalTransferredCalls * ((100 - percentMobileVsLandline) / 100);
-        
-        const humanMinutesMobile = transfersMobile * avgHumanDuration;
-        const humanMinutesLandline = transfersLandline * avgHumanDuration;
-        const totalHumanMinutes = humanMinutesMobile + humanMinutesLandline;
+            // Output Text Updates
+            document.getElementById('totalAiMinutes').innerText = Math.round(totalAiMinutes) + ' min/mes';
+            document.getElementById('numAgentsOutput').innerText = numAgents;
 
-        // Mili Calc
-        const aiCost = totalAiMinutes * RATE_AI;
-        const miliSubtotal = MAINTENANCE + aiCost;
-        const miliTotal = miliSubtotal * (1 + IVA);
-        
-        // Onboarding
-        const onboardingCost = numAgents * AGENT_FEE;
+            // Output Financials
+            document.getElementById('onboardingCostOutput').innerText = format(onboardingCost);
+            document.getElementById('numbersCostOutput').innerText = format(numbersCost);
+            document.getElementById('aiCostOutput').innerText = format(aiCost);
+            document.getElementById('miliTotal').innerText = format(monthlyTotal);
+        }
 
-        // Netelip Calc
-        const numbersCost = numVirtual * NUMBER;
-        const divertsCost = (humanMinutesLandline * RATE_LANDLINE) + (humanMinutesMobile * RATE_MOBILE);
-        const netelipSubtotal = numbersCost + divertsCost;
-        const netelipTotal = netelipSubtotal * (1 + IVA);
-
-        const grandTotal = miliTotal + netelipTotal;
-
-        // Output Text Updates
-        document.getElementById('totalAiMinutes').innerText = Math.round(totalAiMinutes) + ' min/mes';
-        document.getElementById('totalDivertMinutes').innerText = Math.round(totalHumanMinutes) + ' min/mes';
-        document.getElementById('numAgentsOutput').innerText = numAgents;
-
-        // Output Financials
-        document.getElementById('aiCostOutput').innerText = format(aiCost);
-        document.getElementById('onboardingCostOutput').innerText = format(onboardingCost);
-        document.getElementById('miliTotal').innerText = format(miliTotal);
-        
-        document.getElementById('numbersCostOutput').innerText = format(numbersCost);
-        document.getElementById('divertsCostOutput').innerText = format(divertsCost);
-        document.getElementById('netelipTotal').innerText = format(netelipTotal);
-
-        document.getElementById('grandTotal').innerText = format(grandTotal);
-    }
-
-    // Init
-    calculate();
-</script>
+        // Init
+        calculate();
+    </script>
 
 </body>
+
+</html>
