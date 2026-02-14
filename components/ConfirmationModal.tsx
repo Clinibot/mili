@@ -26,17 +26,17 @@ export default function ConfirmationModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in zoom-in duration-200">
             <div
-                className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-300"
+                className="bg-[#0E1219] border border-[#1F2937] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-100">
-                    <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+                <div className="flex items-center justify-between p-4 border-b border-[#1F2937]">
+                    <h3 className="text-lg font-bold text-[#E8ECF1]">{title}</h3>
                     <button
                         onClick={onClose}
-                        className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-1 rounded-lg text-[rgba(255,255,255,0.4)] hover:text-[#E8ECF1] hover:bg-[#141A23] transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -44,16 +44,16 @@ export default function ConfirmationModal({
 
                 {/* Body */}
                 <div className="p-6">
-                    <p className="text-slate-600 text-sm leading-relaxed">
+                    <p className="text-[rgba(255,255,255,0.7)] text-sm leading-relaxed">
                         {message}
                     </p>
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 p-4 bg-slate-50 border-t border-slate-100">
+                <div className="flex items-center justify-end gap-3 p-4 bg-[#141A23] border-t border-[#1F2937]">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200"
+                        className="px-4 py-2 text-sm font-bold text-[rgba(255,255,255,0.7)] hover:text-[#E8ECF1] hover:bg-[#0E1219] rounded-lg transition-colors border border-transparent hover:border-[#1F2937]"
                     >
                         {cancelText}
                     </button>
@@ -62,10 +62,10 @@ export default function ConfirmationModal({
                             onConfirm();
                             onClose();
                         }}
-                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-all active:scale-95
+                        className={`px-4 py-2 text-sm font-bold text-[#070A0F] rounded-lg shadow-xl transition-all active:scale-95
               ${destructive
-                                ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
-                                : "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20"
+                                ? "bg-[#F78E5E] hover:bg-[#F78E5E]/90 shadow-[#F78E5E]/20"
+                                : "bg-[#008DCB] hover:bg-[#008DCB]/90 shadow-[#008DCB]/20"
                             }
             `}
                     >

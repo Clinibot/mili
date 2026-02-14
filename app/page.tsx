@@ -198,23 +198,23 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.3)]" size={18} />
               <input
                 type="text"
                 placeholder="Buscar clientes..."
-                className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-xl py-2.5 pl-10 pr-4 text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:outline-none focus:ring-2 focus:ring-[#008DCB]/20 focus:border-[#008DCB] transition-all shadow-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
             {/* View Toggle */}
-            <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            <div className="flex bg-[#0E1219] border border-[#1F2937] rounded-xl p-1 shadow-sm">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-600'
+                  ? 'bg-[#008DCB] text-[#070A0F] shadow-lg shadow-[#008DCB]/20'
+                  : 'text-[rgba(255,255,255,0.3)] hover:text-[#E8ECF1] hover:bg-[#141A23]'
                   }`}
                 title="Vista Grid"
               >
@@ -223,8 +223,8 @@ export default function HomePage() {
               <button
                 onClick={() => setViewMode('pipeline')}
                 className={`p-2 rounded-lg transition-all ${viewMode === 'pipeline'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-600'
+                  ? 'bg-[#008DCB] text-[#070A0F] shadow-lg shadow-[#008DCB]/20'
+                  : 'text-[rgba(255,255,255,0.3)] hover:text-[#E8ECF1] hover:bg-[#141A23]'
                   }`}
                 title="Vista Pipeline"
               >
@@ -234,7 +234,7 @@ export default function HomePage() {
           </div>
 
           <Link href="/clients/new">
-            <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-bold shadow-xl shadow-blue-500/20 transition-all active:scale-95 group">
+            <button className="flex items-center gap-2 bg-[#008DCB] hover:bg-[#008DCB]/90 text-[#070A0F] px-6 py-3 rounded-2xl font-bold shadow-xl shadow-[#008DCB]/20 transition-all active:scale-95 group">
               <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
               <span>Nuevo Cliente</span>
             </button>
@@ -251,20 +251,20 @@ export default function HomePage() {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
               {STATUSES.map((status) => (
                 <>
                   {/* Visual Gap / Divider between Pre-sales (Mili) and Post-sales (Sonia) */}
                   {status === 'Recogiendo briefing' && (
                     <div className="flex flex-col justify-center items-center px-2 min-h-full">
-                      <div className="h-full w-px bg-slate-200/50 my-4"></div>
+                      <div className="h-full w-px bg-[#1F2937] my-4"></div>
                     </div>
                   )}
 
                   <PipelineColumn
                     key={status}
                     title={status}
-                    gradient={COLUMN_GRADIENTS[status]}
+                    gradient=""
                     clients={clientsByStatus[status]}
                     columnFilter={columnFilters[status] || ''}
                     onFilterChange={(value) => setColumnFilters({ ...columnFilters, [status]: value })}
@@ -275,7 +275,7 @@ export default function HomePage() {
             </div>
             <DragOverlay>
               {activeClient ? (
-                <div className="opacity-80">
+                <div className="opacity-90">
                   <ClientCard client={activeClient} onDeleteClick={() => { }} isDragging />
                 </div>
               ) : null}
@@ -305,9 +305,9 @@ function LoadingSkeleton({ viewMode }: { viewMode: 'pipeline' | 'grid' }) {
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STATUSES.map((status) => (
           <div key={status} className="min-w-[280px] space-y-3">
-            <div className="h-8 bg-slate-100 rounded-lg animate-pulse"></div>
-            <div className="h-32 bg-slate-100 rounded-2xl animate-pulse"></div>
-            <div className="h-32 bg-slate-100 rounded-2xl animate-pulse"></div>
+            <div className="h-8 bg-[#141A23] rounded-lg animate-pulse"></div>
+            <div className="h-32 bg-[#141A23] rounded-2xl animate-pulse"></div>
+            <div className="h-32 bg-[#141A23] rounded-2xl animate-pulse"></div>
           </div>
         ))}
       </div>
@@ -317,7 +317,7 @@ function LoadingSkeleton({ viewMode }: { viewMode: 'pipeline' | 'grid' }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="h-64 rounded-3xl bg-slate-100 animate-pulse"></div>
+        <div key={i} className="h-64 rounded-3xl bg-[#141A23] animate-pulse"></div>
       ))}
     </div>
   );
@@ -343,7 +343,6 @@ function PipelineColumn({
     c.contact_name?.toLowerCase().includes(columnFilter.toLowerCase())
   );
 
-  // Make this column a droppable zone
   const { setNodeRef } = useDroppable({
     id: title,
   });
@@ -356,12 +355,12 @@ function PipelineColumn({
     >
       <div
         ref={setNodeRef}
-        className={`min-w-[280px] flex flex-col bg-gradient-to-b ${gradient} rounded-2xl p-4 h-[calc(100vh-280px)]`}
+        className={`min-w-[280px] flex flex-col bg-[#0E1219] border border-[#1F2937] rounded-2xl p-4 h-[calc(100vh-280px)]`}
         id={title}
       >
         {/* Column Header */}
-        <div className="pb-3 mb-3 border-b border-slate-200/50 space-y-2">
-          <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide">{title}</h3>
+        <div className="pb-3 mb-3 border-b border-[#1F2937] space-y-2">
+          <h3 className="font-bold font-header text-[#008DCB] text-xs uppercase tracking-[0.2em]">{title}</h3>
 
           {/* Column Filter */}
           <input
@@ -369,10 +368,10 @@ function PipelineColumn({
             placeholder="Filtrar..."
             value={columnFilter}
             onChange={(e) => onFilterChange(e.target.value)}
-            className="w-full text-xs bg-white/50 border border-slate-200/50 rounded-lg px-2 py-1.5 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 transition-all"
+            className="w-full text-xs bg-[#141A23] border border-[#1F2937] rounded-lg px-2 py-1.5 text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:outline-none focus:border-[#008DCB] transition-all"
           />
 
-          <p className="text-xs text-slate-500">
+          <p className="text-[10px] font-mono text-[rgba(255,255,255,0.4)]">
             {columnFilter ? `${filteredClients.length} de ${clients.length}` : `${clients.length} cliente${clients.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -380,8 +379,8 @@ function PipelineColumn({
         {/* Clients List */}
         <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
           {filteredClients.length === 0 ? (
-            <div className="text-center py-8 text-slate-400 text-sm">
-              {columnFilter ? 'Sin resultados' : 'Sin clientes'}
+            <div className="text-center py-8 text-[rgba(255,255,255,0.2)] text-sm font-medium">
+              {columnFilter ? 'Sin resultados' : 'Vacío'}
             </div>
           ) : (
             filteredClients.map((client) => (
@@ -445,10 +444,7 @@ function ClientCard({
 }) {
   return (
     <Link href={`/clients/${client.id}`}>
-      <Card className={`bg-white border border-slate-100/50 hover:border-transparent hover:shadow-lg hover:shadow-blue-500/10 rounded-2xl p-5 transition-all duration-300 group relative overflow-hidden ${isDragging ? 'cursor-grabbing scale-105' : ''}`}>
-        {/* Subtle gradient on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-purple-50/0 to-blue-50/0 group-hover:from-blue-50/30 group-hover:via-purple-50/20 group-hover:to-blue-50/30 transition-all duration-500 pointer-events-none"></div>
-
+      <Card className={`bg-[#141A23] border border-[#1F2937] hover:border-[#008DCB]/50 hover:shadow-xl hover:shadow-[#008DCB]/5 rounded-xl p-5 transition-all duration-300 group relative overflow-hidden ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl z-50' : ''}`}>
         <div className="relative z-10">
           {/* Header with drag handle and delete button */}
           <div className="flex justify-between items-start mb-3">
@@ -457,42 +453,42 @@ function ClientCard({
               {dragListeners && (
                 <div
                   {...dragListeners}
-                  className="text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing p-1 -ml-1 flex-shrink-0 touch-none"
+                  className="text-[rgba(255,255,255,0.2)] hover:text-[#E8ECF1] cursor-grab active:cursor-grabbing p-1 -ml-1 flex-shrink-0 touch-none transition-colors"
                   title="Arrastrar para mover"
                 >
-                  <GripVertical size={18} />
+                  <GripVertical size={16} />
                 </div>
               )}
-              <h4 className="font-bold text-slate-800 text-base leading-tight group-hover:text-blue-600 transition-colors truncate">
+              <h4 className="font-bold text-[#E8ECF1] text-sm leading-tight group-hover:text-[#008DCB] transition-colors truncate">
                 {client.name}
               </h4>
             </div>
             <button
               onClick={(e) => onDeleteClick(e, client.id)}
-              className="text-slate-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50/80 transition-all flex-shrink-0"
+              className="text-[rgba(255,255,255,0.2)] hover:text-[#F78E5E] p-1.5 rounded-lg hover:bg-[#F78E5E]/10 transition-all flex-shrink-0"
               title="Eliminar Cliente"
             >
-              <Trash2 size={16} />
+              <Trash2 size={14} />
             </button>
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-1.5 text-sm">
+          <div className="space-y-1 text-xs">
             {client.contact_name && (
-              <p className="text-slate-600 truncate">{client.contact_name}</p>
+              <p className="text-[rgba(255,255,255,0.55)] truncate font-medium">{client.contact_name}</p>
             )}
             {client.contact_email && (
-              <p className="text-slate-500 text-xs truncate">{client.contact_email}</p>
+              <p className="text-[rgba(255,255,255,0.3)] truncate font-mono">{client.contact_email}</p>
             )}
             {client.phone_ia && (
-              <p className="text-slate-500 text-xs truncate">{client.phone_ia}</p>
+              <p className="text-[rgba(255,255,255,0.3)] truncate font-mono">{client.phone_ia}</p>
             )}
           </div>
 
           {/* Workspace Badge */}
           {client.workspace_name && (
-            <div className="mt-3 pt-3 border-t border-slate-100">
-              <span className="inline-block px-2.5 py-1 bg-slate-50 text-slate-600 text-xs rounded-lg">
+            <div className="mt-3 pt-3 border-t border-[#1F2937]">
+              <span className="inline-block px-2 py-0.5 bg-[#070A0F] border border-[#1F2937] text-[rgba(255,255,255,0.4)] text-[10px] uppercase tracking-wider font-bold rounded-md">
                 {client.workspace_name}
               </span>
             </div>
@@ -511,41 +507,40 @@ function GridView({
   onDeleteClick: (e: React.MouseEvent, id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {clients.map((client) => (
         <Link href={`/clients/${client.id}`} key={client.id} className="group">
-          <Card className="h-full bg-white hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)] hover:-translate-y-2 transition-all duration-500 border-slate-100 shadow-sm rounded-[32px] group-hover:border-blue-200 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50/50 to-transparent rounded-bl-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="p-8 space-y-6 relative z-10">
+          <Card className="h-full bg-[#0E1219] hover:bg-[#141A23] hover:-translate-y-1 transition-all duration-300 border border-[#1F2937] hover:border-[#008DCB]/30 shadow-xl shadow-black/20 rounded-2xl overflow-hidden relative">
+            <div className="p-6 space-y-6 relative z-10">
               <div className="flex justify-between items-start">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
-                  <User size={28} />
+                <div className="w-12 h-12 rounded-xl bg-[#1F2937] flex items-center justify-center text-[#008DCB] group-hover:bg-[#008DCB] group-hover:text-[#070A0F] transition-all duration-300 shadow-inner">
+                  <User size={24} />
                 </div>
                 <button
                   onClick={(e) => onDeleteClick(e, client.id)}
-                  className="text-slate-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-100"
+                  className="text-[rgba(255,255,255,0.2)] hover:text-[#F78E5E] p-2 rounded-lg hover:bg-[#F78E5E]/10 transition-all"
                   title="Eliminar Cliente"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={18} />
                 </button>
               </div>
 
               <div>
-                <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate">{client.name}</h3>
-                <p className="text-sm text-slate-500 truncate">{client.contact_name}</p>
+                <h3 className="text-lg font-bold text-[#E8ECF1] group-hover:text-[#008DCB] transition-colors truncate">{client.name}</h3>
+                <p className="text-sm text-[rgba(255,255,255,0.55)] truncate">{client.contact_name}</p>
               </div>
 
-              <div className="space-y-2.5 pt-4 border-t border-slate-50">
-                <div className="flex items-center gap-2.5 text-sm text-slate-500">
-                  <Phone size={14} className="text-blue-500" />
+              <div className="space-y-2.5 pt-4 border-t border-[#1F2937]">
+                <div className="flex items-center gap-2.5 text-xs text-[rgba(255,255,255,0.4)] font-mono">
+                  <Phone size={12} className="text-[#008DCB]" />
                   <span className="truncate">{client.phone_ia || 'Sin asignar'}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-sm text-slate-500">
-                  <Mail size={14} className="text-purple-500" />
+                <div className="flex items-center gap-2.5 text-xs text-[rgba(255,255,255,0.4)] font-mono">
+                  <Mail size={12} className="text-purple-400" />
                   <span className="truncate">{client.contact_email || 'sincorreo@...'}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-sm text-slate-500">
-                  <Mic size={14} className="text-emerald-500" />
+                <div className="flex items-center gap-2.5 text-xs text-[rgba(255,255,255,0.4)] font-mono">
+                  <Mic size={12} className="text-[#67B7AF]" />
                   <span className="truncate">{client.workspace_name || 'Workflow 1'}</span>
                 </div>
               </div>

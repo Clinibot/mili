@@ -290,7 +290,7 @@ export default function ClientDetail() {
 
     if (loading) return (
         <DashboardLayout>
-            <div className="flex items-center justify-center h-full text-slate-400">Cargando...</div>
+            <div className="flex items-center justify-center h-full text-[rgba(255,255,255,0.3)]">Cargando...</div>
         </DashboardLayout>
     );
 
@@ -298,22 +298,22 @@ export default function ClientDetail() {
         <DashboardLayout>
             <div className="max-w-5xl mx-auto space-y-6 pb-20">
                 {/* Header */}
-                <div className="flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md py-4 z-10 -mx-6 px-6 border-b border-slate-100">
+                <div className="flex items-center justify-between sticky top-0 bg-[#0E1219]/80 backdrop-blur-md py-4 z-10 -mx-6 px-6 border-b border-[#1F2937]">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-700">
+                        <button onClick={() => router.back()} className="p-2 hover:bg-[#141A23] rounded-xl transition-colors text-[rgba(255,255,255,0.3)] hover:text-[#E8ECF1]">
                             <ArrowLeft size={20} />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800">
+                            <h1 className="text-2xl font-black font-header text-[#E8ECF1] tracking-tight">
                                 {client.name || 'Nuevo Cliente'}
                             </h1>
-                            <p className="text-sm text-slate-500">ID: {id}</p>
+                            <p className="text-sm font-mono text-[rgba(255,255,255,0.4)]">ID: {id}</p>
                         </div>
                     </div>
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-2 bg-[#008DCB] hover:bg-[#008DCB]/90 text-[#070A0F] px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-[#008DCB]/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save size={18} />
                         <span>{saving ? 'Guardando...' : 'Guardar Cambios'}</span>
@@ -324,30 +324,30 @@ export default function ClientDetail() {
                     {/* Left Column */}
                     <div className="space-y-6 lg:col-span-1">
                         {/* Client Access - FIRST POSITION */}
-                        <Card className="bg-gradient-to-br from-blue-50/30 via-slate-50 to-indigo-50/30 border-slate-200/50 shadow-sm rounded-2xl">
+                        <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <Lock size={18} className="text-slate-500" />
+                                <CardTitle className="flex items-center gap-2 text-[#E8ECF1]">
+                                    <Lock size={18} className="text-[rgba(255,255,255,0.55)]" />
                                     Acceso Panel Cliente
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-medium text-slate-600">Usuario Portal</label>
+                                        <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">Usuario Portal</label>
                                         <input
                                             type="text"
-                                            className="w-full bg-white/70 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20"
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-3 py-2 text-sm text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20"
                                             placeholder="usuario.cliente"
                                             value={client.portal_user || ''}
                                             onChange={(e) => setClient({ ...client, portal_user: e.target.value })}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-medium text-slate-600">Contraseña Portal</label>
+                                        <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">Contraseña Portal</label>
                                         <input
                                             type="text"
-                                            className="w-full bg-white/70 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20"
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-3 py-2 text-sm text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20"
                                             placeholder="contraseña123"
                                             value={client.portal_password || ''}
                                             onChange={(e) => setClient({ ...client, portal_password: e.target.value })}
@@ -357,8 +357,8 @@ export default function ClientDetail() {
                                 <div className="pt-2 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
                                         <div className="flex flex-col gap-1">
-                                            <p className="text-xs text-slate-500">Credenciales para que el cliente acceda a su panel.</p>
-                                            <p className="text-[10px] text-slate-400">URL actual: /portal/{client.slug || id}</p>
+                                            <p className="text-xs text-[rgba(255,255,255,0.55)]">Credenciales para que el cliente acceda a su panel.</p>
+                                            <p className="text-[10px] text-[rgba(255,255,255,0.4)]">URL actual: /portal/{client.slug || id}</p>
                                         </div>
                                         <button
                                             onClick={() => {
@@ -366,13 +366,13 @@ export default function ClientDetail() {
                                                 const currentSlug = client.slug || id;
                                                 window.open(`/portal/${currentSlug}`, '_blank');
                                             }}
-                                            className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-slate-500/20"
+                                            className="px-4 py-2 bg-[#141A23] hover:bg-[#1F2937] text-[#E8ECF1] text-sm rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-black/20 border border-[#1F2937]"
                                         >
                                             <ExternalLink size={14} />
                                             Ver Panel
                                         </button>
                                     </div>
-                                    <p className="text-[10px] font-bold text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100 flex items-center gap-2">
+                                    <p className="text-[10px] font-bold text-[#F78E5E] bg-[#F78E5E]/10 p-2 rounded-lg border border-[#F78E5E]/20 flex items-center gap-2">
                                         <span className="text-lg">⚠️</span>
                                         Recuerda pulsar "Guardar Cambios" arriba antes de entrar al panel si has cambiado el nombre o slug.
                                     </p>
@@ -382,10 +382,10 @@ export default function ClientDetail() {
 
 
                         {/* Budget Template Card */}
-                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
+                        <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <div className="p-2 bg-rose-50 rounded-lg text-rose-500">
+                                <CardTitle className="flex items-center gap-2 text-[#E8ECF1]">
+                                    <div className="p-2 bg-[#F78E5E]/10 rounded-lg text-[#F78E5E]">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
                                             <polyline points="14 2 14 8 20 8"></polyline>
@@ -398,23 +398,23 @@ export default function ClientDetail() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <p className="text-sm text-slate-500">Sube aquí el presupuesto o plantilla PDF/Doc para este cliente.</p>
+                                <p className="text-sm text-[rgba(255,255,255,0.55)]">Sube aquí el presupuesto o plantilla PDF/Doc para este cliente.</p>
 
                                 {client.budget_template_url ? (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                        <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm text-red-500">
+                                    <div className="flex items-center gap-3 p-3 bg-[#141A23] border border-[#1F2937] rounded-xl">
+                                        <div className="p-2 bg-[#0E1219] rounded-lg border border-[#1F2937] shadow-sm text-[#F78E5E]">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
                                                 <polyline points="14 2 14 8 20 8"></polyline>
                                             </svg>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-700 truncate">Presupuesto_Cliente.pdf</p>
+                                            <p className="text-sm font-medium text-[#E8ECF1] truncate">Presupuesto_Cliente.pdf</p>
                                             <a
                                                 href={client.budget_template_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-xs text-blue-500 hover:text-blue-700 hover:underline flex items-center gap-1 mt-0.5"
+                                                className="text-xs text-[#008DCB] hover:text-[#008DCB]/80 hover:underline flex items-center gap-1 mt-0.5"
                                             >
                                                 Ver / Descargar
                                                 <ExternalLink size={10} />
@@ -443,7 +443,7 @@ export default function ClientDetail() {
                                                     toast.error('Error al eliminar');
                                                 }
                                             }}
-                                            className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                                            className="p-2 hover:bg-[#1F2937] rounded-lg text-[rgba(255,255,255,0.3)] hover:text-[#F78E5E] transition-colors"
                                             title="Eliminar"
                                         >
                                             <X size={18} />
@@ -451,17 +451,17 @@ export default function ClientDetail() {
                                     </div>
                                 ) : (
                                     <div className="relative group">
-                                        <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 group-hover:border-blue-300 group-hover:bg-blue-50/10 transition-all cursor-pointer">
-                                            <div className="p-3 bg-slate-50 rounded-full group-hover:bg-blue-100/50 transition-colors">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 group-hover:text-blue-500">
+                                        <div className="border-2 border-dashed border-[#1F2937] rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-[rgba(255,255,255,0.3)] group-hover:border-[#008DCB] group-hover:bg-[#008DCB]/5 transition-all cursor-pointer">
+                                            <div className="p-3 bg-[#141A23] rounded-full group-hover:bg-[#008DCB]/20 transition-colors">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(255,255,255,0.4)] group-hover:text-[#008DCB]">
                                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                     <polyline points="17 8 12 3 7 8"></polyline>
                                                     <line x1="12" y1="3" x2="12" y2="15"></line>
                                                 </svg>
                                             </div>
                                             <div className="text-center">
-                                                <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600">Subir presupuesto</p>
-                                                <p className="text-xs text-slate-400">PDF, DOCX, IMG (Max 5MB)</p>
+                                                <p className="text-sm font-medium text-[rgba(255,255,255,0.55)] group-hover:text-[#008DCB]">Subir presupuesto</p>
+                                                <p className="text-xs text-[rgba(255,255,255,0.3)]">PDF, DOCX, IMG (Max 5MB)</p>
                                             </div>
                                         </div>
                                         <input
@@ -513,10 +513,10 @@ export default function ClientDetail() {
                         </Card>
 
                         {/* Gift Balance - Admin Only */}
-                        <Card className="bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
+                        <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
+                                <CardTitle className="flex items-center gap-2 text-[#E8ECF1]">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#67B7AF]">
                                         <rect x="3" y="8" width="18" height="4" rx="1"></rect>
                                         <path d="M12 8v13"></path>
                                         <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path>
@@ -526,16 +526,16 @@ export default function ClientDetail() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <p className="text-xs text-emerald-700">Añade saldo gratis al monedero del cliente como regalo o crédito promocional.</p>
+                                <p className="text-xs text-[#67B7AF]">Añade saldo gratis al monedero del cliente como regalo o crédito promocional.</p>
                                 <div className="flex gap-3">
                                     <div className="flex-1 relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold">€</span>
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#67B7AF] font-bold">€</span>
                                         <input
                                             type="number"
                                             min="1"
                                             step="5"
                                             placeholder="0.00"
-                                            className="w-full bg-white/70 border border-emerald-200 rounded-lg pl-8 pr-3 py-2.5 text-emerald-900 font-bold placeholder:text-emerald-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                                            className="w-full bg-[#141A23] border border-[#67B7AF]/30 rounded-lg pl-8 pr-3 py-2.5 text-[#E8ECF1] font-bold placeholder:text-[rgba(255,255,255,0.2)] focus:outline-none focus:border-[#67B7AF] focus:ring-2 focus:ring-[#67B7AF]/20"
                                             id="giftAmount"
                                         />
                                     </div>
@@ -588,7 +588,7 @@ export default function ClientDetail() {
                                                 toast.error('Error al regalar saldo');
                                             }
                                         }}
-                                        className="px-6 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold rounded-lg transition-all shadow-md shadow-slate-500/20 flex items-center gap-2 whitespace-nowrap"
+                                        className="px-6 py-2.5 bg-[#141A23] hover:bg-[#1F2937] text-[#E8ECF1] text-sm font-bold rounded-lg transition-all shadow-md shadow-black/20 flex items-center gap-2 whitespace-nowrap border border-[#1F2937]"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M12 5v14M5 12h14"></path>
@@ -596,7 +596,7 @@ export default function ClientDetail() {
                                         Regalar
                                     </button>
                                 </div>
-                                <div className="text-xs text-slate-600 bg-white/50 px-3 py-2 rounded-lg border border-slate-200">
+                                <div className="text-xs text-[rgba(255,255,255,0.55)] bg-[#141A23] px-3 py-2 rounded-lg border border-[#1F2937]">
                                     <strong>Balance actual:</strong> €{(client.balance || 0).toFixed(2)}
                                 </div>
                             </CardContent>
@@ -606,10 +606,10 @@ export default function ClientDetail() {
                     {/* Right Column: Budget Template + AI Agent Config + Technical Config */}
                     <div className="space-y-6 lg:col-span-2">
                         {/* Client Info (Moved from Left Column) */}
-                        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
+                        <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-slate-700">
-                                    <User size={18} className="text-blue-500" />
+                                <CardTitle className="flex items-center gap-2 text-[#E8ECF1]">
+                                    <User size={18} className="text-[#008DCB]" />
                                     Información Cliente
                                 </CardTitle>
                             </CardHeader>
@@ -629,13 +629,13 @@ export default function ClientDetail() {
                                 <FormInput label="Coste por Minuto (€)" value={client.cost_per_minute} onChange={v => setClient({ ...client, cost_per_minute: Number(v) })} type="number" />
 
                                 {/* Multiple Contacts Section */}
-                                <div className="col-span-full pt-4 border-t border-slate-100">
+                                <div className="col-span-full pt-4 border-t border-[#1F2937]">
                                     <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Contactos Adicionales</h3>
+                                        <h3 className="text-xs font-semibold text-[rgba(255,255,255,0.7)] uppercase tracking-wider">Contactos Adicionales</h3>
                                         <button
                                             type="button"
                                             onClick={addContactRow}
-                                            className="text-xs flex items-center gap-1.5 bg-blue-50 text-blue-600 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                                            className="text-xs flex items-center gap-1.5 bg-[#008DCB]/10 text-[#008DCB] px-2.5 py-1.5 rounded-lg hover:bg-[#008DCB]/20 transition-colors"
                                         >
                                             <Plus size={14} />
                                             Añadir
@@ -644,12 +644,12 @@ export default function ClientDetail() {
 
                                     <div className="space-y-3">
                                         {extraContacts.map((contact, index) => (
-                                            <div key={contact.id || index} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start animate-in slide-in-from-top-1 bg-slate-50/50 p-2 rounded-lg border border-slate-100">
+                                            <div key={contact.id || index} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start animate-in slide-in-from-top-1 bg-[#141A23] p-2 rounded-lg border border-[#1F2937]">
                                                 <div className="md:col-span-3">
                                                     <input
                                                         type="text"
                                                         placeholder="Nombre"
-                                                        className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
+                                                        className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2.5 py-1.5 text-xs text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:border-[#008DCB] focus:outline-none"
                                                         value={contact.name || ''}
                                                         onChange={e => {
                                                             const newContacts = [...extraContacts];
@@ -662,7 +662,7 @@ export default function ClientDetail() {
                                                     <input
                                                         type="text"
                                                         placeholder="Rol (ej. Técnico)"
-                                                        className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
+                                                        className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2.5 py-1.5 text-xs text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:border-[#008DCB] focus:outline-none"
                                                         value={contact.role || ''}
                                                         onChange={e => {
                                                             const newContacts = [...extraContacts];
@@ -675,7 +675,7 @@ export default function ClientDetail() {
                                                     <input
                                                         type="text"
                                                         placeholder="Email"
-                                                        className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
+                                                        className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2.5 py-1.5 text-xs text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:border-[#008DCB] focus:outline-none"
                                                         value={contact.email || ''}
                                                         onChange={e => {
                                                             const newContacts = [...extraContacts];
@@ -688,7 +688,7 @@ export default function ClientDetail() {
                                                     <input
                                                         type="text"
                                                         placeholder="Teléfono"
-                                                        className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
+                                                        className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2.5 py-1.5 text-xs text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.3)] focus:border-[#008DCB] focus:outline-none"
                                                         value={contact.phone || ''}
                                                         onChange={e => {
                                                             const newContacts = [...extraContacts];
@@ -701,7 +701,7 @@ export default function ClientDetail() {
                                                     <button
                                                         type="button"
                                                         onClick={() => removeContactRow(index)}
-                                                        className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                                        className="p-1 text-[rgba(255,255,255,0.3)] hover:text-[#F78E5E] hover:bg-[#F78E5E]/10 rounded-md transition-colors"
                                                         title="Eliminar contacto"
                                                     >
                                                         <Trash2 size={14} />
@@ -710,54 +710,54 @@ export default function ClientDetail() {
                                             </div>
                                         ))}
                                         {extraContacts.length === 0 && (
-                                            <p className="text-xs text-slate-400 italic text-center py-2 border border-dashed border-slate-200 rounded-lg">No hay contactos adicionales</p>
+                                            <p className="text-xs text-[rgba(255,255,255,0.3)] italic text-center py-2 border border-dashed border-[#1F2937] rounded-lg">No hay contactos adicionales</p>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="space-y-1.5 pt-2 border-t border-slate-100 mt-2">
-                                    <label className="text-xs font-medium text-slate-500">Notas / Información Recopilada</label>
+                                <div className="space-y-1.5 pt-2 border-t border-[#1F2937] mt-2">
+                                    <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">Notas / Información Recopilada</label>
                                     <textarea
-                                        className="w-full h-32 bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all resize-y placeholder:text-slate-400"
+                                        className="w-full h-32 bg-[#141A23] border border-[#1F2937] rounded-lg p-3 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all resize-y placeholder:text-[rgba(255,255,255,0.3)]"
                                         placeholder="Escribe aquí toda la información recopilada del cliente, resumen de llamadas, detalles a tener en cuenta..."
                                         value={client.notes || ''}
                                         onChange={(e) => setClient({ ...client, notes: e.target.value })}
                                     />
-                                    <p className="text-[10px] text-slate-400">Esta información es privada para los administradores.</p>
+                                    <p className="text-[10px] text-[rgba(255,255,255,0.3)]">Esta información es privada para los administradores.</p>
                                 </div>
                             </CardContent>
                         </Card>
 
 
-                        <Card className="bg-gradient-to-br from-indigo-50/40 via-blue-50/30 to-slate-50 border-slate-200/50 shadow-sm rounded-2xl">
+                        <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
                             <CardHeader className="cursor-pointer" onClick={() => setIsAgentConfigExpanded(!isAgentConfigExpanded)}>
-                                <CardTitle className="flex items-center justify-between text-slate-700">
+                                <CardTitle className="flex items-center justify-between text-[#E8ECF1]">
                                     <div className="flex items-center gap-3">
-                                        <Bot size={18} className="text-slate-500" />
+                                        <Bot size={18} className="text-[rgba(255,255,255,0.55)]" />
                                         Configuración Agente IA
                                         <button
                                             type="button"
-                                            className="ml-2 p-1.5 hover:bg-white/80 rounded-lg transition-all border border-slate-300 bg-white shadow-sm group"
+                                            className="ml-2 p-1.5 hover:bg-[#141A23] rounded-lg transition-all border border-[#1F2937] bg-[#0E1219] shadow-sm group"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 toast.info('Funcionalidad de múltiples agentes próximamente. El wallet es compartido entre todos los agentes del cliente.');
                                             }}
                                             title="Añadir otro agente (próximamente)"
                                         >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 group-hover:text-slate-600">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(255,255,255,0.3)] group-hover:text-[#E8ECF1]">
                                                 <path d="M12 5v14M5 12h14"></path>
                                             </svg>
                                         </button>
                                     </div>
                                     <button
                                         type="button"
-                                        className="p-1 hover:bg-white/50 rounded-lg transition-colors"
+                                        className="p-1 hover:bg-[#141A23] rounded-lg transition-colors"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setIsAgentConfigExpanded(!isAgentConfigExpanded);
                                         }}
                                     >
-                                        {isAgentConfigExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                                        {isAgentConfigExpanded ? <ChevronUp size={20} className="text-[rgba(255,255,255,0.3)]" /> : <ChevronDown size={20} className="text-[rgba(255,255,255,0.3)]" />}
                                     </button>
                                 </CardTitle>
                             </CardHeader>
@@ -770,12 +770,12 @@ export default function ClientDetail() {
 
                                     {/* Info / Knowledge Base */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                        <label className="text-sm font-medium text-[rgba(255,255,255,0.55)] flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#008DCB]"></div>
                                             Base de Conocimiento (Prompt/Info)
                                         </label>
                                         <textarea
-                                            className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none placeholder:text-slate-400"
+                                            className="w-full h-32 bg-[#141A23] border border-[#1F2937] rounded-xl p-3 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all resize-none placeholder:text-[rgba(255,255,255,0.3)]"
                                             placeholder="Pegar aquí la información base del agente..."
                                             value={agent.knowledge_base}
                                             onChange={(e) => setAgent({ ...agent, knowledge_base: e.target.value })}
@@ -784,15 +784,15 @@ export default function ClientDetail() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {/* Calendar Task */}
-                                        <div className="space-y-3 p-4 rounded-xl bg-orange-50/50 border border-orange-100">
-                                            <div className="flex items-center gap-2 text-orange-600 font-medium pb-2 border-b border-orange-200/50">
+                                        <div className="space-y-3 p-4 rounded-xl bg-[#F78E5E]/5 border border-[#F78E5E]/20">
+                                            <div className="flex items-center gap-2 text-[#F78E5E] font-medium pb-2 border-b border-[#F78E5E]/20">
                                                 <Calendar size={16} />
                                                 <span>Agenda / Citas</span>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs text-slate-500">Proveedor</label>
+                                                <label className="text-xs text-[rgba(255,255,255,0.55)]">Proveedor</label>
                                                 <select
-                                                    className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-700 focus:outline-none focus:border-orange-400"
+                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg p-2 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#F78E5E]"
                                                     value={agent.agenda_config.type}
                                                     onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, type: e.target.value } })}
                                                 >
@@ -801,10 +801,10 @@ export default function ClientDetail() {
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs text-slate-500">URL / Link Agendamiento</label>
+                                                <label className="text-xs text-[rgba(255,255,255,0.55)]">URL / Link Agendamiento</label>
                                                 <input
                                                     type="text"
-                                                    className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-700 focus:outline-none focus:border-orange-400"
+                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg p-2 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#F78E5E] placeholder:text-[rgba(255,255,255,0.3)]"
                                                     value={agent.agenda_config.url}
                                                     onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, url: e.target.value } })}
                                                     placeholder="https://..."
@@ -813,15 +813,15 @@ export default function ClientDetail() {
                                         </div>
 
                                         {/* Transfer Task */}
-                                        <div className="space-y-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
-                                            <div className="flex items-center justify-between text-emerald-600 font-medium pb-2 border-b border-emerald-200/50">
+                                        <div className="space-y-3 p-4 rounded-xl bg-[#22C55E]/5 border border-[#22C55E]/20">
+                                            <div className="flex items-center justify-between text-[#22C55E] font-medium pb-2 border-b border-[#22C55E]/20">
                                                 <div className="flex items-center gap-2">
                                                     <Share2 size={16} />
                                                     <span>Transferencias</span>
                                                 </div>
                                                 <button
                                                     onClick={() => setAgent({ ...agent, transfer_config: [...agent.transfer_config, { number: '', who: '' }] })}
-                                                    className="text-xs bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded-md transition-colors"
+                                                    className="text-xs bg-[#22C55E]/10 hover:bg-[#22C55E]/20 px-2 py-1 rounded-md transition-colors text-[#22C55E]"
                                                 >
                                                     + Añadir
                                                 </button>
@@ -829,12 +829,12 @@ export default function ClientDetail() {
 
                                             <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
                                                 {agent.transfer_config.map((t, i) => (
-                                                    <div key={i} className="space-y-2 pb-3 border-b border-emerald-100 last:border-0 relative group/row">
+                                                    <div key={i} className="space-y-2 pb-3 border-b border-[#22C55E]/20 last:border-0 relative group/row">
                                                         {agent.transfer_config.length > 1 && (
                                                             <button
                                                                 onClick={() => setAgent({ ...agent, transfer_config: agent.transfer_config.filter((_, idx) => idx !== i) })}
                                                                 type="button"
-                                                                className="absolute -right-1 -top-1 p-1 text-slate-300 hover:text-red-500 transition-colors"
+                                                                className="absolute -right-1 -top-1 p-1 text-[rgba(255,255,255,0.3)] hover:text-[#F78E5E] transition-colors"
                                                             >
                                                                 <X size={14} />
                                                             </button>
@@ -849,7 +849,7 @@ export default function ClientDetail() {
                                                             }}
                                                             placeholder="+34..."
                                                             compact
-                                                            bgWhite
+                                                            bgWhite={false}
                                                         />
                                                         <FormInput
                                                             label="Responsable"
@@ -861,7 +861,7 @@ export default function ClientDetail() {
                                                             }}
                                                             placeholder="Recepción / Dr. X"
                                                             compact
-                                                            bgWhite
+                                                            bgWhite={false}
                                                         />
                                                     </div>
                                                 ))}
@@ -869,8 +869,8 @@ export default function ClientDetail() {
                                         </div>
 
                                         {/* Notifications Task */}
-                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200/50">
-                                            <div className="flex items-center gap-2 text-slate-600 font-medium pb-2 border-b border-slate-200/50">
+                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-gradient-to-r from-[#0E1219] to-[#008DCB]/10 border border-[#1F2937]">
+                                            <div className="flex items-center gap-2 text-[#008DCB] font-medium pb-2 border-b border-[#008DCB]/20">
                                                 <Bell size={16} />
                                                 <span>Avisos / Notificaciones</span>
                                             </div>
@@ -881,7 +881,7 @@ export default function ClientDetail() {
                                                     onChange={v => setAgent({ ...agent, notice_config: { ...agent.notice_config, email: v } })}
                                                     placeholder="avisos@empresa.com"
                                                     compact
-                                                    bgWhite
+                                                    bgWhite={false}
                                                 />
                                                 <FormInput
                                                     label="WhatsApp Avisos"
@@ -889,24 +889,27 @@ export default function ClientDetail() {
                                                     onChange={v => setAgent({ ...agent, notice_config: { ...agent.notice_config, whatsapp: v } })}
                                                     placeholder="+34 600..."
                                                     compact
-                                                    bgWhite
+                                                    bgWhite={false}
                                                 />
                                             </div>
                                         </div>
 
                                         {/* Technical Config - Inside Agent Config */}
-                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-gradient-to-r from-indigo-50/30 to-slate-50 border border-slate-200/50 mt-6">
-                                            <div className="flex items-center gap-2 text-slate-600 font-medium pb-2 border-b border-slate-200/50">
-                                                <Key size={16} />
+                                        <div className="col-span-1 md:col-span-2 space-y-3 p-4 rounded-xl bg-[#0E1219] border border-[#1F2937] mt-6 relative overflow-hidden">
+                                            {/* Decorative gradient background */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 pointer-events-none" />
+
+                                            <div className="relative flex items-center gap-2 text-[#E8ECF1] font-medium pb-2 border-b border-[#1F2937]">
+                                                <Key size={16} className="text-[rgba(255,255,255,0.55)]" />
                                                 <span>Configuración Técnica</span>
                                             </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <FormInput
                                                     label="Workspace Name"
                                                     value={client.workspace_name}
                                                     onChange={v => setClient({ ...client, workspace_name: v })}
                                                     compact
-                                                    bgWhite
+                                                    bgWhite={false}
                                                 />
                                                 <FormInput
                                                     label="Agent ID"
@@ -914,33 +917,35 @@ export default function ClientDetail() {
                                                     onChange={v => setClient({ ...client, agent_id: v })}
                                                     fontMono
                                                     compact
-                                                    bgWhite
+                                                    bgWhite={false}
                                                 />
                                             </div>
-                                            <FormInput
-                                                label="Retell API Key"
-                                                value={client.api_key_retail}
-                                                onChange={v => setClient({ ...client, api_key_retail: v })}
-                                                type="password"
-                                                fontMono
-                                                compact
-                                                bgWhite
-                                            />
+                                            <div className="relative">
+                                                <FormInput
+                                                    label="Retell API Key"
+                                                    value={client.api_key_retail}
+                                                    onChange={v => setClient({ ...client, api_key_retail: v })}
+                                                    type="password"
+                                                    fontMono
+                                                    compact
+                                                    bgWhite={false}
+                                                />
+                                            </div>
 
                                             {/* Webhook Section */}
-                                            <div className="space-y-2 pt-4 border-t border-purple-100 mt-2">
+                                            <div className="relative space-y-2 pt-4 border-t border-[#1F2937] mt-2">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <Share2 size={14} className="text-blue-500" />
-                                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Agent Level Webhook</label>
+                                                    <Share2 size={14} className="text-[#008DCB]" />
+                                                    <label className="text-xs font-bold text-[#E8ECF1] uppercase tracking-wider">Agent Level Webhook</label>
                                                 </div>
-                                                <p className="text-[10px] text-slate-500 leading-relaxed mb-3">
-                                                    Copia esta URL en la sección <span className="font-bold text-slate-700">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
+                                                <p className="text-[10px] text-[rgba(255,255,255,0.55)] leading-relaxed mb-3">
+                                                    Copia esta URL en la sección <span className="font-bold text-[#E8ECF1]">"Agent Level Webhook"</span> de tu agente en Retell para capturar estadísticas y enviar info al panel.
                                                 </p>
 
                                                 {client.webhook_token ? (
                                                     <div className="flex flex-col gap-2">
-                                                        <div className="flex items-center gap-2 bg-white border border-purple-200 rounded-xl p-2 pr-1">
-                                                            <code className="flex-1 px-2 text-[10px] font-mono text-slate-600 break-all leading-relaxed">
+                                                        <div className="flex items-center gap-2 bg-[#141A23] border border-[#1F2937] rounded-xl p-2 pr-1">
+                                                            <code className="flex-1 px-2 text-[10px] font-mono text-[#E8ECF1] break-all leading-relaxed">
                                                                 {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/retell?token=${client.webhook_token}` : 'URL se generará al guardar'}
                                                             </code>
                                                             <button
@@ -949,7 +954,7 @@ export default function ClientDetail() {
                                                                     navigator.clipboard.writeText(url);
                                                                     toast.success('Webhook URL copiada');
                                                                 }}
-                                                                className="p-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg text-slate-400 transition-all shadow-sm"
+                                                                className="p-2.5 bg-[#0E1219] border border-[#1F2937] hover:border-[#008DCB] hover:text-[#008DCB] rounded-lg text-[rgba(255,255,255,0.4)] transition-all shadow-sm"
                                                                 title="Copiar URL"
                                                             >
                                                                 <ExternalLink size={14} />
@@ -957,7 +962,7 @@ export default function ClientDetail() {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="text-[10px] text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium italic">
+                                                    <div className="text-[10px] text-[#F78E5E] bg-[#F78E5E]/10 p-3 rounded-xl border border-[#F78E5E]/20 font-medium italic">
                                                         Pulsa "Guardar Cambios" para generar la URL del Webhook automáticamente.
                                                     </div>
                                                 )}
@@ -970,18 +975,18 @@ export default function ClientDetail() {
 
                         {/* Stats / Invoices Placeholder */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
-                                <CardHeader><CardTitle className="text-base text-slate-700">Facturación</CardTitle></CardHeader>
+                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
+                                <CardHeader><CardTitle className="text-base text-[#E8ECF1]">Facturación</CardTitle></CardHeader>
                                 <CardContent>
-                                    <div className="h-32 flex items-center justify-center text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                                    <div className="h-32 flex items-center justify-center text-[rgba(255,255,255,0.3)] border border-dashed border-[#1F2937] rounded-lg bg-[#141A23]">
                                         Gráfico de Facturación (Próximamente)
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-white border-slate-100 shadow-sm rounded-2xl">
-                                <CardHeader><CardTitle className="text-base text-slate-700">Estadísticas de Llamadas</CardTitle></CardHeader>
+                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
+                                <CardHeader><CardTitle className="text-base text-[#E8ECF1]">Estadísticas de Llamadas</CardTitle></CardHeader>
                                 <CardContent>
-                                    <div className="h-32 flex items-center justify-center text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                                    <div className="h-32 flex items-center justify-center text-[rgba(255,255,255,0.3)] border border-dashed border-[#1F2937] rounded-lg bg-[#141A23]">
                                         KPIs del Agente (Próximamente)
                                     </div>
                                 </CardContent>
@@ -1010,13 +1015,13 @@ interface FormInputProps {
 function FormInput({ label, value, onChange, type = "text", placeholder, icon, compact, fontMono, bgWhite }: FormInputProps) {
     return (
         <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-500">{label}</label>
+            <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">{label}</label>
             <div className="relative">
-                {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</div>}
+                {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.4)]">{icon}</div>}
                 <input
                     type={type}
-                    className={`w-full border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-slate-400
-                        ${bgWhite ? 'bg-white' : 'bg-slate-50'}
+                    className={`w-full border border-[#1F2937] rounded-lg text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all placeholder:text-[rgba(255,255,255,0.3)]
+                        ${bgWhite ? 'bg-[#141A23]' : 'bg-[#0E1219]'}
                         ${compact ? 'py-2 px-3 text-sm' : 'py-2.5 px-3'}
                         ${icon ? 'pl-9' : ''}
                         ${fontMono ? 'font-mono text-sm tracking-wide' : ''}
@@ -1039,9 +1044,9 @@ interface SelectOptionGroup {
 function FormSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: (string | SelectOptionGroup)[] }) {
     return (
         <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-500">{label}</label>
+            <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">{label}</label>
             <select
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg py-2.5 px-3 text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             >

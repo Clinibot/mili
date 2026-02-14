@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils'; // Assuming standard cn utility is available based on previous file reads
+import { cn } from '@/lib/utils';
 
 interface StatusSelectorProps {
     value: string;
@@ -25,6 +25,11 @@ const POST_SALES_OPTIONS = [
     'Mantenimiento mensual'
 ];
 
+function getStatusColor(status: string) {
+    if (PRE_SALES_OPTIONS.includes(status)) return "bg-[#008DCB]";
+    return "bg-[#F78E5E]";
+}
+
 export default function StatusSelector({ value, onChange }: StatusSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -40,105 +45,79 @@ export default function StatusSelector({ value, onChange }: StatusSelectorProps)
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const isPreSales = PRE_SALES_OPTIONS.includes(value);
-
-    // Theme configurations
-    // Unified Theme configurations
-    // Mili: Cool Blue/Cyan
-    const miliGradient = "from-cyan-500 to-blue-600";
-    const miliText = "text-blue-600";
-    const miliBg = "bg-blue-50";
-    // Sonia: Warm Orange/Rose
-    const soniaGradient = "from-orange-400 to-rose-500";
-    const soniaText = "text-orange-600";
-    const soniaBg = "bg-orange-50";
-
-    const currentGradient = isPreSales ? miliGradient : soniaGradient;
-
     return (
-        <div className="space-y-2" ref={containerRef}>
-            <label className="text-xs font-medium text-slate-500">Estado del Lead / Pipeline</label>
+        <div className="space-y-1.5" ref={containerRef}>
+            <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">Estado Cliente</label>
             <div className="relative">
                 <button
-                    type="button"
                     onClick={() => setIsOpen(!isOpen)}
                     className={cn(
-                        "w-full flex items-center justify-between p-1 rounded-xl border transition-all duration-300 group",
-                        "hover:shadow-md active:scale-[0.99]",
-                        isPreSales ? "bg-white border-blue-100" : "bg-white border-orange-100"
+                        "w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all text-sm font-medium",
+                        "bg-[#141A23] border-[#1F2937] text-[#E8ECF1] hover:border-[#008DCB]"
                     )}
                 >
-                    <div className={cn(
-                        "flex-1 flex items-center gap-3 px-3 py-2 rounded-lg bg-gradient-to-r text-white font-bold shadow-sm transition-all duration-500",
-                        currentGradient
-                    )}>
-                        <span className="text-sm tracking-wide">{value}</span>
-                        <div className="ml-auto flex items-center gap-2 text-[10px] font-medium opacity-90 px-2 py-0.5 bg-white/20 rounded-full backdrop-blur-sm">
-                            {isPreSales ? 'Preventa (Mili)' : 'Postventa (Sonia)'}
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <div className={cn("w-2 h-2 rounded-full", getStatusColor(value))} />
+                        {value}
                     </div>
-                    <div className="px-3 text-slate-400 group-hover:text-slate-600 transition-colors">
-                        <ChevronDown size={18} className={cn("transition-transform duration-300", isOpen && "rotate-180")} />
-                    </div>
+                    <ChevronDown size={14} className={cn("text-[rgba(255,255,255,0.4)] transition-transform duration-200", isOpen && "rotate-180")} />
                 </button>
 
-                {/* Dropdown */}
                 {isOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl shadow-xl z-50 p-4 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                            {/* Mili - Pre-sales Column */}
-                            <div className="space-y-2">
-                                <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400 pl-2 pb-1 border-b border-blue-50 mb-2">
-                                    Mili (Preventa)
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0E1219] border border-[#1F2937] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <div className="p-2 space-y-3 max-h-80 overflow-y-auto">
+                            {/* Pre-Sales Group */}
+                            <div>
+                                <h4 className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider px-2 mb-1.5">Ventas / Captación</h4>
+                                <div className="space-y-0.5">
+                                    {PRE_SALES_OPTIONS.map((status) => (
+                                        <button
+                                            key={status}
+                                            onClick={() => {
+                                                onChange(status);
+                                                setIsOpen(false);
+                                            }}
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors",
+                                                value === status ? "bg-[#008DCB]/10 text-[#008DCB]" : "text-[#E8ECF1] hover:bg-[#1F2937]"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", getStatusColor(status))} />
+                                                {status}
+                                            </div>
+                                            {value === status && <Check size={14} />}
+                                        </button>
+                                    ))}
                                 </div>
-                                {PRE_SALES_OPTIONS.map((option) => (
-                                    <button
-                                        key={option}
-                                        onClick={() => {
-                                            onChange(option);
-                                            setIsOpen(false);
-                                        }}
-                                        className={cn(
-                                            "w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-between group",
-                                            value === option
-                                                ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-200"
-                                                : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
-                                        )}
-                                    >
-                                        {option}
-                                        {value === option && (
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-                                        )}
-                                    </button>
-                                ))}
                             </div>
 
-                            {/* Sonia - Post-sales Column */}
-                            <div className="space-y-2">
-                                <div className="text-[10px] font-bold uppercase tracking-wider text-orange-400 pl-2 pb-1 border-b border-orange-50 mb-2">
-                                    Sonia (Postventa)
+                            <div className="h-px bg-[#1F2937] my-1" />
+
+                            {/* Post-Sales Group */}
+                            <div>
+                                <h4 className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider px-2 mb-1.5">Post-Venta / Activos</h4>
+                                <div className="space-y-0.5">
+                                    {POST_SALES_OPTIONS.map((status) => (
+                                        <button
+                                            key={status}
+                                            onClick={() => {
+                                                onChange(status);
+                                                setIsOpen(false);
+                                            }}
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors",
+                                                value === status ? "bg-[#008DCB]/10 text-[#008DCB]" : "text-[#E8ECF1] hover:bg-[#1F2937]"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", getStatusColor(status))} />
+                                                {status}
+                                            </div>
+                                            {value === status && <Check size={14} />}
+                                        </button>
+                                    ))}
                                 </div>
-                                {POST_SALES_OPTIONS.map((option) => (
-                                    <button
-                                        key={option}
-                                        onClick={() => {
-                                            onChange(option);
-                                            setIsOpen(false);
-                                        }}
-                                        className={cn(
-                                            "w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-between group",
-                                            value === option
-                                                ? "bg-gradient-to-r from-amber-50 to-orange-50 text-orange-700 shadow-sm ring-1 ring-orange-200"
-                                                : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
-                                        )}
-                                    >
-                                        {option}
-                                        {value === option && (
-                                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></div>
-                                        )}
-                                    </button>
-                                ))}
                             </div>
 
                         </div>

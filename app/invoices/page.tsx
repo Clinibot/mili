@@ -234,27 +234,27 @@ export default function InvoicesPage() {
             <div className="space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Gestión de Facturas</h1>
-                        <p className="text-slate-500 mt-1">Control de gastos y ventas</p>
+                        <h1 className="text-3xl font-bold text-[#E8ECF1]">Gestión de Facturas</h1>
+                        <p className="text-[rgba(255,255,255,0.55)] mt-1">Control de gastos y ventas</p>
                     </div>
 
                     {/* Date Filters */}
-                    <div className="flex flex-wrap items-center gap-2 bg-white/50 p-1.5 rounded-2xl border border-slate-200/60 backdrop-blur-sm">
+                    <div className="flex flex-wrap items-center gap-2 bg-[#141A23] p-1.5 rounded-2xl border border-[#1F2937]">
                         <button
                             onClick={() => setFilterPeriod('all')}
-                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === 'all' ? 'bg-[#008DCB]/10 text-[#008DCB] shadow-sm' : 'text-[rgba(255,255,255,0.55)] hover:text-[#E8ECF1]'}`}
                         >
                             Todo
                         </button>
                         <button
                             onClick={() => setFilterPeriod('30d')}
-                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === '30d' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === '30d' ? 'bg-[#008DCB]/10 text-[#008DCB] shadow-sm' : 'text-[rgba(255,255,255,0.55)] hover:text-[#E8ECF1]'}`}
                         >
                             Últimos 30 días
                         </button>
                         <button
                             onClick={() => setFilterPeriod('custom')}
-                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === 'custom' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${filterPeriod === 'custom' ? 'bg-[#008DCB]/10 text-[#008DCB] shadow-sm' : 'text-[rgba(255,255,255,0.55)] hover:text-[#E8ECF1]'}`}
                         >
                             Personalizado
                         </button>
@@ -265,14 +265,14 @@ export default function InvoicesPage() {
                                     type="date"
                                     value={dateRange.start}
                                     onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                                    className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400"
+                                    className="text-xs bg-[#0E1219] border border-[#1F2937] text-[#E8ECF1] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#008DCB]"
                                 />
-                                <span className="text-slate-300">→</span>
+                                <span className="text-[rgba(255,255,255,0.3)]">→</span>
                                 <input
                                     type="date"
                                     value={dateRange.end}
                                     onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                                    className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400"
+                                    className="text-xs bg-[#0E1219] border border-[#1F2937] text-[#E8ECF1] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#008DCB]"
                                 />
                             </div>
                         )}
@@ -280,29 +280,29 @@ export default function InvoicesPage() {
                 </div>
 
                 {/* Balance Card */}
-                <Card className={`border-2 ${balance >= 0 ? 'border-green-200 bg-gradient-to-br from-green-50 to-emerald-50' : 'border-red-200 bg-gradient-to-br from-red-50 to-orange-50'} shadow-lg rounded-3xl overflow-hidden`}>
+                <Card className={`border ${balance >= 0 ? 'border-[#22C55E]/20 bg-gradient-to-br from-[#22C55E]/10 to-[#22C55E]/5' : 'border-[#EF4444]/20 bg-gradient-to-br from-[#EF4444]/10 to-[#EF4444]/5'} shadow-lg rounded-3xl overflow-hidden`}>
                     <CardContent className="p-8">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-2">Balance Total</p>
-                                <h2 className={`text-5xl font-black ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                <p className="text-sm font-bold text-[rgba(255,255,255,0.55)] uppercase tracking-wider mb-2">Balance Total</p>
+                                <h2 className={`text-5xl font-black ${balance >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
                                     €{balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </h2>
                             </div>
                             <div className="grid grid-cols-2 gap-6">
-                                <div className="text-center p-4 bg-white/60 rounded-2xl backdrop-blur-sm">
+                                <div className="text-center p-4 bg-[#0E1219]/60 rounded-2xl backdrop-blur-sm border border-[#1F2937]">
                                     <div className="flex items-center gap-2 justify-center mb-1">
-                                        <TrendingUp className="text-green-600" size={16} />
-                                        <p className="text-xs font-bold text-slate-600">Ventas</p>
+                                        <TrendingUp className="text-[#22C55E]" size={16} />
+                                        <p className="text-xs font-bold text-[#E8ECF1]">Ventas</p>
                                     </div>
-                                    <p className="text-2xl font-bold text-green-600">€{totalSales.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-2xl font-bold text-[#22C55E]">€{totalSales.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="text-center p-4 bg-white/60 rounded-2xl backdrop-blur-sm">
+                                <div className="text-center p-4 bg-[#0E1219]/60 rounded-2xl backdrop-blur-sm border border-[#1F2937]">
                                     <div className="flex items-center gap-2 justify-center mb-1">
-                                        <TrendingDown className="text-red-600" size={16} />
-                                        <p className="text-xs font-bold text-slate-600">Gastos</p>
+                                        <TrendingDown className="text-[#EF4444]" size={16} />
+                                        <p className="text-xs font-bold text-[#E8ECF1]">Gastos</p>
                                     </div>
-                                    <p className="text-2xl font-bold text-red-600">€{totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-2xl font-bold text-[#EF4444]">€{totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</p>
                                 </div>
                             </div>
                         </div>
@@ -315,7 +315,7 @@ export default function InvoicesPage() {
                     <InvoiceColumn
                         title="Gastos"
                         type="expense"
-                        icon={<TrendingDown className="text-red-600" size={20} />}
+                        icon={<TrendingDown className="text-[#EF4444]" size={20} />}
                         color="red"
                         invoices={expenses}
                         total={totalExpenses}
@@ -332,7 +332,7 @@ export default function InvoicesPage() {
                     <InvoiceColumn
                         title="Ventas"
                         type="sale"
-                        icon={<TrendingUp className="text-green-600" size={20} />}
+                        icon={<TrendingUp className="text-[#22C55E]" size={20} />}
                         color="green"
                         invoices={sales}
                         total={totalSales}
@@ -348,26 +348,26 @@ export default function InvoicesPage() {
 
                 {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
                 {isDeleteModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                        <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 border border-slate-100 animate-in zoom-in-95 duration-200">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-[#0E1219] rounded-3xl shadow-2xl max-w-sm w-full p-8 border border-[#1F2937] animate-in zoom-in-95 duration-200">
                             <div className="flex flex-col items-center text-center">
-                                <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 mb-6">
+                                <div className="w-16 h-16 bg-[#EF4444]/10 rounded-2xl flex items-center justify-center text-[#EF4444] mb-6">
                                     <AlertTriangle size={32} />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">¿Estás seguro?</h3>
-                                <p className="text-slate-500 mb-8">
+                                <h3 className="text-xl font-bold text-[#E8ECF1] mb-2">¿Estás seguro?</h3>
+                                <p className="text-[rgba(255,255,255,0.55)] mb-8">
                                     Esta acción eliminará el registro de forma permanente. No podrás deshacerlo.
                                 </p>
                                 <div className="flex w-full gap-3">
                                     <button
                                         onClick={() => setIsDeleteModalOpen(false)}
-                                        className="flex-1 px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                        className="flex-1 px-6 py-3 text-sm font-bold text-[#E8ECF1] bg-[#1F2937] hover:bg-[#374151] rounded-xl transition-colors"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         onClick={confirmDelete}
-                                        className="flex-1 px-6 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-lg shadow-red-200"
+                                        className="flex-1 px-6 py-3 text-sm font-bold text-white bg-[#EF4444] hover:bg-[#EF4444]/80 rounded-xl transition-colors shadow-lg shadow-red-900/20"
                                     >
                                         Eliminar
                                     </button>
@@ -411,20 +411,23 @@ function InvoiceColumn({
     uploading: boolean;
     loading: boolean;
 }) {
-    const bgColor = color === 'red' ? 'bg-red-50' : 'bg-green-50';
-    const borderColor = color === 'red' ? 'border-red-200' : 'border-green-200';
-    const textColor = color === 'red' ? 'text-red-600' : 'text-green-600';
+    // Determine colors based on type
+    const isRed = color === 'red';
+    const bgColor = isRed ? 'bg-[#EF4444]/5' : 'bg-[#22C55E]/5';
+    const borderColor = isRed ? 'border-[#EF4444]/20' : 'border-[#22C55E]/20';
+    const textColor = isRed ? 'text-[#EF4444]' : 'text-[#22C55E]';
+    const buttonBg = isRed ? 'bg-[#EF4444] hover:bg-[#EF4444]/80' : 'bg-[#22C55E] hover:bg-[#22C55E]/80';
 
     return (
-        <Card className="border-slate-100 shadow-sm rounded-3xl overflow-hidden">
+        <Card className="bg-[#141A23] border-[#1F2937] shadow-sm rounded-3xl overflow-hidden">
             <CardHeader className={`${bgColor} border-b ${borderColor}`}>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-slate-800">
+                    <CardTitle className="flex items-center gap-2 text-[#E8ECF1]">
                         {icon}
                         {title}
                     </CardTitle>
                     <div className="text-right">
-                        <p className="text-xs font-medium text-slate-500">Total</p>
+                        <p className="text-xs font-medium text-[rgba(255,255,255,0.55)]">Total</p>
                         <p className={`text-2xl font-black ${textColor}`}>
                             €{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                         </p>
@@ -435,41 +438,41 @@ function InvoiceColumn({
             <CardContent className="p-6 space-y-6">
                 {/* Add Form */}
                 <div className={`space-y-3 p-4 ${bgColor} border ${borderColor} rounded-2xl`}>
-                    <h4 className="font-bold text-sm text-slate-700">Añadir {title}</h4>
+                    <h4 className="font-bold text-sm text-[#E8ECF1]">Añadir {title}</h4>
 
                     {/* File Upload */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Documento (opcional)</label>
+                        <label className="block text-xs font-medium text-[rgba(255,255,255,0.55)] mb-1">Documento (opcional)</label>
                         <div className="relative">
                             <input
                                 type="file"
                                 accept=".pdf,.jpg,.jpeg,.png"
                                 onChange={(e) => setNewInvoice({ ...newInvoice, type, file: e.target.files?.[0] || null })}
-                                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-white file:text-slate-700 hover:file:bg-slate-100 cursor-pointer"
+                                className="w-full text-sm text-[rgba(255,255,255,0.4)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#0E1219] file:text-[#E8ECF1] hover:file:bg-[#1F2937] cursor-pointer"
                             />
                         </div>
                     </div>
 
                     {/* Amount */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Cantidad (€)</label>
+                        <label className="block text-xs font-medium text-[rgba(255,255,255,0.55)] mb-1">Cantidad (€)</label>
                         <input
                             type="number"
                             step="0.01"
                             placeholder="0.00"
                             value={newInvoice.type === type ? newInvoice.amount : ''}
                             onChange={(e) => setNewInvoice({ ...newInvoice, type, amount: e.target.value })}
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                            className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg py-2 px-3 text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 placeholder:text-[rgba(255,255,255,0.3)]"
                         />
                     </div>
 
                     {/* Status */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Estado</label>
+                        <label className="block text-xs font-medium text-[rgba(255,255,255,0.55)] mb-1">Estado</label>
                         <select
                             value={newInvoice.type === type ? newInvoice.status : 'unpaid'}
                             onChange={(e) => setNewInvoice({ ...newInvoice, type, status: e.target.value as 'paid' | 'unpaid' })}
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                            className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg py-2 px-3 text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20"
                         >
                             <option value="unpaid">No Pagado</option>
                             <option value="paid">Pagado</option>
@@ -478,12 +481,12 @@ function InvoiceColumn({
 
                     {/* Description */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
+                        <label className="block text-xs font-medium text-[rgba(255,255,255,0.55)] mb-1">Descripción (opcional)</label>
                         <textarea
                             placeholder="Detalles..."
                             value={newInvoice.type === type ? newInvoice.description : ''}
                             onChange={(e) => setNewInvoice({ ...newInvoice, type, description: e.target.value })}
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+                            className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg py-2 px-3 text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 placeholder:text-[rgba(255,255,255,0.3)] resize-none"
                             rows={2}
                         />
                     </div>
@@ -491,7 +494,7 @@ function InvoiceColumn({
                     <button
                         onClick={onAdd}
                         disabled={uploading}
-                        className={`w-full ${color === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50`}
+                        className={`w-full ${buttonBg} text-white py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50`}
                     >
                         <Upload size={16} />
                         {uploading ? 'Guardando...' : `Añadir ${title}`}
@@ -501,9 +504,9 @@ function InvoiceColumn({
                 {/* Invoice List */}
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
                     {loading ? (
-                        <div className="text-center py-8 text-slate-400 text-sm">Cargando...</div>
+                        <div className="text-center py-8 text-[rgba(255,255,255,0.3)] text-sm">Cargando...</div>
                     ) : invoices.length === 0 ? (
-                        <div className="text-center py-8 text-slate-400 text-sm">No hay {title.toLowerCase()} registrados</div>
+                        <div className="text-center py-8 text-[rgba(255,255,255,0.3)] text-sm">No hay {title.toLowerCase()} registrados</div>
                     ) : (
                         invoices.map((invoice) => (
                             <InvoiceCard
@@ -533,12 +536,15 @@ function InvoiceCard({
     onToggleStatus: (id: string, status: string) => void;
     color: 'red' | 'green';
 }) {
+    const isRed = color === 'red';
+    const amountColor = isRed ? 'text-[#EF4444]' : 'text-[#22C55E]';
+
     return (
-        <div className="p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow group">
+        <div className="p-3 bg-[#0E1219] border border-[#1F2937] rounded-xl hover:shadow-md transition-shadow group">
             <div className="flex justify-between items-start gap-3">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <p className={`text-lg font-bold ${color === 'red' ? 'text-red-600' : 'text-green-600'}`}>
+                        <p className={`text-lg font-bold ${amountColor}`}>
                             €{Number(invoice.amount).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                         </p>
                         <button
@@ -546,12 +552,12 @@ function InvoiceCard({
                             className="cursor-pointer transition-transform hover:scale-105"
                         >
                             {invoice.status === 'paid' ? (
-                                <span className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full">
+                                <span className="flex items-center gap-1 text-xs font-bold text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full">
                                     <Check size={12} strokeWidth={3} />
                                     Pagado
                                 </span>
                             ) : (
-                                <span className="flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
+                                <span className="flex items-center gap-1 text-xs font-bold text-[#F78E5E] bg-[#F78E5E]/10 border border-[#F78E5E]/20 px-2 py-0.5 rounded-full">
                                     <Clock size={12} strokeWidth={3} />
                                     No Pagado
                                 </span>
@@ -559,9 +565,9 @@ function InvoiceCard({
                         </button>
                     </div>
                     {invoice.description && (
-                        <p className="text-sm text-slate-700 font-medium mb-1">{invoice.description}</p>
+                        <p className="text-sm text-[#E8ECF1] font-medium mb-1">{invoice.description}</p>
                     )}
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <p className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider">
                         {format(new Date(invoice.invoice_date), "d 'de' MMMM, yyyy", { locale: es })}
                     </p>
                 </div>
@@ -571,7 +577,7 @@ function InvoiceCard({
                             href={invoice.document_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                            className="p-1.5 text-[#008DCB] hover:bg-[#008DCB]/10 rounded-lg transition-colors border border-transparent hover:border-[#008DCB]/20"
                             title="Ver documento"
                         >
                             <FileText size={16} />
@@ -579,7 +585,7 @@ function InvoiceCard({
                     )}
                     <button
                         onClick={() => onDelete(invoice.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 opacity-60 hover:opacity-100"
+                        className="p-1.5 text-[#EF4444] hover:bg-[#EF4444]/10 rounded-lg transition-colors border border-transparent hover:border-[#EF4444]/20 opacity-60 hover:opacity-100"
                         title="Eliminar"
                     >
                         <X size={16} />
