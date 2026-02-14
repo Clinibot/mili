@@ -241,13 +241,6 @@ const EMBED_CODE = `<!DOCTYPE html>
             <h4 class="card-title color-mili">1. Costes IA</h4>
         </div>
         <table class="summary-table">
-            <tr style="background: rgba(255,255,255,0.02)">
-                <td class="text-muted" style="color: var(--text);">
-                    Pago Único (Onboarding)
-                    <div style="font-size:0.8em; opacity:0.5; font-weight:normal; margin-top:4px;">Setup inicial y configuración</div>
-                </td>
-                <td class="text-right">480,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
-            </tr>
             <tr>
                 <td class="text-muted">Mantenimiento Mensual</td>
                 <td class="text-right">55,00 € <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
@@ -302,7 +295,9 @@ const EMBED_CODE = `<!DOCTYPE html>
         <div id="grandTotal" style="font-size: 2em; font-weight: bold; font-family: var(--font-header);">0,00 €</div>
     </div>
     
-
+    <div style="margin-top: 15px; text-align: center;">
+        <small class="text-muted" style="font-family: var(--font-mono);">Pago Único (Onboarding): <strong style="color: var(--text);">480,00 € + IVA</strong></small>
+    </div>
 
 </div>
 
@@ -636,13 +631,6 @@ export default function CalculatorPage() {
                             <div className="p-0">
                                 <table className="w-full text-left text-sm">
                                     <tbody>
-                                        <tr className="border-b border-[#1F2937] bg-[rgba(255,255,255,0.02)]">
-                                            <td className="py-4 px-6 text-[#E8ECF1] font-sans font-medium">
-                                                Pago Único (Onboarding)
-                                                <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1 font-normal">Setup inicial y configuración</div>
-                                            </td>
-                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">480,00 € <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
-                                        </tr>
                                         <tr className="border-b border-[#1F2937]">
                                             <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">Mantenimiento Mensual</td>
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(MAINTENANCE_COST)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
@@ -700,6 +688,17 @@ export default function CalculatorPage() {
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+
+                        {/* One-time Costs */}
+                        <div className="card bg-[#0E1219]/50 border border-[#1F2937] rounded-xl overflow-hidden mt-6">
+                            <div className="p-4 flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-bold text-[#E8ECF1]">Pago Único (Onboarding)</h3>
+                                    <p className="text-xs text-[rgba(255,255,255,0.5)]">Setup inicial y configuración</p>
+                                </div>
+                                <span className="font-mono font-bold text-[#E8ECF1] text-lg">480,00 € <span className="text-[10px] opacity-60">+ IVA</span></span>
                             </div>
                         </div>
 
