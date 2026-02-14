@@ -3,12 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Calculator, Info, HelpCircle } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
+
 
 export default function CalculatorPage() {
     // State for inputs
@@ -124,57 +119,39 @@ export default function CalculatorPage() {
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <TooltipProvider>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
-                                                    Desvío a Fijo
-                                                </label>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <HelpCircle size={14} className="text-[rgba(255,255,255,0.3)] cursor-help hover:text-[#008DCB] transition-colors" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-[#1F2937] border-[#374151] text-[#E8ECF1]">
-                                                        <p className="max-w-[200px] text-xs">Minutos que habla un <span className="text-[#008DCB] font-bold">humano</span> (no la IA) tras un desvío a teléfono fijo.</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                value={divertsLandline}
-                                                onChange={(e) => setDivertsLandline(Number(e.target.value))}
-                                                className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                            />
-                                            <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
-                                                Total: {formatCurrency(calculations.landlineConsumption)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider">
-                                                    Desvío a Móvil
-                                                </label>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <HelpCircle size={14} className="text-[rgba(255,255,255,0.3)] cursor-help hover:text-[#008DCB] transition-colors" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-[#1F2937] border-[#374151] text-[#E8ECF1]">
-                                                        <p className="max-w-[200px] text-xs">Minutos que habla un <span className="text-[#008DCB] font-bold">humano</span> (no la IA) tras un desvío a teléfono móvil.</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                value={divertsMobile}
-                                                onChange={(e) => setDivertsMobile(Number(e.target.value))}
-                                                className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                            />
-                                            <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
-                                                Total: {formatCurrency(calculations.mobileConsumption)}
-                                            </p>
-                                        </div>
-                                    </TooltipProvider>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2" title="Minutos que habla un humano (no la IA) tras un desvío a teléfono fijo.">
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider cursor-help">
+                                            Desvío a Fijo
+                                        </label>
+                                        <HelpCircle size={14} className="text-[rgba(255,255,255,0.3)] hover:text-[#008DCB] transition-colors cursor-help" />
+                                    </div>
+                                    <input
+                                        type="number"
+                                        value={divertsLandline}
+                                        onChange={(e) => setDivertsLandline(Number(e.target.value))}
+                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                    />
+                                    <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
+                                        Total: {formatCurrency(calculations.landlineConsumption)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2" title="Minutos que habla un humano (no la IA) tras un desvío a teléfono móvil.">
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider cursor-help">
+                                            Desvío a Móvil
+                                        </label>
+                                        <HelpCircle size={14} className="text-[rgba(255,255,255,0.3)] hover:text-[#008DCB] transition-colors cursor-help" />
+                                    </div>
+                                    <input
+                                        type="number"
+                                        value={divertsMobile}
+                                        onChange={(e) => setDivertsMobile(Number(e.target.value))}
+                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                    />
+                                    <p className="text-[rgba(255,255,255,0.55)] text-xs mt-2">
+                                        Total: {formatCurrency(calculations.mobileConsumption)}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -212,7 +189,10 @@ export default function CalculatorPage() {
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.aiConsumption)}</td>
                                         </tr>
                                         <tr className="bg-[rgba(0,141,203,0.06)]">
-                                            <td className="py-4 px-6 font-header font-bold text-[#E8ECF1]">Total Mili (con IVA)</td>
+                                            <td className="py-4 px-6">
+                                                <div className="font-header font-bold text-[#E8ECF1]">Total Recarga Monedero</div>
+                                                <div className="text-[10px] text-[#008DCB] font-mono mt-0.5">COSTES IA + MANTENIMIENTO</div>
+                                            </td>
                                             <td className="py-4 px-6 text-right font-header font-bold text-xl text-[#008DCB]">
                                                 {formatCurrency(calculations.miliTotal)}
                                             </td>
@@ -238,16 +218,9 @@ export default function CalculatorPage() {
                                         <tr className="border-b border-[#1F2937]">
                                             <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans flex items-center gap-2">
                                                 Desvío a Humano
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Info size={14} className="text-[rgba(255,255,255,0.3)]" />
-                                                        </TooltipTrigger>
-                                                        <TooltipContent className="bg-[#1F2937] border-[#374151] text-[#E8ECF1]">
-                                                            <p className="text-xs">Consumo de minutos en llamadas desviadas</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                                <div title="Consumo de minutos en llamadas desviadas">
+                                                    <Info size={14} className="text-[rgba(255,255,255,0.3)] cursor-help" />
+                                                </div>
                                             </td>
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.landlineConsumption + calculations.mobileConsumption)}</td>
                                         </tr>
