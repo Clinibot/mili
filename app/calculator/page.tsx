@@ -159,6 +159,13 @@ const EMBED_CODE = `<!DOCTYPE html>
             font-size: 1.1em;
             font-family: var(--font-header);
         }
+        
+        .summary-table .subtext {
+            font-size: 0.75em;
+            opacity: 0.5;
+            display: block;
+            margin-top: 4px;
+        }
 
         .text-right { text-align: right; font-family: var(--font-mono); }
         .text-muted { color: var(--text-2); }
@@ -168,6 +175,10 @@ const EMBED_CODE = `<!DOCTYPE html>
         .bg-mili { background: rgba(0,141,203,0.06); }
         .color-netelip { color: var(--coral); }
         .bg-netelip { background: rgba(247,142,94,0.06); }
+        
+        .onboarding-row {
+            background: rgba(0,141,203,0.03); 
+        }
 
     </style>
 </head>
@@ -183,23 +194,29 @@ const EMBED_CODE = `<!DOCTYPE html>
     <div class="card" style="padding: 20px;">
         <!-- Volume Inputs -->
         <div class="input-group">
-            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Duración</h4>
+            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Configuración</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                 <div class="input-item">
+                    <label>Nº Agentes IA</label>
+                    <input type="number" id="numAgents" value="1" min="1" oninput="calculate()">
+                </div>
                  <div class="input-item">
                     <label>Llamadas al Día</label>
                     <input type="number" id="callsPerDay" value="50" oninput="calculate()">
                 </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                  <div class="input-item">
                     <label>Duración Media IA (Min)</label>
                     <input type="number" id="avgDuration" value="2.5" step="0.1" oninput="calculate()">
                 </div>
+                 <div class="input-item">
+                    <label>Días Laborables / Mes</label>
+                    <input type="number" id="workingDays" value="22" oninput="calculate()">
+                </div>
             </div>
              <div class="input-item">
-                <label>Días Laborables / Mes</label>
-                <input type="number" id="workingDays" value="22" oninput="calculate()">
-            </div>
-             <div class="input-item">
-                <label>Cantidad Números Virtuales</label>
+                <label>Cantidad Números Virtuales (Netelip)</label>
                 <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
             </div>
         </div>
@@ -275,6 +292,15 @@ const EMBED_CODE = `<!DOCTYPE html>
                 </td>
                 <td class="text-right"><span id="aiCostOutput">0,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span></td>
             </tr>
+            <tr class="onboarding-row">
+                 <td class="text-muted">
+                    Alta por Agente (Pago Único) <br>
+                    <span class="subtext"><span id="numAgentsOutput">1</span> Agente(s) x 480€</span>
+                </td>
+                <td class="text-right">
+                    <span id="onboardingCostOutput">480,00 €</span> <span style="font-size: 0.8em; opacity: 0.6;">+ IVA</span>
+                </td>
+            </tr>
             <tr class="bg-mili">
                 <td>
                     <div style="font-weight: bold; color: var(--text);">Total Recarga Monedero</div>
@@ -289,13 +315,9 @@ const EMBED_CODE = `<!DOCTYPE html>
     <div style="margin-top: 24px; padding: 20px; background: var(--surface-2); border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="text-transform: uppercase; font-weight: bold; font-family: var(--font-header); letter-spacing: 1px;">Total Mensual Estimado</div>
-            <div style="font-size: 0.8em; color: var(--text-3); margin-top: 4px;">Suma de ambas facturas</div>
+            <div style="font-size: 0.8em; color: var(--text-3); margin-top: 4px;">Suma de ambas facturas (Sin incluir Pago Único)</div>
         </div>
         <div id="grandTotal" style="font-size: 2em; font-weight: bold; font-family: var(--font-header);">0,00 €</div>
-    </div>
-    
-    <div style="margin-top: 15px; text-align: center;">
-        <small class="text-muted" style="font-family: var(--font-mono);">Alta por Agente (Pago Único): <strong style="color: var(--text);">480,00 € + IVA</strong></small>
     </div>
 
 </div>
@@ -307,6 +329,7 @@ const EMBED_CODE = `<!DOCTYPE html>
     const RATE_LANDLINE = 0.010; // Fijo
     const RATE_MOBILE = 0.029;   // Movil
     const IVA = 0.21;
+    const AGENT_FEE = 480;
 
     function format(num) {
         return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
@@ -318,6 +341,7 @@ const EMBED_CODE = `<!DOCTYPE html>
 
     function calculate() {
         // Inputs
+        const numAgents = Math.max(1, parseFloat(document.getElementById('numAgents').value) || 1);
         const callsPerDay = parseFloat(document.getElementById('callsPerDay').value) || 0;
         const avgDuration = parseFloat(document.getElementById('avgDuration').value) || 0;
         const workingDays = parseFloat(document.getElementById('workingDays').value) || 22;
@@ -345,6 +369,9 @@ const EMBED_CODE = `<!DOCTYPE html>
         const aiCost = totalAiMinutes * RATE_AI;
         const miliSubtotal = MAINTENANCE + aiCost;
         const miliTotal = miliSubtotal * (1 + IVA);
+        
+        // Onboarding
+        const onboardingCost = numAgents * AGENT_FEE;
 
         // Netelip Calc
         const numbersCost = numVirtual * NUMBER;
@@ -357,9 +384,11 @@ const EMBED_CODE = `<!DOCTYPE html>
         // Output Text Updates
         document.getElementById('totalAiMinutes').innerText = Math.round(totalAiMinutes) + ' min/mes';
         document.getElementById('totalDivertMinutes').innerText = Math.round(totalHumanMinutes) + ' min/mes';
+        document.getElementById('numAgentsOutput').innerText = numAgents;
 
         // Output Financials
         document.getElementById('aiCostOutput').innerText = format(aiCost);
+        document.getElementById('onboardingCostOutput').innerText = format(onboardingCost);
         document.getElementById('miliTotal').innerText = format(miliTotal);
         
         document.getElementById('numbersCostOutput').innerText = format(numbersCost);
@@ -378,6 +407,7 @@ const EMBED_CODE = `<!DOCTYPE html>
 
 export default function CalculatorPage() {
     // Volume Inputs
+    const [numAgents, setNumAgents] = useState(1);
     const [callsPerDay, setCallsPerDay] = useState(50);
     const [avgDuration, setAvgDuration] = useState(2.5); // Minutes
     const [workingDays, setWorkingDays] = useState(22); // Month
@@ -393,7 +423,7 @@ export default function CalculatorPage() {
     const [copied, setCopied] = useState(false);
 
     // Constants
-    const ONBOARDING_COST = 480;
+    const AGENT_FEE = 480;
     const MAINTENANCE_COST = 55;
     const NUMBER_COST = 1.95;
     const AI_MINUTE_RATE = 0.16;
@@ -423,6 +453,8 @@ export default function CalculatorPage() {
         const miliIva = miliSubtotal * IVA_RATE;
         const miliTotal = miliSubtotal + miliIva;
 
+        const onboardingCost = numAgents * AGENT_FEE;
+
         // 3. Netelip Costs
         const numbersCost = numVirtualNumbers * NUMBER_COST;
         const landlineConsumption = humanMinutesLandline * DIVERT_LANDLINE_RATE;
@@ -431,10 +463,7 @@ export default function CalculatorPage() {
         const netelipIva = netelipSubtotal * IVA_RATE;
         const netelipTotal = netelipSubtotal + netelipIva;
 
-        const onboardingIva = ONBOARDING_COST * IVA_RATE;
-        const onboardingTotal = ONBOARDING_COST + onboardingIva;
-
-        // Grand Total
+        // Grand Total (only recurring)
         const grandTotal = miliTotal + netelipTotal;
 
         return {
@@ -451,10 +480,9 @@ export default function CalculatorPage() {
             netelipIva,
             netelipTotal,
             grandTotal,
-            onboardingTotal,
-            onboardingIva
+            onboardingCost
         };
-    }, [callsPerDay, avgDuration, workingDays, numVirtualNumbers, transferMobile, transferLandline, avgHumanDuration]);
+    }, [numAgents, callsPerDay, avgDuration, workingDays, numVirtualNumbers, transferMobile, transferLandline, avgHumanDuration]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -499,9 +527,21 @@ export default function CalculatorPage() {
 
                         {/* Group 1: Volume */}
                         <div className="card bg-[#0E1219] border border-[#1F2937] rounded-xl p-6 shadow-sm">
-                            <h2 className="font-header font-bold text-xl text-[#E8ECF1] mb-6">Volumen y Duración</h2>
+                            <h2 className="font-header font-bold text-xl text-[#E8ECF1] mb-6">Volumen y Configuración</h2>
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
+                                            Nº Agentes IA
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={numAgents}
+                                            min="1"
+                                            onChange={(e) => setNumAgents(Math.max(1, Number(e.target.value)))}
+                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                        />
+                                    </div>
                                     <div>
                                         <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
                                             Llamadas/Día
@@ -513,9 +553,11 @@ export default function CalculatorPage() {
                                             className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
                                         />
                                     </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                            Duración Media IA (Min)
+                                            Duración Media (Min)
                                         </label>
                                         <input
                                             type="number"
@@ -525,8 +567,6 @@ export default function CalculatorPage() {
                                             className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
                                         />
                                     </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
                                             Días Laborables
@@ -538,18 +578,18 @@ export default function CalculatorPage() {
                                             className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
-                                            Núm. Virtuales
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={numVirtualNumbers}
-                                            onChange={(e) => setNumVirtualNumbers(Math.max(1, Number(e.target.value)))}
-                                            className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
-                                        />
-                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[rgba(255,255,255,0.55)] text-xs font-mono uppercase tracking-wider mb-2">
+                                        Núm. Virtuales (Netelip)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={numVirtualNumbers}
+                                        onChange={(e) => setNumVirtualNumbers(Math.max(1, Number(e.target.value)))}
+                                        className="w-full bg-[#141A23] border border-[#1F2937] rounded-lg px-4 py-3 text-[#E8ECF1] font-sans focus:outline-none focus:border-[#008DCB] transition-colors"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -678,6 +718,15 @@ export default function CalculatorPage() {
                                             </td>
                                             <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.aiConsumption)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
                                         </tr>
+                                        <tr className="bg-[rgba(0,141,203,0.03)] border-b border-[#1F2937]">
+                                            <td className="py-4 px-6 text-[rgba(255,255,255,0.7)] font-sans">
+                                                Alta por Agente (Pago Único)
+                                                <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">
+                                                    {numAgents} Agente(s) x {formatCurrency(AGENT_FEE)}
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-6 text-right font-mono text-[#E8ECF1]">{formatCurrency(calculations.onboardingCost)} <span className="text-[10px] text-[rgba(255,255,255,0.4)]">+ IVA</span></td>
+                                        </tr>
                                         <tr className="bg-[rgba(0,141,203,0.06)]">
                                             <td className="py-4 px-6">
                                                 <div className="font-header font-bold text-[#E8ECF1]">Total Recarga Monedero</div>
@@ -692,22 +741,11 @@ export default function CalculatorPage() {
                             </div>
                         </div>
 
-                        {/* One-time Costs */}
-                        <div className="card bg-[#0E1219]/50 border border-[#1F2937] rounded-xl overflow-hidden mt-6">
-                            <div className="p-4 flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-bold text-[#E8ECF1]">Alta por Agente (Pago Único)</h3>
-                                    <p className="text-xs text-[rgba(255,255,255,0.5)]">Setup y configuración inicial</p>
-                                </div>
-                                <span className="font-mono font-bold text-[#E8ECF1] text-lg">480,00 € <span className="text-[10px] opacity-60">+ IVA</span></span>
-                            </div>
-                        </div>
-
                         {/* Grand Total */}
                         <div className="p-6 rounded-xl bg-[#141A23] border border-[#1F2937] flex justify-between items-center mt-6">
                             <div>
                                 <h3 className="font-header font-black text-xl text-[#E8ECF1] uppercase tracking-wider">Total Mensual Estimado</h3>
-                                <p className="text-xs text-[rgba(255,255,255,0.5)]">Suma de ambas facturas (Mili + Netelip)</p>
+                                <p className="text-xs text-[rgba(255,255,255,0.5)]">Suma de ambas facturas (Sin incluir Pago Único)</p>
                             </div>
                             <span className="font-header font-black text-3xl text-white">{formatCurrency(calculations.grandTotal)}</span>
                         </div>

@@ -152,6 +152,13 @@
             font-size: 1.1em;
             font-family: var(--font-header);
         }
+        
+        .summary-table .subtext {
+            font-size: 0.75em;
+            opacity: 0.5;
+            display: block;
+            margin-top: 4px;
+        }
 
         .text-right { text-align: right; font-family: var(--font-mono); }
         .text-muted { color: var(--text-2); }
@@ -161,6 +168,10 @@
         .bg-mili { background: rgba(0,141,203,0.06); }
         .color-netelip { color: var(--coral); }
         .bg-netelip { background: rgba(247,142,94,0.06); }
+        
+        .onboarding-row {
+            background: rgba(0,141,203,0.03); 
+        }
 
     </style>
 </head>
@@ -176,26 +187,15 @@
     <div class="card" style="padding: 20px;">
         <!-- Volume Inputs -->
         <div class="input-group">
-            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Duración</h4>
+            <h4 style="margin-bottom: 16px; font-size: 0.9em; color: var(--text);">Volumen y Configuración</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                 <div class="input-item">
+                    <label>Nº Agentes IA</label>
+                    <input type="number" id="numAgents" value="1" min="1" oninput="calculate()">
+                </div>
                  <div class="input-item">
                     <label>Llamadas al Día</label>
                     <input type="number" id="callsPerDay" value="50" oninput="calculate()">
                 </div>
-                 <div class="input-item">
-                    <label>Duración Media IA (Min)</label>
-                    <input type="number" id="avgDuration" value="2.5" step="0.1" oninput="calculate()">
-                </div>
             </div>
-             <div class="input-item">
-                <label>Días Laborables / Mes</label>
-                <input type="number" id="workingDays" value="22" oninput="calculate()">
-            </div>
-             <div class="input-item">
-                <label>Cantidad Números Virtuales</label>
-                <input type="number" id="numVirtualNumbers" value="1" min="1" oninput="calculate()">
-            </div>
-        </div>
-        
-        <!-- Transfer Inputs -->
 
