@@ -36,6 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const menuItems = [
         { name: 'Clientes', icon: Users, href: '/' },
+        { name: 'Últimas Llamadas', icon: Activity, href: '/latest-calls' },
         { name: 'Facturas', icon: FileText, href: '/invoices' },
         { name: 'Documentación', icon: BookOpen, href: '/docs' },
         { name: 'Calculadora', icon: Calculator, href: '/calculator' },
