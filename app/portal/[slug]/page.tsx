@@ -13,6 +13,7 @@ import { usePortal } from './PortalContext';
 import { supabase } from '@/lib/supabaseClient';
 import { useEffect } from 'react';
 import CallsList from '@/components/CallsList';
+import TransferAnalytics from './TransferAnalytics';
 
 export default function ClientPortal() {
     const { client, slug } = usePortal();
@@ -143,6 +144,14 @@ export default function ClientPortal() {
                     comparisonMode={dateRange.comparisonMode}
                     comparisonStart={dateRange.comparisonStart}
                     comparisonEnd={dateRange.comparisonEnd}
+                />
+
+                {/* Transfer Analytics Section */}
+                <TransferAnalytics
+                    clientId={client.id}
+                    startDate={dateRange.startDate}
+                    endDate={dateRange.endDate}
+                    viewMode={dateRange.viewMode}
                 />
 
                 {/* Recent Calls List Full Width */}

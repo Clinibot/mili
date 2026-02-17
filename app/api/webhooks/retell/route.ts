@@ -27,8 +27,8 @@ export async function POST(req: Request) {
 
         console.log(`Webhook [${event}] received for client:`, client.id, call?.call_id);
 
-        // Solo procesamos 'call_analyzed' para asegurar que tenemos la duración final y el análisis
-        if (event !== 'call_analyzed') {
+        // Procesamos 'call_analyzed' y 'call_transferred'
+        if (event !== 'call_analyzed' && event !== 'call_transferred') {
             return NextResponse.json({ received: true, message: 'Event ignored' });
         }
 
@@ -50,25 +50,51 @@ export async function POST(req: Request) {
             direction
         } = call;
 
-        // 1. Evitar duplicados (verificar si la llamada ya existe)
+        // 1. Manejar el evento 'call_transferred' (Intento de transferencia)
+        if (event === 'call_transferred') {
+            const { error: upsertError } = await supabase
+                .from('calls')
+                .upsert({
+                    client_id: client.id,
+                    call_id,
+                    agent_id,
+                    call_type: 'retell',
+                    direction,
+                    start_timestamp,
+                    from_number,
+                    to_number,
+                    transfer_attempted: true,
+                    // Intentamos sacar el destino si está disponible en algún campo
+                    transfer_destination: body.transfer_destination || null
+                }, { onConflict: 'call_id' });
+
+            if (upsertError) {
+                console.error('Error upserting transfer event:', upsertError);
+                return NextResponse.json({ error: 'Failed to record transfer' }, { status: 500 });
+            }
+            return NextResponse.json({ received: true, message: 'Transfer recorded' });
+        }
+
+        // 2. Manejar 'call_analyzed' (Finalización y cobro)
+        // Evitar procesar si ya está facturada (aunque con upsert ahora es más flexible)
         const { data: existingCall } = await supabase
             .from('calls')
-            .select('id')
+            .select('id, call_status')
             .eq('call_id', call_id)
             .maybeSingle();
 
-        if (existingCall) {
+        if (existingCall?.call_status === 'completed') {
             return NextResponse.json({ received: true, message: 'Call already processed' });
         }
 
-        // 2. Calcular costes
+        // Calcular costes
         const durationSeconds = Math.floor(duration_ms / 1000);
-        const billableMinutes = Math.ceil(durationSeconds / 60) || 1; // Mínimo 1 minuto
+        const billableMinutes = Math.ceil(durationSeconds / 60) || 1;
         const costPerMinute = 0.16;
         const totalCost = billableMinutes * costPerMinute;
 
         try {
-            // 3. Obtener balance actual del cliente
+            // Obtener balance actual
             const { data: clientData, error: clientError } = await supabase
                 .from('clients')
                 .select('balance, name')
@@ -80,18 +106,16 @@ export async function POST(req: Request) {
             const currentBalance = clientData.balance || 0;
             const newBalance = currentBalance - totalCost;
 
-            // 4. Actualizar balance en la base de datos
-            const { error: balanceError } = await supabase
+            // Actualizar balance
+            await supabase
                 .from('clients')
                 .update({ balance: newBalance })
                 .eq('id', client.id);
 
-            if (balanceError) throw balanceError;
-
-            // 5. Insertar la llamada en la tabla 'calls'
+            // Upsert de la llamada con los datos finales
             const { error: insertError } = await supabase
                 .from('calls')
-                .insert({
+                .upsert({
                     client_id: client.id,
                     call_id,
                     agent_id,
@@ -109,12 +133,14 @@ export async function POST(req: Request) {
                     user_sentiment: call_analysis?.user_sentiment || 'Neutral',
                     call_successful: call_analysis?.call_successful || false,
                     in_voicemail: call_analysis?.in_voicemail || false,
-                    custom_analysis_data: call_analysis?.custom_analysis_data || {}
-                });
+                    custom_analysis_data: call_analysis?.custom_analysis_data || {},
+                    // Si se analizó y fue exitosa, y marcamos intento antes, confirmamos éxito
+                    transfer_successful: call_analysis?.call_successful && (existingCall as any)?.transfer_attempted
+                }, { onConflict: 'call_id' });
 
             if (insertError) throw insertError;
 
-            // 6. Registrar la transacción de descuento
+            // Registrar transacción
             await supabase
                 .from('transactions')
                 .insert({
@@ -124,14 +150,10 @@ export async function POST(req: Request) {
                     balance_before: currentBalance,
                     balance_after: newBalance,
                     description: `Llamada IA (${billableMinutes} min): ${call_id}`,
-                    metadata: {
-                        call_id,
-                        duration_seconds: durationSeconds,
-                        event_type: event
-                    }
+                    metadata: { call_id, duration_seconds: durationSeconds, event_type: event }
                 });
 
-            console.log(`✅ Call ${call_id} processed for ${clientData.name}. Cost: ${totalCost}€ deducted.`);
+            console.log(`✅ Call ${call_id} processed. Cost: ${totalCost}€ deducted.`);
             return NextResponse.json({ received: true, billedAmount: totalCost });
 
         } catch (billingError: any) {

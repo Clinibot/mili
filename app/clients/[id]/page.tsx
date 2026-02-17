@@ -591,124 +591,6 @@ export default function ClientDetail() {
                                 <DocumentationSection clientId={id} />
                             </div>
                         )}
-                        {/* Custom Analytics Config - Admin Only */}
-                        {id !== 'new' && (
-                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl mt-6">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <div className="flex items-center gap-2">
-                                        <Bot className="text-[#008DCB]" size={18} />
-                                        <CardTitle className="text-[#E8ECF1] text-lg">Analíticas Personalizadas</CardTitle>
-                                    </div>
-                                    <button
-                                        onClick={handleAddAnalytics}
-                                        className="p-1.5 hover:bg-[#008DCB]/20 text-[#008DCB] rounded-lg transition-colors border border-[#008DCB]/30"
-                                        title="Añadir métrica"
-                                    >
-                                        <Plus size={16} />
-                                    </button>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <p className="text-[10px] text-[rgba(255,255,255,0.4)] leading-relaxed">
-                                        Configura KPIs o gráficos basados en los <strong>arguments</strong> que envía el agente en el webhook.
-                                    </p>
-
-                                    <div className="space-y-4">
-                                        {analyticsConfigs.length === 0 ? (
-                                            <div className="text-center py-6 border border-dashed border-[#1F2937] rounded-xl bg-[#070A0F]/50">
-                                                <p className="text-[10px] text-[rgba(255,255,255,0.3)] uppercase tracking-widest font-bold">Sin métricas configuradas</p>
-                                            </div>
-                                        ) : (
-                                            analyticsConfigs.map((config) => (
-                                                <div key={config.id} className="p-4 bg-[#141A23] border border-[#1F2937] rounded-xl space-y-3 relative group">
-                                                    <button
-                                                        onClick={() => handleDeleteAnalytics(config.id)}
-                                                        className="absolute top-3 right-3 p-1.5 text-[rgba(255,255,255,0.2)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Nombre visible</label>
-                                                            <input
-                                                                type="text"
-                                                                value={config.name}
-                                                                onChange={(e) => handleUpdateAnalytics(config.id, { name: e.target.value })}
-                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] focus:border-[#008DCB] outline-none font-bold"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Campo Webhook</label>
-                                                            <input
-                                                                type="text"
-                                                                value={config.data_field}
-                                                                onChange={(e) => handleUpdateAnalytics(config.id, { data_field: e.target.value })}
-                                                                placeholder="e.g. cita_agendada"
-                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] focus:border-[#008DCB] outline-none font-mono"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-3 gap-3">
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Tipo</label>
-                                                            <select
-                                                                value={config.type}
-                                                                onChange={(e) => handleUpdateAnalytics(config.id, { type: e.target.value })}
-                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
-                                                            >
-                                                                <option value="kpi">KPI</option>
-                                                                <option value="chart">Gráfico</option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Cálculo</label>
-                                                            <select
-                                                                value={config.calculation}
-                                                                onChange={(e) => handleUpdateAnalytics(config.id, { calculation: e.target.value })}
-                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
-                                                            >
-                                                                <option value="count">Contar</option>
-                                                                <option value="sum">Sumar</option>
-                                                                <option value="avg">Medio</option>
-                                                                <option value="percentage"> % </option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">
-                                                                {config.type === 'chart' ? 'Gráfico' : 'Activo'}
-                                                            </label>
-                                                            {config.type === 'chart' ? (
-                                                                <select
-                                                                    value={config.chart_type}
-                                                                    onChange={(e) => handleUpdateAnalytics(config.id, { chart_type: e.target.value })}
-                                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
-                                                                >
-                                                                    <option value="bar">Barras</option>
-                                                                    <option value="area">Área</option>
-                                                                    <option value="line">Línea</option>
-                                                                    <option value="pie">Tarta</option>
-                                                                </select>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => handleUpdateAnalytics(config.id, { is_active: !config.is_active })}
-                                                                    className={cn(
-                                                                        "w-full rounded-lg px-2 py-1.5 text-[9px] font-black uppercase transition-all",
-                                                                        config.is_active ? "bg-[#67B7AF]/10 text-[#67B7AF] border border-[#67B7AF]/30" : "bg-red-500/10 text-red-500 border border-red-500/30"
-                                                                    )}
-                                                                >
-                                                                    {config.is_active ? 'Activo' : 'Inactivo'}
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
 
                         {/* Gift Balance - Admin Only */}
                         <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
@@ -925,6 +807,149 @@ export default function ClientDetail() {
                                 </div>
                             </CardContent>
                         </Card>
+
+
+                        {/* Custom Analytics Config - Admin Only */}
+                        {id !== 'new' && (
+                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
+                                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-[#1F2937]/50">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-[#008DCB]/10 rounded-lg">
+                                            <Bot className="text-[#008DCB]" size={20} />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-[#E8ECF1] text-lg tracking-tight">Analíticas Personalizadas (Webhook Arguments)</CardTitle>
+                                            <p className="text-[10px] text-[rgba(255,255,255,0.4)] font-medium uppercase tracking-widest mt-1">Configura KPIs y gráficos para el panel del cliente</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleAddAnalytics}
+                                        className="flex items-center gap-2 px-4 py-2 bg-[#008DCB] hover:bg-[#008DCB]/80 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-[#008DCB]/20"
+                                    >
+                                        <Plus size={14} />
+                                        Añadir Métrica
+                                    </button>
+                                </CardHeader>
+                                <CardContent className="pt-6 space-y-6">
+                                    <div className="bg-[#141A23] border border-[#008DCB]/20 p-4 rounded-xl flex gap-3">
+                                        <div className="text-[#008DCB] pt-0.5">
+                                            <Bell size={16} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-bold text-[#E8ECF1]">Cómo funciona:</p>
+                                            <p className="text-[11px] text-[rgba(255,255,255,0.6)] leading-relaxed">
+                                                Cuando el agente termina una llamada, envía los <strong>Arguments</strong> (ej. <code>cita_agendada</code>, <code>presupuesto_aceptado</code>) al webhook.
+                                                Usa el nombre exacto de esos campos en <span className="text-[#008DCB] font-mono">Campo Webhook</span> para generar KPIs o gráficos automáticamente en el portal del cliente.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {analyticsConfigs.length === 0 ? (
+                                            <div className="col-span-full text-center py-12 border-2 border-dashed border-[#1F2937] rounded-2xl bg-[#070A0F]/30">
+                                                <Bot size={40} className="mx-auto text-[rgba(255,255,255,0.1)] mb-4" />
+                                                <p className="text-[11px] text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] font-black">No hay analíticas configuradas aún</p>
+                                                <button
+                                                    onClick={handleAddAnalytics}
+                                                    className="mt-4 text-[#008DCB] text-xs font-bold hover:underline"
+                                                >
+                                                    Haz clic en "Añadir Métrica" para empezar
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            analyticsConfigs.map((config) => (
+                                                <div key={config.id} className="p-5 bg-[#141A23] border border-[#1F2937] rounded-2xl space-y-4 relative group hover:border-[#008DCB]/30 transition-all shadow-lg">
+                                                    <button
+                                                        onClick={() => handleDeleteAnalytics(config.id)}
+                                                        className="absolute top-4 right-4 p-2 text-[rgba(255,255,255,0.2)] hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+
+                                                    <div className="space-y-4">
+                                                        <div className="grid grid-cols-1 gap-4">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-wider">Nombre en el Panel (Ej: Citas)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={config.name}
+                                                                    onChange={(e) => handleUpdateAnalytics(config.id, { name: e.target.value })}
+                                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-xl px-3 py-2 text-sm text-[#E8ECF1] focus:border-[#008DCB] outline-none font-bold"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-wider">Campo Webhook (Argument Name)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={config.data_field}
+                                                                    onChange={(e) => handleUpdateAnalytics(config.id, { data_field: e.target.value })}
+                                                                    placeholder="Ej: cita_agendada"
+                                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-xl px-3 py-2 text-sm text-[#008DCB] focus:border-[#008DCB] outline-none font-mono font-bold"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[#1F2937]/50">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tight">Tipo</label>
+                                                                <select
+                                                                    value={config.type}
+                                                                    onChange={(e) => handleUpdateAnalytics(config.id, { type: e.target.value })}
+                                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
+                                                                >
+                                                                    <option value="kpi">KPI</option>
+                                                                    <option value="chart">Gráfico</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tight">Cálculo</label>
+                                                                <select
+                                                                    value={config.calculation}
+                                                                    onChange={(e) => handleUpdateAnalytics(config.id, { calculation: e.target.value })}
+                                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
+                                                                >
+                                                                    <option value="count">Contar</option>
+                                                                    <option value="sum">Sumar</option>
+                                                                    <option value="avg">Medio</option>
+                                                                    <option value="percentage"> % </option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tight">
+                                                                    {config.type === 'chart' ? 'Gráfico' : 'Estado'}
+                                                                </label>
+                                                                {config.type === 'chart' ? (
+                                                                    <select
+                                                                        value={config.chart_type}
+                                                                        onChange={(e) => handleUpdateAnalytics(config.id, { chart_type: e.target.value })}
+                                                                        className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
+                                                                    >
+                                                                        <option value="bar">Barras</option>
+                                                                        <option value="area">Área</option>
+                                                                        <option value="line">Línea</option>
+                                                                        <option value="pie">Tarta</option>
+                                                                    </select>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleUpdateAnalytics(config.id, { is_active: !config.is_active })}
+                                                                        className={cn(
+                                                                            "w-full rounded-lg px-2 py-1.5 text-[9px] font-black uppercase transition-all",
+                                                                            config.is_active ? "bg-[#67B7AF]/10 text-[#67B7AF] border border-[#67B7AF]/30" : "bg-red-500/10 text-red-500 border border-red-500/30"
+                                                                        )}
+                                                                    >
+                                                                        {config.is_active ? 'Activo' : 'Inactivo'}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
 
                         <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">

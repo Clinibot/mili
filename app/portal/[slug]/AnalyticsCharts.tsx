@@ -201,7 +201,7 @@ export default function AnalyticsCharts({
                 <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
                     <CardHeader className="p-0 mb-8">
                         <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Distribución Horaria</p>
-                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Picos de Llamadas</CardTitle>
+                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Llamadas por horas</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                         <ResponsiveContainer width="100%" height={300}>
