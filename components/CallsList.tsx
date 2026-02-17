@@ -9,9 +9,10 @@ interface CallsListProps {
     clientId?: string;
     limit?: number;
     showClientName?: boolean;
+    searchQuery?: string;
 }
 
-export default function CallsList({ clientId, limit = 20, showClientName = false }: CallsListProps) {
+export default function CallsList({ clientId, limit = 20, showClientName = false, searchQuery = '' }: CallsListProps) {
     const [calls, setCalls] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedCall, setExpandedCall] = useState<string | null>(null);
@@ -22,12 +23,21 @@ export default function CallsList({ clientId, limit = 20, showClientName = false
             let query = supabase
                 .from('calls')
                 .select('*, clients(name)')
-                .order('created_at', { ascending: false })
-                .limit(limit);
+                .order('created_at', { ascending: false });
 
             if (clientId) {
                 query = query.eq('client_id', clientId);
             }
+
+            if (searchQuery) {
+                // Search in from_number
+                query = query.ilike('from_number', `%${searchQuery}%`);
+            }
+
+            // Apply limit after filtering if it's a general list, 
+            // but if searching we might want more results? 
+            // For now, keep the limit.
+            query = query.limit(limit);
 
             const { data, error } = await query;
 
@@ -39,7 +49,7 @@ export default function CallsList({ clientId, limit = 20, showClientName = false
             setLoading(false);
         }
         fetchCalls();
-    }, [clientId, limit]);
+    }, [clientId, limit, searchQuery]);
 
     if (loading) return <div className="p-8 text-center text-[rgba(255,255,255,0.55)] font-medium underline decoration-[#008DCB]/30 underline-offset-8 decoration-2 animate-pulse">Cargando llamadas...</div>;
 

@@ -24,6 +24,7 @@ export default function ClientPortal() {
         comparisonStart: undefined as Date | undefined,
         comparisonEnd: undefined as Date | undefined,
     });
+    const [searchQuery, setSearchQuery] = useState('');
 
     if (!client) return null;
 
@@ -146,7 +147,7 @@ export default function ClientPortal() {
 
                 {/* Recent Calls List Full Width */}
                 <Card id="llamadas" className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219]">
-                    <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between border-b border-[#1F2937]">
+                    <CardHeader className="p-8 border-b border-[#1F2937]/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-3 mb-1">
                                 <CardTitle className="text-xl font-bold text-[#E8ECF1] tracking-tight">Llamadas Recientes</CardTitle>
@@ -157,10 +158,29 @@ export default function ClientPortal() {
                             </div>
                             <p className="text-[rgba(255,255,255,0.55)] text-sm font-medium">Gestión y detalle de todas las interacciones.</p>
                         </div>
-                        <button className="text-[#008DCB] font-bold text-sm hover:underline">Ver todo</button>
+                        <div className="flex items-center gap-4 flex-1 max-w-md">
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por número (+34...)"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-[#141A23] border border-[#1F2937] text-[#E8ECF1] rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#008DCB]/50 transition-all placeholder:text-[rgba(255,255,255,0.2)]"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.3)] hover:text-[#E8ECF1]"
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+                            <button className="text-[#008DCB] font-bold text-sm hover:underline shrink-0">Ver todo</button>
+                        </div>
                     </CardHeader>
                     <CardContent className="p-0 max-h-[800px] overflow-y-auto custom-scrollbar">
-                        <CallsList clientId={client.id} />
+                        <CallsList clientId={client.id} searchQuery={searchQuery} />
                     </CardContent>
                 </Card>
             </div>
