@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { endOfDay } from 'date-fns';
 import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,14 @@ interface KpiData {
     previousMonthCalls: number;
     previousMonthMinutes: number;
     previousMonthCost: number;
+}
+
+interface CustomKpiResult {
+    id: string;
+    name: string;
+    value: string;
+    subValue: string;
+    color?: string;
 }
 
 interface KpiCardsProps {
@@ -44,27 +52,65 @@ export default function KpiCards({
         previousMonthMinutes: 0,
         previousMonthCost: 0
     });
+    const [customKpis, setCustomKpis] = useState<CustomKpiResult[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchKpis() {
             setLoading(true);
             try {
-                // Fetch current period data
-                // Fetch current period data
                 const msStart = startDate.getTime();
                 const msEnd = endOfDay(endDate).getTime();
 
+                // 1. Fetch current calls with custom_analysis_data
                 const { data: currentCalls, error: currentError } = await supabase
                     .from('calls')
-                    .select('duration_seconds, call_successful, start_timestamp, user_sentiment')
+                    .select('duration_seconds, call_successful, start_timestamp, user_sentiment, custom_analysis_data')
                     .eq('client_id', clientId)
                     .gte('start_timestamp', msStart)
                     .lte('start_timestamp', msEnd);
 
                 if (currentError) throw currentError;
 
-                // Fetch comparison data if needed
+                // 2. Fetch custom analytics configs
+                const { data: configs } = await supabase
+                    .from('client_analytics_configs')
+                    .select('*')
+                    .eq('client_id', clientId)
+                    .eq('type', 'kpi')
+                    .eq('is_active', true);
+
+                // Calculate custom KPIs
+                const customResults: CustomKpiResult[] = (configs || []).map(config => {
+                    let val: number = 0;
+                    const field = config.data_field;
+
+                    const validCalls = currentCalls?.filter(c => c.custom_analysis_data && c.custom_analysis_data[field] !== undefined) || [];
+
+                    if (config.calculation === 'count') {
+                        // Count truthy values or just existence
+                        val = validCalls.filter(c => !!c.custom_analysis_data?.[field]).length;
+                    } else if (config.calculation === 'sum') {
+                        val = validCalls.reduce((sum, c) => sum + (Number(c.custom_analysis_data?.[field]) || 0), 0);
+                    } else if (config.calculation === 'avg') {
+                        const sum = validCalls.reduce((sum, c) => sum + (Number(c.custom_analysis_data?.[field]) || 0), 0);
+                        val = validCalls.length > 0 ? sum / validCalls.length : 0;
+                    } else if (config.calculation === 'percentage') {
+                        const truthy = validCalls.filter(c => !!c.custom_analysis_data?.[field]).length;
+                        val = currentCalls?.length ? (truthy / currentCalls.length) * 100 : 0;
+                    }
+
+                    return {
+                        id: config.id,
+                        name: config.name.toUpperCase(),
+                        value: config.calculation === 'percentage' ? `${Math.round(val)}%` : val.toLocaleString(),
+                        subValue: config.calculation === 'count' ? 'Total registros' : 'Valor calculado',
+                        color: config.color || 'border-t-[var(--azul)]'
+                    };
+                });
+                setCustomKpis(customResults);
+
+                // 3. Fetch comparison data if needed
                 let previousCalls: any[] = [];
                 if (comparisonMode !== 'none' && comparisonStart && comparisonEnd) {
                     const { data: prevData, error: prevError } = await supabase
@@ -78,7 +124,7 @@ export default function KpiCards({
                     previousCalls = prevData || [];
                 }
 
-                // Fetch client cost per minute
+                // 4. Fetch client cost per minute
                 const { data: client } = await supabase
                     .from('clients')
                     .select('cost_per_minute')
@@ -87,23 +133,17 @@ export default function KpiCards({
 
                 const costPerMinute = client?.cost_per_minute || 0.16;
 
-                // Calculate current period KPIs
+                // Calculate current period standard KPIs
                 const totalCalls = currentCalls?.length || 0;
-
-                // Minutos reales sumados (para visualización)
                 const realMinutes = currentCalls?.reduce((sum, call) => sum + ((call.duration_seconds || 0) / 60), 0) || 0;
-
-                // Calculamos minutos de facturación (cada llamada redondea al alza para el coste)
                 const billableMinutes = currentCalls?.reduce((sum, call) => {
                     const secs = Number(call.duration_seconds || 0);
                     return sum + (secs > 0 ? Math.ceil(secs / 60) : 0);
                 }, 0) || 0;
 
                 const totalCost = (billableMinutes * costPerMinute);
-                const successfulCalls = currentCalls?.filter(call => call.call_successful).length || 0;
                 const colgadasShort = currentCalls?.filter(call => (call.duration_seconds || 0) < 15).length || 0;
 
-                // Calculate actual sentiment score
                 const callsWithSentiment = currentCalls?.filter(c => c.user_sentiment) || [];
                 const positiveSentiments = callsWithSentiment.filter(c =>
                     c.user_sentiment.toLowerCase().includes('positive') ||
@@ -113,10 +153,8 @@ export default function KpiCards({
                     ? Math.round((positiveSentiments / callsWithSentiment.length) * 100)
                     : 0;
 
-                // Calculate previous period
                 const previousMonthCalls = previousCalls?.length || 0;
                 const previousRealMinutes = previousCalls?.reduce((sum, call) => sum + ((call.duration_seconds || 0) / 60), 0) || 0;
-
                 const prevBillableMinutes = previousCalls?.reduce((sum, call) => {
                     const secs = Number(call.duration_seconds || 0);
                     return sum + (secs > 0 ? Math.ceil(secs / 60) : 0);
@@ -154,7 +192,6 @@ export default function KpiCards({
 
     const callsChange = calculateChange(kpis.totalCalls, kpis.previousMonthCalls);
     const minutesChange = calculateChange(kpis.totalMinutes, kpis.previousMonthMinutes);
-    const costChange = calculateChange(kpis.totalCost, kpis.previousMonthCost);
 
     if (loading) {
         return (
@@ -170,9 +207,8 @@ export default function KpiCards({
         );
     }
 
-    // Calculate specific user-requested metrics from state
     const avgMinutes = kpis.totalCalls > 0 ? (kpis.totalMinutes / kpis.totalCalls).toFixed(1) : '0';
-    const sentimentScore = kpis.totalCalls > 0 ? Math.round(kpis.successRate) : 0; // Using successRate as proxy for sentiment for now
+    const sentimentScore = kpis.totalCalls > 0 ? Math.round(kpis.successRate) : 0;
 
     const formatMinutesToMMSS = (decimalMinutes: number) => {
         const totalSeconds = Math.round(decimalMinutes * 60);
@@ -197,23 +233,7 @@ export default function KpiCards({
                 change={minutesChange.value}
                 isPositive={minutesChange.isPositive}
                 subValue={`Ø ${avgMinutes} min por llamada`}
-                color="border-t-[var(--verde)]" // Originally Mineral, mapping to Verde
-            />
-            <KpiCard
-                title="TRANSFERENCIAS"
-                value={kpis.successRate > 0 ? Math.round(kpis.totalCalls * (kpis.successRate / 100)) : "0"}
-                change="+5%"
-                isPositive={true}
-                subValue={`${kpis.successRate}% de efectividad`}
-                color="border-t-[var(--coral)]"
-            />
-            <KpiCard
-                title="CITAS AGENDADAS"
-                value="17" // Mocked as requested for reference
-                change="+22%"
-                isPositive={true}
-                subValue="Sincronizado con Google Cal"
-                color="border-t-[var(--azul)]"
+                color="border-t-[var(--verde)]"
             />
             <KpiCard
                 title="SENTIMIENTO"
@@ -221,8 +241,20 @@ export default function KpiCards({
                 change="+8%"
                 isPositive={true}
                 subValue="Feedback positivo"
-                color="border-t-[var(--verde)]"
+                color="border-t-[var(--coral)]"
             />
+            {/* Custom KPIs rendered dynamically */}
+            {customKpis.map((kpi) => (
+                <KpiCard
+                    key={kpi.id}
+                    title={kpi.name}
+                    value={kpi.value}
+                    change="+0%"
+                    isPositive={true}
+                    subValue={kpi.subValue}
+                    color={kpi.color || "border-t-[var(--azul)]"}
+                />
+            ))}
         </div>
     );
 }
@@ -234,18 +266,18 @@ function KpiCard({ title, value, change, isPositive, subValue, color }: any) {
             color.replace("var(--azul)", "#008DCB").replace("var(--verde)", "#67B7AF").replace("var(--coral)", "#F78E5E")
         )}>
             <CardContent className="p-8">
-                <h3 className="text-[rgba(255,255,255,0.3)] text-[10px] font-bold tracking-[0.2em] mb-6 font-sans uppercase">{title}</h3>
+                <h3 className="text-[rgba(255,255,255,0.3)] text-[10px] font-bold tracking-[0.2em] mb-6 font-sans uppercase truncate">{title}</h3>
                 <div className="flex items-baseline gap-3 mb-2">
-                    <div className="text-5xl font-black font-header tracking-tighter text-[#E8ECF1]">{value}</div>
+                    <div className="text-4xl font-black font-header tracking-tighter text-[#E8ECF1] truncate">{value}</div>
                 </div>
-                <div className="text-sm font-medium text-[rgba(255,255,255,0.55)] mb-6">{subValue}</div>
+                <div className="text-xs font-medium text-[rgba(255,255,255,0.55)] mb-6 truncate">{subValue}</div>
                 <div className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border",
+                    "inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold border",
                     isPositive
                         ? "bg-[rgba(103,183,175,0.1)] text-[#67B7AF] border-[rgba(103,183,175,0.2)]"
                         : "bg-[rgba(247,142,94,0.1)] text-[#F78E5E] border-[rgba(247,142,94,0.2)]"
                 )}>
-                    {isPositive ? '↑' : '↓'} {change.replace('+', '').replace('-', '')} {isPositive ? 'crecimiento' : 'descenso'}
+                    {isPositive ? '↑' : '↓'} {change.replace('+', '').replace('-', '')}
                 </div>
             </CardContent>
         </Card>

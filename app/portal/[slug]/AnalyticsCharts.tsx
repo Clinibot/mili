@@ -13,7 +13,6 @@ import {
     endOfWeek,
     startOfMonth,
     endOfMonth,
-    subDays,
     endOfDay
 } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -28,6 +27,15 @@ interface Call {
     user_sentiment: string | null;
     call_successful: boolean;
     client_id: string;
+    custom_analysis_data?: any;
+}
+
+interface ChartConfig {
+    id: string;
+    name: string;
+    chart_type: 'bar' | 'area' | 'pie' | 'line';
+    data_field: string;
+    calculation: string;
 }
 
 interface ChartDataPoint {
@@ -39,9 +47,7 @@ interface ChartDataPoint {
     positive: number;
     neutral: number;
     negative: number;
-    compCalls?: number;
-    compMinutes?: number;
-    compTransfers?: number;
+    [key: string]: any;
 }
 
 interface AnalyticsChartsProps {
@@ -64,6 +70,7 @@ export default function AnalyticsCharts({
     comparisonEnd,
 }: AnalyticsChartsProps) {
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+    const [chartConfigs, setChartConfigs] = useState<ChartConfig[]>([]);
     const [loading, setLoading] = useState(true);
     const [sentimentTotal, setSentimentTotal] = useState({ positive: 0, neutral: 0, negative: 0 });
 
@@ -74,13 +81,12 @@ export default function AnalyticsCharts({
     const fetchAndAggregateData = async () => {
         setLoading(true);
 
-        // Fetch main period data
-        // Fix: Use endOfDay to encompass the entire last day
         const msEnd = endOfDay(endDate).getTime();
 
+        // 1. Fetch calls with custom_analysis_data
         const { data: calls, error } = await supabase
             .from('calls')
-            .select('*')
+            .select('*, custom_analysis_data')
             .eq('client_id', clientId)
             .gte('start_timestamp', startDate.getTime())
             .lte('start_timestamp', msEnd)
@@ -92,38 +98,19 @@ export default function AnalyticsCharts({
             return;
         }
 
-        // Fetch comparison period data if needed
-        let comparisonCalls: Call[] = [];
-        if (comparisonMode !== 'none' && comparisonStart && comparisonEnd) {
-            const msCompEnd = endOfDay(comparisonEnd).getTime();
-            const { data: compData } = await supabase
-                .from('calls')
-                .select('*')
-                .eq('client_id', clientId)
-                .gte('start_timestamp', comparisonStart.getTime())
-                .lte('start_timestamp', msCompEnd)
-                .order('start_timestamp');
+        // 2. Fetch custom chart configs
+        const { data: configs } = await supabase
+            .from('client_analytics_configs')
+            .select('*')
+            .eq('client_id', clientId)
+            .eq('type', 'chart')
+            .eq('is_active', true);
 
-            comparisonCalls = compData || [];
-        }
+        setChartConfigs(configs || []);
 
-        // Aggregate data based on view mode
-        const aggregated = aggregateByViewMode(calls || [], viewMode, startDate, endDate);
-        const compAggregated = comparisonCalls.length > 0
-            ? aggregateByViewMode(comparisonCalls, viewMode, comparisonStart!, comparisonEnd!)
-            : [];
+        const aggregated = aggregateByViewMode(calls || [], viewMode, startDate, endDate, configs || []);
+        setChartData(aggregated);
 
-        // Merge comparison data
-        const merged = aggregated.map((point, index) => ({
-            ...point,
-            compCalls: compAggregated[index]?.calls,
-            compMinutes: compAggregated[index]?.minutes,
-            compTransfers: compAggregated[index]?.transfers,
-        }));
-
-        setChartData(merged);
-
-        // Calculate overall sentiment totals
         const sentiments = (calls || []).reduce(
             (acc, call) => {
                 const sentiment = call.user_sentiment?.toLowerCase() || 'neutral';
@@ -139,7 +126,7 @@ export default function AnalyticsCharts({
         setLoading(false);
     };
 
-    const aggregateByViewMode = (calls: Call[], mode: ViewMode, start: Date, end: Date): ChartDataPoint[] => {
+    const aggregateByViewMode = (calls: Call[], mode: ViewMode, start: Date, end: Date, configs: ChartConfig[]): ChartDataPoint[] => {
         let intervals: Date[] = [];
         let formatString = '';
 
@@ -170,229 +157,152 @@ export default function AnalyticsCharts({
             });
 
             const totalMinutes = periodCalls.reduce((sum, call) => sum + ((call.duration_seconds || 0) / 60), 0);
-            const avgMinutes = periodCalls.length > 0 ? totalMinutes / periodCalls.length : 0;
-
-            // Count transfers (assuming call_successful means transfer was successful)
-            // TODO: Add actual transfer field to database
             const transfers = periodCalls.filter(call => call.call_successful).length;
 
-            // Count sentiments for this period
-            const sentiments = periodCalls.reduce(
-                (acc, call) => {
-                    const sentiment = call.user_sentiment?.toLowerCase() || 'neutral';
-                    if (sentiment.includes('positive') || sentiment.includes('positivo')) acc.positive++;
-                    else if (sentiment.includes('negative') || sentiment.includes('negativo')) acc.negative++;
-                    else acc.neutral++;
-                    return acc;
-                },
-                { positive: 0, neutral: 0, negative: 0 }
-            );
-
-            return {
+            const baseData = {
                 date: format(date, formatString, { locale: es }),
                 calls: periodCalls.length,
                 minutes: Number(totalMinutes.toFixed(2)),
-                avgMinutes: Math.round(avgMinutes * 10) / 10,
+                avgMinutes: periodCalls.length > 0 ? (totalMinutes / periodCalls.length) : 0,
                 transfers,
-                positive: sentiments.positive,
-                neutral: sentiments.neutral,
-                negative: sentiments.negative,
+                positive: 0,
+                neutral: 0,
+                negative: 0,
             };
+
+            // Calculate custom metrics for this period
+            const customData: Record<string, number> = {};
+            configs.forEach(config => {
+                const field = config.data_field;
+                const validCalls = periodCalls.filter(c => c.custom_analysis_data && c.custom_analysis_data[field] !== undefined);
+
+                let val = 0;
+                if (config.calculation === 'count') {
+                    val = validCalls.filter(c => !!c.custom_analysis_data?.[field]).length;
+                } else if (config.calculation === 'sum') {
+                    val = validCalls.reduce((s, c) => s + (Number(c.custom_analysis_data?.[field]) || 0), 0);
+                } else if (config.calculation === 'avg') {
+                    const sum = validCalls.reduce((s, c) => s + (Number(c.custom_analysis_data?.[field]) || 0), 0);
+                    val = validCalls.length > 0 ? sum / validCalls.length : 0;
+                }
+
+                customData[field] = val;
+            });
+
+            return { ...baseData, ...customData };
         });
     };
 
-    const sentimentData = [
-        { name: 'Positivo', value: sentimentTotal.positive, color: '#67B7AF' },
-        { name: 'Neutro', value: sentimentTotal.neutral, color: '#008DCB' },
-        { name: 'Negativo', value: sentimentTotal.negative, color: '#F78E5E' },
-    ];
-
-    if (loading) {
-        return (
+    return (
+        <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {[1, 2].map((i) => (
-                    <Card key={i} className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8 animate-pulse">
-                        <div className="h-6 bg-[#141A23] rounded w-1/3 mb-8"></div>
-                        <div className="h-[300px] bg-[#070A0F] rounded"></div>
+                {/* Calls Volume Chart */}
+                <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
+                    <CardHeader className="p-0 mb-8 flex flex-row items-center justify-between space-y-0">
+                        <div>
+                            <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Volumen de Llamadas</p>
+                            <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Llamadas Totales</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#008DCB" stopOpacity={0.15} />
+                                        <stop offset="95%" stopColor="#008DCB" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                                <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} dy={10} />
+                                <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                                <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#E8ECF1' }} />
+                                <Area type="monotone" dataKey="calls" stroke="#008DCB" strokeWidth={4} fill="url(#callsGradient)" name="Llamadas" dot={{ fill: '#008DCB', strokeWidth: 2, r: 4, stroke: '#0E1219' }} />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Sentiment Analysis Chart */}
+                <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
+                    <CardHeader className="p-0 mb-8">
+                        <p className="text-[#67B7AF] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Sentimiento del usuario</p>
+                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Análisis Global</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 flex flex-col md:flex-row items-center gap-8">
+                        <div className="w-full md:w-1/2 h-[250px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'Positivo', value: sentimentTotal.positive, color: '#67B7AF' },
+                                            { name: 'Neutro', value: sentimentTotal.neutral, color: '#008DCB' },
+                                            { name: 'Negativo', value: sentimentTotal.negative, color: '#F78E5E' },
+                                        ]}
+                                        cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={8} dataKey="value"
+                                    >
+                                        <Cell fill="#67B7AF" />
+                                        <Cell fill="#008DCB" />
+                                        <Cell fill="#F78E5E" />
+                                    </Pie>
+                                    <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="w-full md:w-1/2 space-y-4">
+                            {['Positivo', 'Neutro', 'Negativo'].map((name, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 rounded-xl hover:bg-[#141A23] transition-colors">
+                                    <span className="text-sm font-bold text-[rgba(255,255,255,0.55)] uppercase tracking-wider">{name}</span>
+                                    <span className="text-sm font-black text-[#E8ECF1]">
+                                        {i === 0 ? sentimentTotal.positive : i === 1 ? sentimentTotal.neutral : sentimentTotal.negative}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Custom Charts based on configs */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {chartConfigs.map((config) => (
+                    <Card key={config.id} className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
+                        <CardHeader className="p-0 mb-8">
+                            <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">{config.calculation === 'count' ? 'Frecuencia' : 'Acumulado'}</p>
+                            <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">{config.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <ResponsiveContainer width="100%" height={300}>
+                                {config.chart_type === 'bar' ? (
+                                    <BarChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                                        <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                        <Bar dataKey={config.data_field} fill="#008DCB" radius={[4, 4, 0, 0]} name={config.name} />
+                                    </BarChart>
+                                ) : config.chart_type === 'area' ? (
+                                    <AreaChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                                        <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                        <Area type="monotone" dataKey={config.data_field} stroke="#67B7AF" fill="#67B7AF" fillOpacity={0.1} strokeWidth={3} name={config.name} />
+                                    </AreaChart>
+                                ) : (
+                                    <LineChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                                        <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                        <Line type="monotone" dataKey={config.data_field} stroke="#F78E5E" strokeWidth={3} dot={{ r: 4 }} name={config.name} />
+                                    </LineChart>
+                                )}
+                            </ResponsiveContainer>
+                        </CardContent>
                     </Card>
                 ))}
             </div>
-        );
-    }
-
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Calls Volume Chart */}
-            <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
-                <CardHeader className="p-0 mb-8 flex flex-row items-center justify-between space-y-0">
-                    <div>
-                        <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Volumen de Llamadas</p>
-                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Llamadas Totales</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#008DCB" stopOpacity={0.15} />
-                                    <stop offset="95%" stopColor="#008DCB" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
-                            <XAxis
-                                dataKey="date"
-                                stroke="rgba(255,255,255,0.1)"
-                                fontSize={10}
-                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
-                                axisLine={false}
-                                tickLine={false}
-                                dy={10}
-                                className="font-sans"
-                            />
-                            <YAxis
-                                stroke="rgba(255,255,255,0.1)"
-                                fontSize={10}
-                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
-                                axisLine={false}
-                                tickLine={false}
-                                className="font-sans"
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: '#0E1219',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 10px 15px -3px rgba(0 0 0 / 0.5)',
-                                    fontSize: '12px',
-                                    color: '#E8ECF1'
-                                }}
-                                itemStyle={{ color: '#008DCB' }}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="calls"
-                                stroke="#008DCB"
-                                strokeWidth={4}
-                                fill="url(#callsGradient)"
-                                name="Llamadas"
-                                animationDuration={1000}
-                                dot={{ fill: '#008DCB', strokeWidth: 2, r: 4, stroke: '#0E1219' }}
-                                activeDot={{ r: 6, strokeWidth: 0 }}
-                            />
-                            {comparisonMode !== 'none' && (
-                                <Area type="monotone" dataKey="compCalls" stroke="rgba(255,255,255,0.3)" strokeWidth={2} strokeDasharray="5 5" fill="none" name="Anterior" />
-                            )}
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
-
-            {/* Sentiment Analysis Chart */}
-            <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
-                <CardHeader className="p-0 mb-8">
-                    <p className="text-[#67B7AF] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Sentimiento del usuario</p>
-                    <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Análisis Global</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex flex-col md:flex-row items-center gap-8">
-                    <div className="w-full md:w-1/2 h-[250px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={sentimentData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={70}
-                                    outerRadius={100}
-                                    paddingAngle={8}
-                                    dataKey="value"
-                                    animationBegin={200}
-                                    stroke="none"
-                                >
-                                    {sentimentData.map((entry: any, index: number) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.color}
-                                            stroke="none"
-                                        />
-                                    ))}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#0E1219',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 10px 15px -3px rgba(0 0 0 / 0.5)'
-                                    }}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="w-full md:w-1/2 space-y-4">
-                        {sentimentData.map((item: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between group p-3 rounded-xl transition-colors hover:bg-[#141A23]">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                    <span className="text-sm font-bold text-[rgba(255,255,255,0.55)] group-hover:text-[#E8ECF1] transition-colors uppercase tracking-wider">{item.name}</span>
-                                </div>
-                                <span className="text-sm font-black text-[#E8ECF1]">
-                                    {((item.value / (sentimentTotal.positive + sentimentTotal.neutral + sentimentTotal.negative || 1)) * 100).toFixed(1)}%
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Minutes & Transfers Row */}
-            <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8 lg:col-span-2">
-                <CardHeader className="p-0 mb-8">
-                    <p className="text-[var(--coral)] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Rendimiento Operativo</p>
-                    <CardTitle className="text-2xl font-black font-header tracking-tight text-[var(--text)]">Minutos y Transferencias</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                            <XAxis
-                                dataKey="date"
-                                stroke="rgba(255,255,255,0.1)"
-                                fontSize={10}
-                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
-                                axisLine={false}
-                                tickLine={false}
-                                dy={10}
-                                className="font-sans"
-                            />
-                            <YAxis
-                                stroke="rgba(255,255,255,0.1)"
-                                fontSize={10}
-                                tick={{ fill: 'rgba(255,255,255,0.3)' }}
-                                axisLine={false}
-                                tickLine={false}
-                                className="font-sans"
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: '#0E1219',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 10px 15px -3px rgba(0 0 0 / 0.5)',
-                                    color: '#E8ECF1'
-                                }}
-                            />
-                            <Bar dataKey="minutes" fill="#008DCB" radius={[6, 6, 0, 0]} barSize={24} name="Minutos" />
-                            <Bar dataKey="transfers" fill="#67B7AF" radius={[6, 6, 0, 0]} barSize={24} name="Transferencias" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
         </div>
     );
 }
-
-const sentimentDataConfig = (totals: any) => [
-    { name: 'Positivo', value: totals.positive, color: '#67B7AF' },
-    { name: 'Neutro', value: totals.neutral, color: '#008DCB' },
-    { name: 'Negativo', value: totals.negative, color: '#F78E5E' },
-];

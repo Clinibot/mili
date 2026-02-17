@@ -15,6 +15,7 @@ import { notifyBalanceRecharge } from '@/lib/notificationService';
 import slugify from 'slugify'; // Assuming slugify is used based on code context
 import StatusSelector from './StatusSelector';
 import DocumentationSection from '@/app/portal/[slug]/DocumentationSection';
+import { cn } from '@/lib/utils';
 
 export default function ClientDetail() {
     const router = useRouter();
@@ -55,6 +56,7 @@ export default function ClientDetail() {
 
     const [isAgentConfigExpanded, setIsAgentConfigExpanded] = useState(false);
     const [extraContacts, setExtraContacts] = useState<any[]>([]);
+    const [analyticsConfigs, setAnalyticsConfigs] = useState<any[]>([]);
     const [userEmail, setUserEmail] = useState<string>('');
 
     useEffect(() => {
@@ -111,6 +113,16 @@ export default function ClientDetail() {
                     if (contactsData) {
                         setExtraContacts(contactsData);
                     }
+
+                    // Fetch Analytics Configs
+                    const { data: configsData } = await supabase
+                        .from('client_analytics_configs')
+                        .select('*')
+                        .eq('client_id', id);
+
+                    if (configsData) {
+                        setAnalyticsConfigs(configsData);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -142,6 +154,66 @@ export default function ClientDetail() {
     const fetchUserEmail = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.email) setUserEmail(session.user.email);
+    };
+
+    const handleAddAnalytics = async () => {
+        if (id === 'new') {
+            toast.error('Guarda el cliente primero antes de añadir analíticas');
+            return;
+        }
+        const newConfig = {
+            client_id: id,
+            name: 'Nueva Métrica',
+            type: 'kpi',
+            data_field: 'campo_webhook',
+            calculation: 'count',
+            is_active: true
+        };
+
+        const { data, error } = await supabase
+            .from('client_analytics_configs')
+            .insert([newConfig])
+            .select()
+            .single();
+
+        if (error) {
+            toast.error('Error al añadir configuración');
+            return;
+        }
+
+        setAnalyticsConfigs([...analyticsConfigs, data]);
+        toast.success('Nueva métrica añadida');
+    };
+
+    const handleDeleteAnalytics = async (configId: string) => {
+        if (!confirm('¿Seguro que quieres eliminar esta métrica?')) return;
+
+        const { error } = await supabase
+            .from('client_analytics_configs')
+            .delete()
+            .eq('id', configId);
+
+        if (error) {
+            toast.error('Error al eliminar');
+            return;
+        }
+
+        setAnalyticsConfigs(analyticsConfigs.filter(c => c.id !== configId));
+        toast.success('Métrica eliminada');
+    };
+
+    const handleUpdateAnalytics = async (configId: string, updates: any) => {
+        const { error } = await supabase
+            .from('client_analytics_configs')
+            .update(updates)
+            .eq('id', configId);
+
+        if (error) {
+            toast.error('Error al actualizar');
+            return;
+        }
+
+        setAnalyticsConfigs(analyticsConfigs.map(c => c.id === configId ? { ...c, ...updates } : c));
     };
 
     const handleSave = async () => {
@@ -518,6 +590,124 @@ export default function ClientDetail() {
                             <div className="mt-6">
                                 <DocumentationSection clientId={id} />
                             </div>
+                        )}
+                        {/* Custom Analytics Config - Admin Only */}
+                        {id !== 'new' && (
+                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl mt-6">
+                                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                    <div className="flex items-center gap-2">
+                                        <Bot className="text-[#008DCB]" size={18} />
+                                        <CardTitle className="text-[#E8ECF1] text-lg">Analíticas Personalizadas</CardTitle>
+                                    </div>
+                                    <button
+                                        onClick={handleAddAnalytics}
+                                        className="p-1.5 hover:bg-[#008DCB]/20 text-[#008DCB] rounded-lg transition-colors border border-[#008DCB]/30"
+                                        title="Añadir métrica"
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="text-[10px] text-[rgba(255,255,255,0.4)] leading-relaxed">
+                                        Configura KPIs o gráficos basados en los <strong>arguments</strong> que envía el agente en el webhook.
+                                    </p>
+
+                                    <div className="space-y-4">
+                                        {analyticsConfigs.length === 0 ? (
+                                            <div className="text-center py-6 border border-dashed border-[#1F2937] rounded-xl bg-[#070A0F]/50">
+                                                <p className="text-[10px] text-[rgba(255,255,255,0.3)] uppercase tracking-widest font-bold">Sin métricas configuradas</p>
+                                            </div>
+                                        ) : (
+                                            analyticsConfigs.map((config) => (
+                                                <div key={config.id} className="p-4 bg-[#141A23] border border-[#1F2937] rounded-xl space-y-3 relative group">
+                                                    <button
+                                                        onClick={() => handleDeleteAnalytics(config.id)}
+                                                        className="absolute top-3 right-3 p-1.5 text-[rgba(255,255,255,0.2)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Nombre visible</label>
+                                                            <input
+                                                                type="text"
+                                                                value={config.name}
+                                                                onChange={(e) => handleUpdateAnalytics(config.id, { name: e.target.value })}
+                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] focus:border-[#008DCB] outline-none font-bold"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Campo Webhook</label>
+                                                            <input
+                                                                type="text"
+                                                                value={config.data_field}
+                                                                onChange={(e) => handleUpdateAnalytics(config.id, { data_field: e.target.value })}
+                                                                placeholder="e.g. cita_agendada"
+                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] focus:border-[#008DCB] outline-none font-mono"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Tipo</label>
+                                                            <select
+                                                                value={config.type}
+                                                                onChange={(e) => handleUpdateAnalytics(config.id, { type: e.target.value })}
+                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
+                                                            >
+                                                                <option value="kpi">KPI</option>
+                                                                <option value="chart">Gráfico</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">Cálculo</label>
+                                                            <select
+                                                                value={config.calculation}
+                                                                onChange={(e) => handleUpdateAnalytics(config.id, { calculation: e.target.value })}
+                                                                className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
+                                                            >
+                                                                <option value="count">Contar</option>
+                                                                <option value="sum">Sumar</option>
+                                                                <option value="avg">Medio</option>
+                                                                <option value="percentage"> % </option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-tighter">
+                                                                {config.type === 'chart' ? 'Gráfico' : 'Activo'}
+                                                            </label>
+                                                            {config.type === 'chart' ? (
+                                                                <select
+                                                                    value={config.chart_type}
+                                                                    onChange={(e) => handleUpdateAnalytics(config.id, { chart_type: e.target.value })}
+                                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg px-2 py-1.5 text-xs text-[#E8ECF1] outline-none font-bold"
+                                                                >
+                                                                    <option value="bar">Barras</option>
+                                                                    <option value="area">Área</option>
+                                                                    <option value="line">Línea</option>
+                                                                    <option value="pie">Tarta</option>
+                                                                </select>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleUpdateAnalytics(config.id, { is_active: !config.is_active })}
+                                                                    className={cn(
+                                                                        "w-full rounded-lg px-2 py-1.5 text-[9px] font-black uppercase transition-all",
+                                                                        config.is_active ? "bg-[#67B7AF]/10 text-[#67B7AF] border border-[#67B7AF]/30" : "bg-red-500/10 text-red-500 border border-red-500/30"
+                                                                    )}
+                                                                >
+                                                                    {config.is_active ? 'Activo' : 'Inactivo'}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
                         )}
 
                         {/* Gift Balance - Admin Only */}
