@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import DocumentationSection from './DocumentationSection';
 
 interface WalletData {
     balance: number;
@@ -187,6 +188,9 @@ export default function WalletSection({ clientId }: { clientId: string }) {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Documentation Section */}
+            <DocumentationSection clientId={clientId} />
 
             {/* Recharge Section */}
             <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-[32px] overflow-hidden bg-[#0E1219]">

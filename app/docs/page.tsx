@@ -44,6 +44,7 @@ export default function DocsPage() {
         const { data, error } = await supabase
             .from('documentation_items')
             .select('*')
+            .is('client_id', null)
             .order('created_at', { ascending: false });
 
         if (error) {
