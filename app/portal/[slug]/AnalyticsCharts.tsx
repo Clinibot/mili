@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/lib/supabaseClient';
 import {
     format,
@@ -70,6 +70,7 @@ export default function AnalyticsCharts({
     comparisonEnd,
 }: AnalyticsChartsProps) {
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+    const [hourlyData, setHourlyData] = useState<{ hour: string; calls: number }[]>([]);
     const [chartConfigs, setChartConfigs] = useState<ChartConfig[]>([]);
     const [loading, setLoading] = useState(true);
     const [sentimentTotal, setSentimentTotal] = useState({ positive: 0, neutral: 0, negative: 0 });
@@ -83,7 +84,6 @@ export default function AnalyticsCharts({
 
         const msEnd = endOfDay(endDate).getTime();
 
-        // 1. Fetch calls with custom_analysis_data
         const { data: calls, error } = await supabase
             .from('calls')
             .select('*, custom_analysis_data')
@@ -98,7 +98,6 @@ export default function AnalyticsCharts({
             return;
         }
 
-        // 2. Fetch custom chart configs
         const { data: configs } = await supabase
             .from('client_analytics_configs')
             .select('*')
@@ -110,6 +109,17 @@ export default function AnalyticsCharts({
 
         const aggregated = aggregateByViewMode(calls || [], viewMode, startDate, endDate, configs || []);
         setChartData(aggregated);
+
+        // Hourly Distribution
+        const hourly = Array.from({ length: 24 }, (_, i) => ({
+            hour: `${i}:00`,
+            calls: 0
+        }));
+        (calls || []).forEach(call => {
+            const hour = new Date(Number(call.start_timestamp)).getHours();
+            hourly[hour].calls++;
+        });
+        setHourlyData(hourly);
 
         const sentiments = (calls || []).reduce(
             (acc, call) => {
@@ -143,13 +153,9 @@ export default function AnalyticsCharts({
 
         return intervals.map((date) => {
             let periodEnd: Date;
-            if (mode === 'daily') {
-                periodEnd = endOfDay(date);
-            } else if (mode === 'weekly') {
-                periodEnd = endOfWeek(date);
-            } else {
-                periodEnd = endOfMonth(date);
-            }
+            if (mode === 'daily') periodEnd = endOfDay(date);
+            else if (mode === 'weekly') periodEnd = endOfWeek(date);
+            else periodEnd = endOfMonth(date);
 
             const periodCalls = calls.filter((call) => {
                 const callDate = new Date(Number(call.start_timestamp));
@@ -170,22 +176,17 @@ export default function AnalyticsCharts({
                 negative: 0,
             };
 
-            // Calculate custom metrics for this period
             const customData: Record<string, number> = {};
             configs.forEach(config => {
                 const field = config.data_field;
                 const validCalls = periodCalls.filter(c => c.custom_analysis_data && c.custom_analysis_data[field] !== undefined);
-
                 let val = 0;
-                if (config.calculation === 'count') {
-                    val = validCalls.filter(c => !!c.custom_analysis_data?.[field]).length;
-                } else if (config.calculation === 'sum') {
-                    val = validCalls.reduce((s, c) => s + (Number(c.custom_analysis_data?.[field]) || 0), 0);
-                } else if (config.calculation === 'avg') {
+                if (config.calculation === 'count') val = validCalls.filter(c => !!c.custom_analysis_data?.[field]).length;
+                else if (config.calculation === 'sum') val = validCalls.reduce((s, c) => s + (Number(c.custom_analysis_data?.[field]) || 0), 0);
+                else if (config.calculation === 'avg') {
                     const sum = validCalls.reduce((s, c) => s + (Number(c.custom_analysis_data?.[field]) || 0), 0);
                     val = validCalls.length > 0 ? sum / validCalls.length : 0;
                 }
-
                 customData[field] = val;
             });
 
@@ -196,29 +197,21 @@ export default function AnalyticsCharts({
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Calls Volume Chart */}
+                {/* Hourly Distribution Chart */}
                 <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
-                    <CardHeader className="p-0 mb-8 flex flex-row items-center justify-between space-y-0">
-                        <div>
-                            <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Volumen de Llamadas</p>
-                            <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Llamadas Totales</CardTitle>
-                        </div>
+                    <CardHeader className="p-0 mb-8">
+                        <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Distribución Horaria</p>
+                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Picos de Llamadas</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                         <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#008DCB" stopOpacity={0.15} />
-                                        <stop offset="95%" stopColor="#008DCB" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
+                            <BarChart data={hourlyData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
-                                <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} dy={10} />
+                                <XAxis dataKey="hour" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
                                 <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                                <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#E8ECF1' }} />
-                                <Area type="monotone" dataKey="calls" stroke="#008DCB" strokeWidth={4} fill="url(#callsGradient)" name="Llamadas" dot={{ fill: '#008DCB', strokeWidth: 2, r: 4, stroke: '#0E1219' }} />
-                            </AreaChart>
+                                <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                <Bar dataKey="calls" fill="#008DCB" radius={[4, 4, 0, 0]} name="Llamadas" />
+                            </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
@@ -263,8 +256,33 @@ export default function AnalyticsCharts({
                 </Card>
             </div>
 
-            {/* Custom Charts based on configs */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Calls Volume Chart */}
+                <Card className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
+                    <CardHeader className="p-0 mb-8">
+                        <p className="text-[#008DCB] font-sans text-[10px] uppercase tracking-widest font-bold mb-1">Volumen Temporal</p>
+                        <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">Llamadas Totales</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#008DCB" stopOpacity={0.15} />
+                                        <stop offset="95%" stopColor="#008DCB" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                                <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} dy={10} />
+                                <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                                <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                <Area type="monotone" dataKey="calls" stroke="#008DCB" strokeWidth={4} fill="url(#callsGradient)" name="Llamadas" dot={{ fill: '#008DCB', strokeWidth: 2, r: 4, stroke: '#0E1219' }} />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Custom Charts based on configs */}
                 {chartConfigs.map((config) => (
                     <Card key={config.id} className="border-[#1F2937] shadow-xl shadow-black/20 rounded-xl overflow-hidden bg-[#0E1219] p-8">
                         <CardHeader className="p-0 mb-8">

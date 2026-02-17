@@ -192,6 +192,7 @@ export default function KpiCards({
 
     const callsChange = calculateChange(kpis.totalCalls, kpis.previousMonthCalls);
     const minutesChange = calculateChange(kpis.totalMinutes, kpis.previousMonthMinutes);
+    const costChange = calculateChange(kpis.totalCost, kpis.previousMonthCost);
 
     if (loading) {
         return (
@@ -209,6 +210,7 @@ export default function KpiCards({
 
     const avgMinutes = kpis.totalCalls > 0 ? (kpis.totalMinutes / kpis.totalCalls).toFixed(1) : '0';
     const sentimentScore = kpis.totalCalls > 0 ? Math.round(kpis.successRate) : 0;
+    const avgCostPerCall = kpis.totalCalls > 0 ? (kpis.totalCost / kpis.totalCalls).toFixed(2) : '0.00';
 
     const formatMinutesToMMSS = (decimalMinutes: number) => {
         const totalSeconds = Math.round(decimalMinutes * 60);
@@ -242,6 +244,14 @@ export default function KpiCards({
                 isPositive={true}
                 subValue="Feedback positivo"
                 color="border-t-[var(--coral)]"
+            />
+            <KpiCard
+                title="INVERSIÓN TOTAL"
+                value={`€${kpis.totalCost.toFixed(2)}`}
+                change={costChange.value}
+                isPositive={!costChange.isPositive}
+                subValue={`Ø €${avgCostPerCall} por llamada`}
+                color="border-t-[var(--azul)]"
             />
             {/* Custom KPIs rendered dynamically */}
             {customKpis.map((kpi) => (
