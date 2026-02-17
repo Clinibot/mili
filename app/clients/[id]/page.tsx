@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { notifyBalanceRecharge } from '@/lib/notificationService';
 import slugify from 'slugify'; // Assuming slugify is used based on code context
 import StatusSelector from './StatusSelector';
+import DocumentationSection from '@/app/portal/[slug]/DocumentationSection';
 
 export default function ClientDetail() {
     const router = useRouter();
@@ -511,6 +512,13 @@ export default function ClientDetail() {
                                 )}
                             </CardContent>
                         </Card>
+
+                        {/* Documentation Section */}
+                        {id !== 'new' && (
+                            <div className="mt-6">
+                                <DocumentationSection clientId={id} />
+                            </div>
+                        )}
 
                         {/* Gift Balance - Admin Only */}
                         <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
