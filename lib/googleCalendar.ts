@@ -122,7 +122,7 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
     const agent = await retellClient.agent.retrieve(agentId);
     console.log('Agent retrieved:', agent);
 
-    const llmId = agent.response_engine?.llm_id || agent.response_engine?.llm_id;
+    const llmId = (agent.response_engine as any)?.llm_id;
 
     if (!llmId) throw new Error('No se encontró LLM ID en el agente');
 
