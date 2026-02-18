@@ -22,6 +22,7 @@ interface NotificationPreferences {
     alert_email: string;
     daily_summary: boolean;
     weekly_summary: boolean;
+    monthly_summary: boolean;
     email_on_low_balance?: boolean;
     low_balance_threshold?: number;
     email_on_invoice?: boolean;
@@ -36,8 +37,9 @@ export default function AlertsPage() {
         alert_email: '',
         daily_summary: false,
         weekly_summary: false,
+        monthly_summary: false,
         email_on_low_balance: true,
-        low_balance_threshold: 50
+        low_balance_threshold: 10
     });
 
     useEffect(() => {
@@ -48,8 +50,9 @@ export default function AlertsPage() {
                 alert_email: existingPrefs.alert_email || '',
                 daily_summary: !!existingPrefs.daily_summary,
                 weekly_summary: !!existingPrefs.weekly_summary,
+                monthly_summary: !!existingPrefs.monthly_summary,
                 email_on_low_balance: existingPrefs.email_on_low_balance !== false,
-                low_balance_threshold: existingPrefs.low_balance_threshold || 50,
+                low_balance_threshold: existingPrefs.low_balance_threshold || 10,
                 email_on_invoice: existingPrefs.email_on_invoice !== false
             });
             setLoading(false);
