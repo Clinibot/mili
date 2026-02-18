@@ -5,8 +5,7 @@ import { usePortal } from '../PortalContext';
 import { supabase } from '@/lib/supabaseClient';
 import {
     Search, Download, Filter, ChevronDown,
-    MoreHorizontal, User, Phone, Calendar,
-    Columns, Check, X, FileDown, Table
+    Phone, Columns, Check, X, FileDown, Table, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -29,37 +28,48 @@ export default function CustomersPage() {
     async function fetchData(clientId: string) {
         try {
             setLoading(true);
-            const { data, error } = await supabase
+
+            // 1. Fetch Calls
+            const { data: callsData, error: callsError } = await supabase
                 .from('calls')
                 .select('*')
                 .eq('client_id', clientId)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (callsError) throw callsError;
+            setCalls(callsData || []);
 
-            setCalls(data || []);
+            // 2. Fetch Configured Analytics Fields (The source of truth for "Extraction" fields)
+            const { data: configData, error: configError } = await supabase
+                .from('client_analytics_configs')
+                .select('data_field, name')
+                .eq('client_id', clientId);
 
-            // Extract dynamic AI fields from custom_analysis_data
+            // 3. Merge fields from Config and Historical Data
             const aiFields = new Set<string>();
-            data?.forEach(call => {
-                const customData = call.custom_analysis_data;
-                if (customData && typeof customData === 'object') {
-                    Object.keys(customData).forEach(key => aiFields.add(key));
-                } else if (customData && typeof customData === 'string') {
-                    try {
-                        const parsed = JSON.parse(customData);
-                        Object.keys(parsed).forEach(key => aiFields.add(key));
-                    } catch (e) { }
-                }
+
+            // Add from config first
+            configData?.forEach(cfg => {
+                if (cfg.data_field) aiFields.add(cfg.data_field);
             });
 
-            const fields = Array.from(aiFields);
+            // Add from historical data (in case something is sent but not configured)
+            callsData?.forEach(call => {
+                const customData = typeof call.custom_analysis_data === 'string'
+                    ? JSON.parse(call.custom_analysis_data || '{}')
+                    : (call.custom_analysis_data || {});
+
+                Object.keys(customData).forEach(key => aiFields.add(key));
+            });
+
+            const fields = Array.from(aiFields).filter(f => !['fecha', 'telefono', 'nombre', 'duracion'].includes(f.toLowerCase()));
             setAvailableAIFields(fields);
 
-            // Add some meaningful AI fields to defaults if not already set
+            // Default visibility: ensure configured fields are visible if they have data or are prominent
             if (fields.length > 0 && visibleColumns.length <= 4) {
+                // Add the first few AI fields as defaults
                 const topFields = fields.slice(0, 3);
-                setVisibleColumns(prev => [...prev, ...topFields]);
+                setVisibleColumns(prev => Array.from(new Set([...prev, ...topFields])));
             }
 
         } catch (error) {
@@ -69,6 +79,25 @@ export default function CustomersPage() {
             setLoading(false);
         }
     }
+
+    const getCustomerName = (customData: any) => {
+        if (!customData) return null;
+        const data = typeof customData === 'string' ? JSON.parse(customData || '{}') : customData;
+
+        // Priority list for name keys
+        const nameKeys = ['nombre', 'Nombre', 'nombre_cliente', 'usuario', 'User', 'Name', 'full_name'];
+        for (const key of nameKeys) {
+            if (data[key] && String(data[key]).trim() !== '') return String(data[key]);
+        }
+
+        // If not found, look for any key containing "nombre" or "name"
+        const fuzzyKey = Object.keys(data).find(k =>
+            k.toLowerCase().includes('nombre') || k.toLowerCase().includes('name')
+        );
+        if (fuzzyKey) return String(data[fuzzyKey]);
+
+        return null;
+    };
 
     const filteredCalls = useMemo(() => {
         return calls.filter(call => {
@@ -104,10 +133,7 @@ export default function CustomersPage() {
                 if (col === 'fecha') return format(new Date(call.created_at), 'dd/MM/yyyy HH:mm');
                 if (col === 'telefono') return call.from_number || call.to_number || 'N/A';
                 if (col === 'nombre') {
-                    const data = typeof call.custom_analysis_data === 'string'
-                        ? JSON.parse(call.custom_analysis_data || '{}')
-                        : (call.custom_analysis_data || {});
-                    return data.nombre || data.Nombre || 'N/A';
+                    return getCustomerName(call.custom_analysis_data) || 'N/A';
                 }
                 if (col === 'duracion') return call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '0s';
 
@@ -154,6 +180,14 @@ export default function CustomersPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => fetchData(portalClient?.id || '')}
+                        disabled={loading}
+                        className="flex items-center gap-2 bg-[#0E1219] text-[#E8ECF1] px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-[#141A23] transition-all border border-[#1F2937] disabled:opacity-50"
+                        title="Refrescar datos"
+                    >
+                        <RefreshCw size={18} className={cn(loading && "animate-spin")} />
+                    </button>
                     <button
                         onClick={exportToCSV}
                         className="flex items-center gap-2 bg-[#008DCB]/10 text-[#008DCB] px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-[#008DCB]/20 transition-all active:scale-95 border border-[#008DCB]/20"
@@ -225,7 +259,7 @@ export default function CustomersPage() {
                                     <th key={col} className="px-6 py-4 text-[10px] font-black text-[#4B5563] uppercase tracking-widest border-b border-[#1F2937]">
                                         {col === 'fecha' ? 'Fecha' :
                                             col === 'telefono' ? 'Teléfono' :
-                                                col === 'nombre' ? 'Nombre (IA)' :
+                                                col === 'nombre' ? 'Nombre' :
                                                     col === 'duracion' ? 'Duración' :
                                                         col.replace(/_/g, ' ')}
                                     </th>
@@ -274,7 +308,7 @@ export default function CustomersPage() {
                                                     ) : col === 'nombre' ? (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-sm font-medium text-[#E8ECF1]">
-                                                                {customData.nombre || customData.Nombre || <span className="text-[#4B5563]/60 italic">No detectado</span>}
+                                                                {getCustomerName(call.custom_analysis_data) || <span className="text-[#4B5563]/60 italic">No detectado</span>}
                                                             </span>
                                                         </div>
                                                     ) : col === 'duracion' ? (
@@ -309,6 +343,6 @@ export default function CustomersPage() {
                     </table>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
