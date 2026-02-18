@@ -123,7 +123,22 @@ export default function AnalyticsCharts({
 
                 // For 'list', we might want chronological order, but counts are also useful
                 (calls || []).forEach(call => {
-                    const val = call.custom_analysis_data?.[field];
+                    let data = call.custom_analysis_data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch (e) { data = {}; }
+                    }
+
+                    if (!data) return;
+
+                    // Try direct match, then lowercase/underscore match
+                    let val = data[field];
+                    if (val === undefined) {
+                        const normalizedField = field.toLowerCase().replace(/\s+/g, '_');
+                        val = Object.entries(data).find(([k]) =>
+                            k.toLowerCase().replace(/\s+/g, '_') === normalizedField
+                        )?.[1];
+                    }
+
                     if (val !== undefined && val !== null && val !== '') {
                         const label = String(val);
                         counts[label] = (counts[label] || 0) + 1;
