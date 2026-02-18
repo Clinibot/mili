@@ -266,8 +266,8 @@ export async function removeCalendarToolsFromAgent(clientId: string) {
         );
 
         let generalPrompt = llmData.general_prompt || '';
-        // Remove calendar section from prompt
-        const calendarSectionRegex = /\n\n## Gestión de Agenda[\s\S]*?(?=\n\n##|\n*$)/;
+        // Remove calendar section from prompt (greedy match to end of string)
+        const calendarSectionRegex = /\n\n## Gestión de Agenda[\s\S]*$/;
         generalPrompt = generalPrompt.replace(calendarSectionRegex, '');
 
         await retellClient.llm.update(llmId, {
