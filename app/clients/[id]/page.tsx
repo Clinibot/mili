@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
     Save, ArrowLeft, Phone, Mail, User, CreditCard,
-    Bot, Calendar, Share2, Bell, ExternalLink, Key, Lock, X, ChevronDown, ChevronUp, Plus, Trash2
+    Bot, Calendar, Share2, Bell, ExternalLink, Key, Lock, X, ChevronDown, ChevronUp, Plus, Trash2, Link
 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -467,29 +467,37 @@ export default function ClientDetail() {
                                             <line x1="10" y1="9" x2="8" y2="9"></line>
                                         </svg>
                                     </div>
-                                    Plantilla Presupuesto
+                                    Presupuesto
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <p className="text-sm text-[rgba(255,255,255,0.55)]">Sube aquí el presupuesto o plantilla PDF/Doc para este cliente.</p>
+                                <p className="text-sm text-[rgba(255,255,255,0.55)]">Sube aquí el presupuesto o plantilla PDF/Doc, o pega una URL externa para este cliente.</p>
 
                                 {client.budget_template_url ? (
                                     <div className="flex items-center gap-3 p-3 bg-[#141A23] border border-[#1F2937] rounded-xl">
                                         <div className="p-2 bg-[#0E1219] rounded-lg border border-[#1F2937] shadow-sm text-[#F78E5E]">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                                <polyline points="14 2 14 8 20 8"></polyline>
-                                            </svg>
+                                            {client.budget_template_url.includes('supabase') || client.budget_template_url.includes('storage') ? (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                </svg>
+                                            ) : (
+                                                <ExternalLink size={20} />
+                                            )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-[#E8ECF1] truncate">Presupuesto_Cliente.pdf</p>
+                                            <p className="text-sm font-medium text-[#E8ECF1] truncate">
+                                                {client.budget_template_url.includes('supabase') || client.budget_template_url.includes('storage')
+                                                    ? 'Presupuesto_Subido.pdf'
+                                                    : 'Enlace al Presupuesto'}
+                                            </p>
                                             <a
                                                 href={client.budget_template_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-xs text-[#008DCB] hover:text-[#008DCB]/80 hover:underline flex items-center gap-1 mt-0.5"
                                             >
-                                                Ver / Descargar
+                                                Ver {client.budget_template_url.includes('supabase') ? '/ Descargar' : 'Enlace'}
                                                 <ExternalLink size={10} />
                                             </a>
                                         </div>
@@ -523,63 +531,98 @@ export default function ClientDetail() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="relative group">
-                                        <div className="border-2 border-dashed border-[#1F2937] rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-[rgba(255,255,255,0.3)] group-hover:border-[#008DCB] group-hover:bg-[#008DCB]/5 transition-all cursor-pointer">
-                                            <div className="p-3 bg-[#141A23] rounded-full group-hover:bg-[#008DCB]/20 transition-colors">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(255,255,255,0.4)] group-hover:text-[#008DCB]">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                    <polyline points="17 8 12 3 7 8"></polyline>
-                                                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                                                </svg>
+                                    <div className="space-y-3">
+                                        <div className="relative group">
+                                            <div className="border-2 border-dashed border-[#1F2937] rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-[rgba(255,255,255,0.3)] group-hover:border-[#008DCB] group-hover:bg-[#008DCB]/5 transition-all cursor-pointer">
+                                                <div className="p-3 bg-[#141A23] rounded-full group-hover:bg-[#008DCB]/20 transition-colors">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(255,255,255,0.4)] group-hover:text-[#008DCB]">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                    </svg>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-sm font-medium text-[rgba(255,255,255,0.55)] group-hover:text-[#008DCB]">Subir presupuesto</p>
+                                                    <p className="text-xs text-[rgba(255,255,255,0.3)]">PDF, DOCX, IMG (Max 5MB)</p>
+                                                </div>
                                             </div>
-                                            <div className="text-center">
-                                                <p className="text-sm font-medium text-[rgba(255,255,255,0.55)] group-hover:text-[#008DCB]">Subir presupuesto</p>
-                                                <p className="text-xs text-[rgba(255,255,255,0.3)]">PDF, DOCX, IMG (Max 5MB)</p>
-                                            </div>
-                                        </div>
-                                        <input
-                                            type="file"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
+                                            <input
+                                                type="file"
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
 
-                                                const toastId = toast.loading('Subiendo presupuesto...');
+                                                    const toastId = toast.loading('Subiendo presupuesto...');
 
-                                                try {
-                                                    const fileExt = file.name.split('.').pop();
-                                                    const fileName = `budget_${id}_${Date.now()}.${fileExt}`;
-                                                    const filePath = `${fileName}`;
+                                                    try {
+                                                        const fileExt = file.name.split('.').pop();
+                                                        const fileName = `budget_${id}_${Date.now()}.${fileExt}`;
+                                                        const filePath = `${fileName}`;
 
-                                                    const { error: uploadError } = await supabase.storage
-                                                        .from('documentation')
-                                                        .upload(filePath, file);
+                                                        const { error: uploadError } = await supabase.storage
+                                                            .from('documentation')
+                                                            .upload(filePath, file);
 
-                                                    if (uploadError) throw uploadError;
+                                                        if (uploadError) throw uploadError;
 
-                                                    const { data: { publicUrl } } = supabase.storage
-                                                        .from('documentation')
-                                                        .getPublicUrl(filePath);
+                                                        const { data: { publicUrl } } = supabase.storage
+                                                            .from('documentation')
+                                                            .getPublicUrl(filePath);
 
-                                                    // Only update DB immediately if client already exists
-                                                    if (id !== 'new') {
-                                                        const { error: dbError } = await supabase
-                                                            .from('clients')
-                                                            .update({ budget_template_url: publicUrl })
-                                                            .eq('id', id);
+                                                        // Only update DB immediately if client already exists
+                                                        if (id !== 'new') {
+                                                            const { error: dbError } = await supabase
+                                                                .from('clients')
+                                                                .update({ budget_template_url: publicUrl })
+                                                                .eq('id', id);
 
-                                                        if (dbError) throw dbError;
+                                                            if (dbError) throw dbError;
+                                                        }
+
+                                                        setClient({ ...client, budget_template_url: publicUrl });
+                                                        toast.success(id === 'new' ? 'Presupuesto adjunto (Guarda para confirmar)' : 'Presupuesto subido correctamente', { id: toastId });
+                                                    } catch (error) {
+                                                        console.error('Error uploading budget:', error);
+                                                        toast.error('Error al subir el presupuesto', { id: toastId });
                                                     }
+                                                }}
+                                            />
+                                        </div>
 
-                                                    setClient({ ...client, budget_template_url: publicUrl });
-                                                    toast.success(id === 'new' ? 'Presupuesto adjunto (Guarda para confirmar)' : 'Presupuesto subido correctamente', { id: toastId });
-                                                } catch (error) {
-                                                    console.error('Error uploading budget:', error);
-                                                    toast.error('Error al subir el presupuesto', { id: toastId });
-                                                }
-                                            }}
-                                        />
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[rgba(255,255,255,0.3)]">
+                                                <Link size={14} />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="O pega una URL (Canva, Drive, etc.)"
+                                                className="w-full bg-[#141A23] border border-[#1F2937] rounded-xl px-10 py-2.5 text-sm text-[#E8ECF1] placeholder:text-[rgba(255,255,255,0.2)] focus:border-[#008DCB] focus:outline-none transition-all"
+                                                onKeyDown={async (e) => {
+                                                    if (e.key === 'Enter') {
+                                                        const url = (e.target as HTMLInputElement).value;
+                                                        if (!url) return;
+
+                                                        try {
+                                                            if (id !== 'new') {
+                                                                const { error } = await supabase
+                                                                    .from('clients')
+                                                                    .update({ budget_template_url: url })
+                                                                    .eq('id', id);
+                                                                if (error) throw error;
+                                                            }
+                                                            setClient({ ...client, budget_template_url: url });
+                                                            toast.success('URL de presupuesto guardada');
+                                                            (e.target as HTMLInputElement).value = '';
+                                                        } catch (error) {
+                                                            console.error('Error saving manual URL:', error);
+                                                            toast.error('Error al guardar la URL');
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>
