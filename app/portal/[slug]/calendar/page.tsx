@@ -79,11 +79,16 @@ export default function CalendarPage() {
             const listRes = await fetch(`/api/calendar/list?client_id=${client.id}`);
             if (listRes.ok) {
                 const data = await listRes.json();
-                setAvailableCalendars(data.calendars || []);
+                const cals = data.calendars || [];
+                console.log('Available calendars:', cals);
+                setAvailableCalendars(cals);
 
                 // Find primary or first
-                const primary = data.calendars.find((c: any) => c.primary);
+                const primary = cals.find((c: any) => c.primary);
                 if (primary) setCurrentCalendarId(primary.id);
+            } else {
+                console.error('Failed to fetch calendars:', listRes.status);
+                toast.error('No se pudieron cargar los calendarios');
             }
 
             // Fetch currently selected calendar ID from DB
@@ -100,6 +105,7 @@ export default function CalendarPage() {
             await fetchEvents();
         } catch (error) {
             console.error('Error fetching initial calendar data:', error);
+            toast.error('Error al cargar datos del calendario');
         } finally {
             setLoading(false);
         }
@@ -293,8 +299,8 @@ export default function CalendarPage() {
                         </span>
                     </div>
 
-                    {/* Calendar Selector */}
-                    {availableCalendars.length > 0 && (
+                    {/* Calendar Selector - always shown */}
+                    {availableCalendars.length > 0 ? (
                         <div className="relative inline-block text-left">
                             <button
                                 onClick={() => setIsSelectorOpen(!isSelectorOpen)}
@@ -339,6 +345,8 @@ export default function CalendarPage() {
                                 </div>
                             )}
                         </div>
+                    ) : (
+                        <p className="text-xs text-[#4B5563] italic">Cargando calendarios...</p>
                     )}
                 </div>
 

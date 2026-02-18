@@ -11,9 +11,7 @@ export async function GET(req: NextRequest) {
     try {
         const { calendar } = await getCalendarClient(clientId);
 
-        const response = await calendar.calendarList.list({
-            minAccessRole: 'writer' // Only list calendars we can manage
-        });
+        const response = await calendar.calendarList.list();
 
         // Map to a simpler format for the UI
         const calendars = (response.data.items || []).map(cal => ({
