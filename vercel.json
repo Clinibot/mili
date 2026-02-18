@@ -1,5 +1,19 @@
 {
   "framework": "nextjs",
   "buildCommand": "next build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "crons": [
+    {
+      "path": "/api/alerts/process?type=daily",
+      "schedule": "30 8 * * *"
+    },
+    {
+      "path": "/api/alerts/process?type=weekly",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/alerts/process?type=monthly",
+      "schedule": "0 10 1 * *"
+    }
+  ]
 }

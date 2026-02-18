@@ -59,7 +59,7 @@ export default function AlertsPage() {
     const handleSave = async () => {
         if (!client) return;
 
-        if (prefs.daily_summary || prefs.weekly_summary) {
+        if (prefs.daily_summary || prefs.weekly_summary || prefs.monthly_summary) {
             if (!prefs.alert_email || !prefs.alert_email.includes('@')) {
                 toast.error('Por favor, indica un email válido para recibir las alertas');
                 return;
@@ -102,7 +102,7 @@ export default function AlertsPage() {
                     <div className="w-12 h-12 bg-[#008DCB]/10 rounded-2xl flex items-center justify-center text-[#008DCB]">
                         <Bell size={28} />
                     </div>
-                    Alertas y Notificaciones
+                    Mili y son-ia Alertas
                 </h1>
                 <p className="text-[rgba(255,255,255,0.45)] text-lg max-w-2xl leading-relaxed">
                     Configura dónde y cuándo quieres recibir resúmenes de actividad y avisos importantes.
@@ -193,6 +193,31 @@ export default function AlertsPage() {
                                     className="w-6 h-6 rounded-lg accent-[#008DCB] cursor-pointer"
                                 />
                             </label>
+
+                            {/* Monthly Summary */}
+                            <label className={cn(
+                                "flex items-center justify-between p-6 rounded-2xl border transition-all cursor-pointer group",
+                                prefs.monthly_summary ? "bg-[#008DCB]/5 border-[#008DCB]/30" : "bg-[#141A23] border-[#1F2937] hover:border-[#1F2937]/80"
+                            )}>
+                                <div className="flex gap-4">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                        prefs.monthly_summary ? "bg-[#008DCB] text-white" : "bg-[#0E1219] text-[#4B5563]"
+                                    )}>
+                                        <Calendar size={20} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-[#E8ECF1]">Resumen Mensual</h4>
+                                        <p className="text-xs text-[#4B5563]">Recibe el día 1 de cada mes el resumen global mensual.</p>
+                                    </div>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={prefs.monthly_summary}
+                                    onChange={(e) => setPrefs({ ...prefs, monthly_summary: e.target.checked })}
+                                    className="w-6 h-6 rounded-lg accent-[#008DCB] cursor-pointer"
+                                />
+                            </label>
                         </div>
                     </div>
 
@@ -213,12 +238,12 @@ export default function AlertsPage() {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-[#E8ECF1]">Saldo Bajo</h4>
-                                            <p className="text-xs text-[#4B5563]">Avísame cuando el saldo del monedero sea inferior a:</p>
+                                            <p className="text-xs text-[#4B5563]">Avísame cuando el saldo sea inferior a 10€ para que el agente no se quede sin servicio.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B5563] font-bold text-xs">$</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B5563] font-bold text-xs">€</span>
                                             <input
                                                 type="number"
                                                 value={prefs.low_balance_threshold}
