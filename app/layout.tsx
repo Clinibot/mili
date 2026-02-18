@@ -40,6 +40,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "IA para llamadas",
   description: "Panel de control de agentes IA",
+  verification: {
+    google: "0KyoI7bpJO2F2Raq6r9lYDmc4m9hYjKVcv7nYvxgBgc",
+  },
 };
 
 export default function RootLayout({
