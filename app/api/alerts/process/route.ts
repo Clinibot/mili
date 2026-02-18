@@ -72,34 +72,72 @@ export async function GET(req: NextRequest) {
 
             // 4. Send Email via Resend
             const subject = `${type === 'daily' ? 'Resumen Diario' : 'Resumen Semanal'} de Llamadas - ${client.name}`;
-            const headerTitle = type === 'daily' ? 'Tu resumen diario de llamadas' : 'Tu resumen semanal de actividad';
+            const headerTitle = type === 'daily' ? 'Resumen Diario de Actividad' : 'Resumen Semanal de Actividad';
 
             await resend.emails.send({
                 from: FROM_EMAIL,
                 to: [targetEmail],
                 subject: subject,
                 html: `
-                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #334155;">
-                        <div style="padding: 20px 0; text-align: center;">
-                            <h1 style="color: #008DCB; margin-bottom: 5px;">Mili IA</h1>
-                            <p style="text-transform: uppercase; letter-spacing: 1px; font-size: 12px; color: #64748b; font-weight: bold;">${headerTitle}</p>
-                        </div>
-                        
-                        <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; background-color: #ffffff;">
-                            <p>Hola,</p>
-                            <p>Aquí tienes el resumen de actividad de tu agente IA para <strong>${client.name}</strong> correspondiente al periodo del ${format(new Date(dateFrom), "d 'de' MMMM", { locale: es })} al ${format(new Date(dateTo), "d 'de' MMMM", { locale: es })}.</p>
-                            
-                            ${statsHtml}
-                            
-                            <div style="text-align: center; margin-top: 30px;">
-                                <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal/${client.slug}" style="background-color: #008DCB; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">Ver todas las llamadas</a>
+                    <div style="background-color: #070A0F; padding: 40px 20px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #E8ECF1; margin: 0; width: 100% !important;">
+                        <center>
+                            <div style="max-width: 600px; text-align: left; background-color: #0E1219; border: 1px solid #1F2937; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+                                <!-- Header -->
+                                <div style="padding: 40px; text-align: center; background: linear-gradient(180deg, rgba(0, 141, 203, 0.1) 0%, rgba(0, 0, 0, 0) 100%);">
+                                    <div style="background-color: rgba(0, 141, 203, 0.1); width: 64px; height: 64px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px solid rgba(0, 141, 203, 0.2);">
+                                        <span style="font-size: 32px;">🤖</span>
+                                    </div>
+                                    <h1 style="margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -0.02em; color: #FFFFFF;">Mili IA</h1>
+                                    <p style="margin: 8px 0 0 0; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #008DCB;">${headerTitle}</p>
+                                </div>
+
+                                <!-- Body -->
+                                <div style="padding: 0 40px 40px 40px;">
+                                    <p style="font-size: 15px; line-height: 1.6; color: rgba(232, 236, 241, 0.7); margin-bottom: 30px;">
+                                        Tu agente IA ha procesado la actividad de <strong>${client.name}</strong> para el periodo analizado. Aquí tienes los datos clave:
+                                    </p>
+
+                                    <!-- Stats Grid -->
+                                    <div style="display: table; width: 100%; border-collapse: separate; border-spacing: 12px 0; margin: 0 -12px 30px -12px;">
+                                        <div style="display: table-row;">
+                                            <div style="display: table-cell; width: 50%; background-color: #141A23; border: 1px solid #1F2937; border-radius: 16px; padding: 20px;">
+                                                <p style="margin: 0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #4B5563;">TOTAL LLAMADAS</p>
+                                                <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 900; color: #008DCB;">${totalCalls}</p>
+                                            </div>
+                                            <div style="display: table-cell; width: 50%; background-color: #141A23; border: 1px solid #1F2937; border-radius: 16px; padding: 20px;">
+                                                <p style="margin: 0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #4B5563;">MINUTOS TOTALES</p>
+                                                <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 900; color: #008DCB;">${Math.round(totalDuration / 60)}'</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="background-color: #141A23; border: 1px solid #1F2937; border-radius: 16px; padding: 20px; margin-bottom: 40px;">
+                                        <div style="display: flex; justify-content: justify; align-items: center; margin-bottom: 12px;">
+                                            <p style="margin: 0; font-size: 12px; font-weight: 700; color: #E8ECF1;">Tasa de finalización</p>
+                                            <p style="margin: 0; font-size: 12px; font-weight: 900; color: #22C55E; margin-left: auto;">${totalCalls > 0 ? Math.round((completedCalls / totalCalls) * 100) : 0}%</p>
+                                        </div>
+                                        <div style="background-color: #0E1219; height: 6px; border-radius: 3px; width: 100%;">
+                                            <div style="background-color: #22C55E; height: 6px; border-radius: 3px; width: ${totalCalls > 0 ? Math.round((completedCalls / totalCalls) * 100) : 0}%;"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CTA -->
+                                    <div style="text-align: center;">
+                                        <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal/${client.slug}" style="display: inline-block; background-color: #008DCB; color: #FFFFFF; font-size: 14px; font-weight: 900; text-decoration: none; padding: 18px 32px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0, 141, 203, 0.3);">
+                                            VER DETALLES EN EL PANEL
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Footer -->
+                                <div style="padding: 30px; border-top: 1px solid #1F2937; text-align: center; background-color: #0B0E14;">
+                                    <p style="margin: 0; font-size: 11px; font-weight: 600; color: #4B5563; line-height: 1.5;">
+                                        Este es un informe automático generado por Mili IA.<br>
+                                        © ${new Date().getFullYear()} centrodemando.es
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div style="padding: 20px; text-align: center; font-size: 11px; color: #94a3b8;">
-                            <p>Has recibido este email porque tienes activadas las alertas en tu panel de cliente.</p>
-                            <p>&copy; ${new Date().getFullYear()} Mili IA - centrodemando.es</p>
-                        </div>
+                        </center>
                     </div>
                 `
             });
