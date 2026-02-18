@@ -13,7 +13,8 @@ import {
     ChevronRight,
     Search,
     LogOut,
-    CalendarDays
+    CalendarDays,
+    Wrench
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, parseISO } from 'date-fns';
@@ -34,6 +35,13 @@ interface CalendarEvent {
     };
 }
 
+interface GoogleCalendar {
+    id: string;
+    summary: string;
+    description?: string;
+    primary: boolean;
+}
+
 export default function CalendarPage() {
     const { client, slug } = usePortal();
     const [loading, setLoading] = useState(true);
@@ -42,25 +50,65 @@ export default function CalendarPage() {
     const [syncing, setSyncing] = useState(false);
     const [disconnecting, setDisconnecting] = useState(false);
 
+    // Multi-calendar support
+    const [availableCalendars, setAvailableCalendars] = useState<GoogleCalendar[]>([]);
+    const [currentCalendarId, setCurrentCalendarId] = useState<string>('primary');
+    const [loadingCalendars, setLoadingCalendars] = useState(false);
+    const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+
     useEffect(() => {
         if (client?.calendar_connected) {
-            fetchEvents();
+            fetchInitialData();
         } else {
             setLoading(false);
         }
-    }, [client?.calendar_connected, currentMonth]);
+    }, [client?.calendar_connected]);
+
+    useEffect(() => {
+        if (client?.calendar_connected) {
+            fetchEvents();
+        }
+    }, [currentMonth, currentCalendarId]);
+
+    async function fetchInitialData() {
+        if (!client?.id) return;
+        setLoading(true);
+        try {
+            // Fetch list of calendars
+            const listRes = await fetch(`/api/calendar/list?client_id=${client.id}`);
+            if (listRes.ok) {
+                const data = await listRes.json();
+                setAvailableCalendars(data.calendars || []);
+
+                // Find primary or first
+                const primary = data.calendars.find((c: any) => c.primary);
+                if (primary) setCurrentCalendarId(primary.id);
+            }
+
+            // Fetch currently selected calendar ID from DB
+            const { data: tokenData } = await supabase
+                .from('google_calendar_tokens')
+                .select('calendar_id')
+                .eq('client_id', client.id)
+                .single();
+
+            if (tokenData?.calendar_id) {
+                setCurrentCalendarId(tokenData.calendar_id);
+            }
+
+            await fetchEvents();
+        } catch (error) {
+            console.error('Error fetching initial calendar data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function fetchEvents() {
         if (!client?.id) return;
 
         try {
             setSyncing(true);
-
-            // In a real implementation, we'd have an internal proxy to Google Calendar 
-            // but for the UI demo, we'll try to fetch from our list-events tool or a generic events list endpoint
-            // For now, let's use the list-events logic via a server action or direct API call if we had tokens in the client
-            // Since we need to refresh tokens server-side, we'll create a new API specifically for the UI to fetch events
-
             const monthStart = startOfMonth(currentMonth);
             const monthEnd = endOfMonth(currentMonth);
 
@@ -69,16 +117,39 @@ export default function CalendarPage() {
             if (res.ok) {
                 const data = await res.json();
                 setEvents(data.events || []);
-            } else {
-                console.error('Failed to fetch events');
             }
         } catch (error) {
             console.error('Error fetching calendar events:', error);
         } finally {
-            setLoading(false);
             setSyncing(false);
         }
     }
+
+    const handleSelectCalendar = async (calId: string) => {
+        if (!client?.id || calId === currentCalendarId) return;
+
+        try {
+            setLoadingCalendars(true);
+            const res = await fetch('/api/calendar/select', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ client_id: client.id, calendar_id: calId })
+            });
+
+            if (res.ok) {
+                setCurrentCalendarId(calId);
+                setIsSelectorOpen(false);
+                toast.success('Calendario actualizado correctamente');
+                // fetchEvents will be triggered by useEffect
+            } else {
+                toast.error('Error al cambiar de calendario');
+            }
+        } catch (error) {
+            toast.error('Error al cambiar de calendario');
+        } finally {
+            setLoadingCalendars(false);
+        }
+    };
 
     const handleConnect = () => {
         if (!client?.id) return;
@@ -106,6 +177,27 @@ export default function CalendarPage() {
             toast.error('Error al desconectar');
         } finally {
             setDisconnecting(false);
+        }
+    };
+
+    const handleRegisterTools = async () => {
+        if (!client?.id) return;
+        try {
+            toast.info('Registrando herramientas en Retell...');
+            const res = await fetch('/api/calendar/debug/register-tools', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ client_id: client.id })
+            });
+
+            if (res.ok) {
+                toast.success('Herramientas registradas correctamente');
+            } else {
+                const data = await res.json();
+                toast.error(`Error: ${data.error}`);
+            }
+        } catch (error) {
+            toast.error('Error al registrar herramientas');
         }
     };
 
@@ -183,12 +275,14 @@ export default function CalendarPage() {
         );
     }
 
+    const currentCalendar = availableCalendars.find(c => c.id === currentCalendarId) || availableCalendars[0];
+
     return (
         <div className="p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
                         <h1 className="text-3xl lg:text-4xl font-black text-[#E8ECF1] tracking-tight">
                             Mi Calendario
                         </h1>
@@ -197,9 +291,64 @@ export default function CalendarPage() {
                             Conectado
                         </span>
                     </div>
+
+                    {/* Calendar Selector */}
+                    {availableCalendars.length > 0 && (
+                        <div className="relative inline-block text-left">
+                            <button
+                                onClick={() => setIsSelectorOpen(!isSelectorOpen)}
+                                className="flex items-center gap-2 bg-[#141A23] border border-[#1F2937] px-4 py-2 rounded-xl text-sm font-bold text-[#E8ECF1] hover:border-[#008DCB]/50 transition-all"
+                            >
+                                <CalendarDays size={16} className="text-[#008DCB]" />
+                                <span>Activo: {currentCalendar?.summary || 'Cargando...'}</span>
+                                <ChevronDown size={14} className={cn("transition-transform", isSelectorOpen && "rotate-180")} />
+                            </button>
+
+                            {isSelectorOpen && (
+                                <div className="absolute left-0 mt-2 w-72 bg-[#141A23] border border-[#1F2937] rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="p-3 bg-[#1F2937]/30 border-b border-[#1F2937]">
+                                        <p className="text-[10px] font-black text-[#4B5563] uppercase tracking-widest">Tus Calendarios</p>
+                                    </div>
+                                    <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                                        {availableCalendars.map((cal) => (
+                                            <button
+                                                key={cal.id}
+                                                onClick={() => handleSelectCalendar(cal.id)}
+                                                disabled={loadingCalendars}
+                                                className={cn(
+                                                    "w-full text-left px-4 py-3 flex flex-col gap-0.5 hover:bg-[#1F2937] transition-all border-b border-[#1F2937]/50 last:border-0",
+                                                    currentCalendarId === cal.id ? "bg-[#008DCB]/5" : ""
+                                                )}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-[#E8ECF1]">{cal.summary}</span>
+                                                    {cal.primary && (
+                                                        <span className="text-[8px] bg-[#008DCB]/20 text-[#008DCB] px-1.5 py-0.5 rounded font-black uppercase">Principal</span>
+                                                    )}
+                                                    {currentCalendarId === cal.id && (
+                                                        <CheckCircle2 size={12} className="text-[#22C55E] ml-auto" />
+                                                    )}
+                                                </div>
+                                                {cal.description && (
+                                                    <span className="text-[10px] text-[#4B5563] line-clamp-1">{cal.description}</span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleRegisterTools}
+                        className="p-2.5 text-[#4B5563] hover:text-[#008DCB] transition-colors rounded-xl hover:bg-[#008DCB]/10 border border-transparent hover:border-[#008DCB]/20"
+                        title="Re-registrar herramientas (Debug)"
+                    >
+                        <Wrench size={20} />
+                    </button>
                     <button
                         onClick={fetchEvents}
                         disabled={syncing}

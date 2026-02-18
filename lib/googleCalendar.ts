@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { supabase } from './supabaseClient';
+import Retell from 'retell-sdk';
 
 const SCOPES = [
     'https://www.googleapis.com/auth/calendar.events',
@@ -91,7 +92,7 @@ export async function getClientIdFromToken(token: string): Promise<string | null
 }
 
 /**
- * Register the 4 calendar tools on the client's Retell agent LLM.
+ * Register the 4 calendar tools on the client's Retell agent LLM using the SDK.
  */
 export async function registerCalendarToolsOnAgent(clientId: string) {
     // 1. Get client's Retell API key and agent ID
@@ -107,34 +108,38 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
 
     const apiKey = client.api_key_retail;
     const agentId = client.agent_id;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://centrodemando.es';
     const token = client.webhook_token;
 
+    if (!token) {
+        throw new Error('Cliente sin webhook_token. Genere uno primero.');
+    }
+
+    // Initialize Retell SDK
+    const retellClient = new Retell({ apiKey });
+
     // 2. Get the agent to find the LLM ID
-    const agentRes = await fetch(`https://api.retellai.com/v2/agent/${agentId}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!agentRes.ok) throw new Error(`Error fetching agent: ${agentRes.status}`);
-    const agentData = await agentRes.json();
-    const llmId = agentData.response_engine?.llm_id;
+    const agent = await retellClient.agent.retrieve(agentId);
+    console.log('Agent retrieved:', agent);
+
+    const llmId = agent.response_engine?.llm_id || agent.response_engine?.llm_id;
+
     if (!llmId) throw new Error('No se encontró LLM ID en el agente');
 
     // 3. Get the current LLM config
-    const llmRes = await fetch(`https://api.retellai.com/v2/retell-llm/${llmId}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!llmRes.ok) throw new Error(`Error fetching LLM: ${llmRes.status}`);
-    const llmData = await llmRes.json();
+    const llmData = await retellClient.llm.retrieve(llmId);
 
     // 4. Build the 4 calendar tools
-    const calendarTools = [
+    const calendarTools: any[] = [
         {
             type: 'custom',
             name: 'consultar_agenda',
             description: 'Consulta las citas y disponibilidad en la agenda. Úsalo cuando el usuario pregunte por disponibilidad, quiera saber si hay hueco, o quiera ver sus citas programadas.',
             url: `${baseUrl}/api/calendar/tools/list-events?token=${token}`,
+            method: 'GET',
             speak_during_execution: true,
-            speak_on_send: 'Un momento, déjame consultar la agenda...',
+            speak_on_send: false,
+            execution_message_description: 'Consultando la agenda...',
             parameters: {
                 type: 'object',
                 properties: {
@@ -149,8 +154,10 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
             name: 'agendar_cita',
             description: 'Crea una nueva cita en la agenda. Úsalo cuando el usuario quiera agendar, reservar o pedir cita. Antes de agendar, confirma fecha, hora y nombre con el usuario.',
             url: `${baseUrl}/api/calendar/tools/create-event?token=${token}`,
+            method: 'POST',
             speak_during_execution: true,
-            speak_on_send: 'Perfecto, estoy agendando tu cita...',
+            speak_on_send: false,
+            execution_message_description: 'Agendando la cita...',
             parameters: {
                 type: 'object',
                 properties: {
@@ -170,8 +177,10 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
             name: 'reagendar_cita',
             description: 'Cambia la fecha u hora de una cita existente. Úsalo cuando el usuario quiera mover, cambiar o reagendar una cita ya existente.',
             url: `${baseUrl}/api/calendar/tools/update-event?token=${token}`,
+            method: 'POST',
             speak_during_execution: true,
-            speak_on_send: 'Estoy modificando la cita...',
+            speak_on_send: false,
+            execution_message_description: 'Modificando la cita...',
             parameters: {
                 type: 'object',
                 properties: {
@@ -189,8 +198,10 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
             name: 'cancelar_cita',
             description: 'Cancela una cita existente. Úsalo cuando el usuario quiera cancelar, anular o eliminar una cita.',
             url: `${baseUrl}/api/calendar/tools/delete-event?token=${token}`,
+            method: 'POST',
             speak_during_execution: true,
-            speak_on_send: 'Voy a cancelar la cita...',
+            speak_on_send: false,
+            execution_message_description: 'Cancelando la cita...',
             parameters: {
                 type: 'object',
                 properties: {
@@ -202,14 +213,14 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         },
     ];
 
-    // 5. Merge with existing tools (remove old calendar tools if any)
+    // 5. Merge with existing tools
     const existingTools = (llmData.general_tools || []).filter(
         (t: any) => !['consultar_agenda', 'agendar_cita', 'reagendar_cita', 'cancelar_cita'].includes(t.name)
     );
     const allTools = [...existingTools, ...calendarTools];
 
     // 6. Append calendar instructions to the general prompt
-    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario. Puedes:\n- Consultar citas y disponibilidad usando "consultar_agenda"\n- Agendar nuevas citas usando "agendar_cita"\n- Reagendar citas existentes usando "reagendar_cita"\n- Cancelar citas usando "cancelar_cita"\nCuando el usuario quiera una cita, primero consulta disponibilidad del día solicitado, confirma los datos con el usuario, y luego agenda. Siempre confirma fecha, hora y nombre antes de agendar o modificar.`;
+    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. \n- **Consulta Disponibilidad**: Antes de ofrecer una hora, USA la herramienta "consultar_agenda" para ver qué huecos están libres. No inventes disponibilidad.\n- **Agendar**: Cuando el usuario confirme una hora libre, USA "agendar_cita". Pide nombre y teléfono si no los tienes.\n- **Conflictos**: Si al intentar agendar la herramienta devuelve error de conflicto, infórmalo y ofrece otra hora.\n- **Confirmación**: Siempre confirma fecha (día y mes) y hora antes de llamar a la herramienta de agendar.`;
 
     let generalPrompt = llmData.general_prompt || '';
     if (!generalPrompt.includes('## Gestión de Agenda')) {
@@ -217,22 +228,10 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
     }
 
     // 7. Update the LLM
-    const updateRes = await fetch(`https://api.retellai.com/v2/retell-llm/${llmId}`, {
-        method: 'PATCH',
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            general_tools: allTools,
-            general_prompt: generalPrompt,
-        }),
+    await retellClient.llm.update(llmId, {
+        general_tools: allTools,
+        general_prompt: generalPrompt,
     });
-
-    if (!updateRes.ok) {
-        const errBody = await updateRes.text();
-        throw new Error(`Error updating LLM: ${updateRes.status} - ${errBody}`);
-    }
 
     return true;
 }
@@ -252,39 +251,31 @@ export async function removeCalendarToolsFromAgent(clientId: string) {
     const apiKey = client.api_key_retail;
     const agentId = client.agent_id;
 
-    const agentRes = await fetch(`https://api.retellai.com/v2/agent/${agentId}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!agentRes.ok) return;
-    const agentData = await agentRes.json();
-    const llmId = agentData.response_engine?.llm_id;
-    if (!llmId) return;
+    const retellClient = new Retell({ apiKey });
 
-    const llmRes = await fetch(`https://api.retellai.com/v2/retell-llm/${llmId}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!llmRes.ok) return;
-    const llmData = await llmRes.json();
+    try {
+        const agent = await retellClient.agent.retrieve(agentId);
+        const llmId = agent.response_engine?.llm_id;
+        if (!llmId) return;
 
-    const calendarToolNames = ['consultar_agenda', 'agendar_cita', 'reagendar_cita', 'cancelar_cita'];
-    const filteredTools = (llmData.general_tools || []).filter(
-        (t: any) => !calendarToolNames.includes(t.name)
-    );
+        const llmData = await retellClient.llm.retrieve(llmId);
 
-    let generalPrompt = llmData.general_prompt || '';
-    // Remove calendar section from prompt
-    const calendarSectionRegex = /\n\n## Gestión de Agenda[\s\S]*?(?=\n\n##|\n*$)/;
-    generalPrompt = generalPrompt.replace(calendarSectionRegex, '');
+        const calendarToolNames = ['consultar_agenda', 'agendar_cita', 'reagendar_cita', 'cancelar_cita'];
+        const filteredTools = (llmData.general_tools || []).filter(
+            (t: any) => !calendarToolNames.includes(t.name)
+        );
 
-    await fetch(`https://api.retellai.com/v2/retell-llm/${llmId}`, {
-        method: 'PATCH',
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        let generalPrompt = llmData.general_prompt || '';
+        // Remove calendar section from prompt
+        const calendarSectionRegex = /\n\n## Gestión de Agenda[\s\S]*?(?=\n\n##|\n*$)/;
+        generalPrompt = generalPrompt.replace(calendarSectionRegex, '');
+
+        await retellClient.llm.update(llmId, {
             general_tools: filteredTools,
             general_prompt: generalPrompt,
-        }),
-    });
+        });
+
+    } catch (error) {
+        console.error('Error removing tools from Retell:', error);
+    }
 }
