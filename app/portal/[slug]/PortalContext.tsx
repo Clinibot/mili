@@ -8,6 +8,7 @@ interface Client {
     phone_ia: string;
     contact_name: string;
     balance?: number;
+    calendar_connected: boolean;
 }
 
 interface PortalContextType {
