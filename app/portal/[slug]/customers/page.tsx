@@ -46,23 +46,31 @@ export default function CustomersPage() {
                 .eq('client_id', clientId);
 
             // 3. Merge fields from Config and Historical Data
-            const aiFields = new Set<string>();
+            const aiFieldsMap = new Map<string, string>(); // lowercase -> Original Name
 
-            // Add from config first
+            // Add from config first (High priority for naming)
             configData?.forEach(cfg => {
-                if (cfg.data_field) aiFields.add(cfg.data_field);
+                if (cfg.data_field) {
+                    aiFieldsMap.set(cfg.data_field.toLowerCase(), cfg.data_field);
+                }
             });
 
-            // Add from historical data (in case something is sent but not configured)
+            // Add from historical data
             callsData?.forEach(call => {
                 const customData = typeof call.custom_analysis_data === 'string'
                     ? JSON.parse(call.custom_analysis_data || '{}')
                     : (call.custom_analysis_data || {});
 
-                Object.keys(customData).forEach(key => aiFields.add(key));
+                Object.keys(customData).forEach(key => {
+                    const lower = key.toLowerCase();
+                    if (!aiFieldsMap.has(lower)) {
+                        aiFieldsMap.set(lower, key);
+                    }
+                });
             });
 
-            const fields = Array.from(aiFields).filter(f => !['fecha', 'telefono', 'nombre', 'duracion'].includes(f.toLowerCase()));
+            const excluded = ['fecha', 'telefono', 'nombre', 'duracion'];
+            const fields = Array.from(aiFieldsMap.values()).filter(f => !excluded.includes(f.toLowerCase()));
             setAvailableAIFields(fields);
 
             // Default visibility: ensure configured fields are visible if they have data or are prominent
@@ -319,7 +327,15 @@ export default function CustomersPage() {
                                                         </span>
                                                     ) : (
                                                         <span className="text-xs font-medium text-[rgba(255,255,255,0.7)] line-clamp-2">
-                                                            {String(customData[col] || '') || '-'}
+                                                            {(() => {
+                                                                const val = customData[col];
+                                                                if (val !== undefined && val !== null) return String(val);
+
+                                                                // Try case-insensitive fallback
+                                                                const lowerCol = col.toLowerCase();
+                                                                const actualKey = Object.keys(customData).find(k => k.toLowerCase() === lowerCol);
+                                                                return actualKey ? String(customData[actualKey]) : '-';
+                                                            })()}
                                                         </span>
                                                     )}
                                                 </td>
