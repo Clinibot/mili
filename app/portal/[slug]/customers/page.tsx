@@ -23,16 +23,16 @@ export default function CustomersPage() {
 
     useEffect(() => {
         if (!portalClient?.id) return;
-        fetchData();
+        fetchData(portalClient.id);
     }, [portalClient?.id]);
 
-    async function fetchData() {
+    async function fetchData(clientId: string) {
         try {
             setLoading(true);
             const { data, error } = await supabase
                 .from('calls')
                 .select('*')
-                .eq('client_id', portalClient.id)
+                .eq('client_id', clientId)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -128,7 +128,7 @@ export default function CustomersPage() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `clientes_${portalClient.slug}_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.setAttribute('download', `clientes_${usePortal().slug}_${format(new Date(), 'yyyy-MM-dd')}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

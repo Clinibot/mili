@@ -1023,49 +1023,8 @@ export default function ClientDetail() {
                                         </div>
                                     )}
 
-                                    {/* Info / Knowledge Base */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[rgba(255,255,255,0.55)] flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#008DCB]"></div>
-                                            Base de Conocimiento (Prompt/Info)
-                                        </label>
-                                        <textarea
-                                            className="w-full h-32 bg-[#141A23] border border-[#1F2937] rounded-xl p-3 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all resize-none placeholder:text-[rgba(255,255,255,0.3)]"
-                                            placeholder="Pegar aquí la información base del agente..."
-                                            value={agent.knowledge_base}
-                                            onChange={(e) => setAgent({ ...agent, knowledge_base: e.target.value })}
-                                        />
-                                    </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Calendar Task */}
-                                        <div className="space-y-3 p-4 rounded-xl bg-[#F78E5E]/5 border border-[#F78E5E]/20">
-                                            <div className="flex items-center gap-2 text-[#F78E5E] font-medium pb-2 border-b border-[#F78E5E]/20">
-                                                <Calendar size={16} />
-                                                <span>Agenda / Citas</span>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs text-[rgba(255,255,255,0.55)]">Proveedor</label>
-                                                <select
-                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg p-2 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#F78E5E]"
-                                                    value={agent.agenda_config.type}
-                                                    onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, type: e.target.value } })}
-                                                >
-                                                    <option value="google">Google Calendar</option>
-                                                    <option value="calcom">Cal.com</option>
-                                                </select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs text-[rgba(255,255,255,0.55)]">URL / Link Agendamiento</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full bg-[#0E1219] border border-[#1F2937] rounded-lg p-2 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#F78E5E] placeholder:text-[rgba(255,255,255,0.3)]"
-                                                    value={agent.agenda_config.url}
-                                                    onChange={(e) => setAgent({ ...agent, agenda_config: { ...agent.agenda_config, url: e.target.value } })}
-                                                    placeholder="https://..."
-                                                />
-                                            </div>
-                                        </div>
 
                                         {/* Transfer Task */}
                                         <div className="space-y-3 p-4 rounded-xl bg-[#22C55E]/5 border border-[#22C55E]/20">
