@@ -49,7 +49,13 @@ export async function middleware(request: NextRequest) {
     const isPortalLoginPage = path === '/portal/login';
 
     // 1. Admin Protection
-    if (isProtectedAdminRoute && !user) {
+    // Special handling for root: if not logged in, REWRITE to /login (Home = Login)
+    if (path === '/' && !user) {
+        return NextResponse.rewrite(new URL('/login', request.url))
+    }
+
+    // Protection for other admin routes
+    if (path.startsWith('/clients') && !user) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
