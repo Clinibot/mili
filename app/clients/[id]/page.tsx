@@ -1187,25 +1187,6 @@ export default function ClientDetail() {
                             )}
                         </Card>
 
-                        {/* Stats / Invoices Placeholder */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
-                                <CardHeader><CardTitle className="text-base text-[#E8ECF1]">Facturación</CardTitle></CardHeader>
-                                <CardContent>
-                                    <div className="h-32 flex items-center justify-center text-[rgba(255,255,255,0.3)] border border-dashed border-[#1F2937] rounded-lg bg-[#141A23]">
-                                        Gráfico de Facturación (Próximamente)
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-[#0E1219] border-[#1F2937] shadow-xl shadow-black/20 rounded-2xl">
-                                <CardHeader><CardTitle className="text-base text-[#E8ECF1]">Estadísticas de Llamadas</CardTitle></CardHeader>
-                                <CardContent>
-                                    <div className="h-32 flex items-center justify-center text-[rgba(255,255,255,0.3)] border border-dashed border-[#1F2937] rounded-lg bg-[#141A23]">
-                                        KPIs del Agente (Próximamente)
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
                     </div>
                 </div>
             </div>
