@@ -124,7 +124,7 @@ export default function LoginPage() {
                     <a href="/condiciones-servicio" className="text-xs font-bold text-[#4B5563] hover:text-[#008DCB] transition-colors uppercase tracking-widest">Términos</a>
                 </div>
                 <p className="text-[10px] text-[#4B5563] font-medium uppercase tracking-widest">
-                    &copy; {new Date().getFullYear()} Mili y son-ia — centrodemando.es
+                    &copy; {new Date().getFullYear()} Mili y son-ia — centrodemando.es — v2.0
                 </p>
             </div>
         </div>
