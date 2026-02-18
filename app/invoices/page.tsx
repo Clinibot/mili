@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
-import { FileText, Upload, TrendingUp, TrendingDown, DollarSign, Check, Clock, X, AlertTriangle } from 'lucide-react';
+import { FileText, Upload, TrendingUp, TrendingDown, DollarSign, Check, Clock, X, AlertTriangle, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -39,6 +39,9 @@ export default function InvoicesPage() {
     // Confirmation Modal state
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
+
+    // Editing state
+    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
     // Date filter states
     const [filterPeriod, setFilterPeriod] = useState<'all' | '30d' | 'custom'>('all');
@@ -108,11 +111,13 @@ export default function InvoicesPage() {
 
         setUploading(true);
         try {
-            let documentUrl = null;
+            let documentUrl = editingInvoiceId
+                ? invoices.find(inv => inv.id === editingInvoiceId)?.document_url || null
+                : null;
 
             // Upload file if exists
             if (newInvoice.file) {
-                console.log('Uploading file:', newInvoice.file.name, 'to bucket: documentation');
+                console.log('Uploading file:', newInvoice.file.name, 'to bucket: invoices');
                 const fileName = `${Date.now()}_${newInvoice.file.name.replace(/\s+/g, '_')}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
@@ -124,43 +129,45 @@ export default function InvoicesPage() {
                     throw uploadError;
                 }
 
-                console.log('Upload success:', uploadData);
-
                 const { data } = supabase.storage
                     .from('invoices')
                     .getPublicUrl(fileName);
 
                 documentUrl = data?.publicUrl || null;
-                console.log('Generated Public URL:', documentUrl);
             }
 
-            // Insert invoice
-            const insertData = {
-                type,
-                amount: amountValue,
-                status: newInvoice.status,
-                description: newInvoice.description || null,
-                document_url: documentUrl,
-                invoice_date: new Date().toISOString()
-            };
+            if (editingInvoiceId) {
+                // Update existing invoice
+                const { error } = await supabase
+                    .from('invoices')
+                    .update({
+                        amount: amountValue,
+                        status: newInvoice.status,
+                        description: newInvoice.description || null,
+                        document_url: documentUrl,
+                    })
+                    .eq('id', editingInvoiceId);
 
-            console.log('Inserting invoice data:', insertData);
+                if (error) throw error;
+                toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} actualizado correctamente`);
+            } else {
+                // Insert new invoice
+                const { error } = await supabase
+                    .from('invoices')
+                    .insert({
+                        type,
+                        amount: amountValue,
+                        status: newInvoice.status,
+                        description: newInvoice.description || null,
+                        document_url: documentUrl,
+                        invoice_date: new Date().toISOString()
+                    });
 
-            const { data: savedData, error } = await supabase
-                .from('invoices')
-                .insert(insertData)
-                .select()
-                .single();
-
-            if (error) {
-                console.error('Supabase insert error:', error);
-                throw error;
+                if (error) throw error;
+                toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} añadido correctamente`);
             }
 
-            console.log('Invoice saved successfully:', savedData);
-            toast.success(`${type === 'expense' ? 'Gasto' : 'Venta'} añadido correctamente`);
-
-            // Reset form
+            // Reset form and state
             setNewInvoice({
                 type,
                 amount: '',
@@ -168,16 +175,42 @@ export default function InvoicesPage() {
                 description: '',
                 file: null
             });
+            setEditingInvoiceId(null);
 
             // Refresh list
             fetchInvoices();
         } catch (err: any) {
-            console.error('Error detail adding invoice:', err);
-            toast.error(`Error al guardar: ${err.message || 'Error desconocido'}`);
+            console.error('Error handling invoice:', err);
+            toast.error(`Error: ${err.message || 'Error desconocido'}`);
         } finally {
             setUploading(false);
         }
     }
+
+    const startEditing = (invoice: Invoice) => {
+        setEditingInvoiceId(invoice.id);
+        setNewInvoice({
+            type: invoice.type,
+            amount: String(invoice.amount),
+            status: invoice.status,
+            description: invoice.description || '',
+            file: null
+        });
+
+        // Scroll to form (optional UX)
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const cancelEditing = () => {
+        setEditingInvoiceId(null);
+        setNewInvoice({
+            type: 'expense',
+            amount: '',
+            status: 'unpaid',
+            description: '',
+            file: null
+        });
+    };
 
     async function handleDelete(id: string) {
         setIdToDelete(id);
@@ -324,6 +357,9 @@ export default function InvoicesPage() {
                         onAdd={() => handleAddInvoice('expense')}
                         onDelete={handleDelete}
                         onToggleStatus={handleToggleStatus}
+                        onEdit={startEditing}
+                        onCancelEdit={cancelEditing}
+                        editingId={editingInvoiceId}
                         uploading={uploading}
                         loading={loading}
                     />
@@ -341,6 +377,9 @@ export default function InvoicesPage() {
                         onAdd={() => handleAddInvoice('sale')}
                         onDelete={handleDelete}
                         onToggleStatus={handleToggleStatus}
+                        onEdit={startEditing}
+                        onCancelEdit={cancelEditing}
+                        editingId={editingInvoiceId}
                         uploading={uploading}
                         loading={loading}
                     />
@@ -408,6 +447,9 @@ function InvoiceColumn({
     onAdd: () => void;
     onDelete: (id: string) => void;
     onToggleStatus: (id: string, status: string) => void;
+    onEdit: (invoice: Invoice) => void;
+    onCancelEdit: () => void;
+    editingId: string | null;
     uploading: boolean;
     loading: boolean;
 }) {
@@ -438,7 +480,9 @@ function InvoiceColumn({
             <CardContent className="p-6 space-y-6">
                 {/* Add Form */}
                 <div className={`space-y-3 p-4 ${bgColor} border ${borderColor} rounded-2xl`}>
-                    <h4 className="font-bold text-sm text-[#E8ECF1]">Añadir {title}</h4>
+                    <h4 className="font-bold text-sm text-[#E8ECF1]">
+                        {editingId && invoices.find(inv => inv.id === editingId)?.type === type ? `Editar ${title}` : `Añadir ${title}`}
+                    </h4>
 
                     {/* File Upload */}
                     <div>
@@ -491,14 +535,24 @@ function InvoiceColumn({
                         />
                     </div>
 
-                    <button
-                        onClick={onAdd}
-                        disabled={uploading}
-                        className={`w-full ${buttonBg} text-white py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50`}
-                    >
-                        <Upload size={16} />
-                        {uploading ? 'Guardando...' : `Añadir ${title}`}
-                    </button>
+                    <div className="flex gap-2">
+                        {editingId && invoices.find(inv => inv.id === editingId)?.type === type && (
+                            <button
+                                onClick={onCancelEdit}
+                                className="flex-1 bg-[#1F2937] hover:bg-[#374151] text-[#E8ECF1] py-2.5 px-4 rounded-xl font-medium transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                        )}
+                        <button
+                            onClick={onAdd}
+                            disabled={uploading}
+                            className={`flex-[2] ${buttonBg} text-white py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50`}
+                        >
+                            <Upload size={16} />
+                            {uploading ? 'Guardando...' : (editingId && invoices.find(inv => inv.id === editingId)?.type === type ? `Guardar Cambios` : `Añadir ${title}`)}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Invoice List */}
@@ -514,6 +568,7 @@ function InvoiceColumn({
                                 invoice={invoice}
                                 onDelete={onDelete}
                                 onToggleStatus={onToggleStatus}
+                                onEdit={onEdit}
                                 color={color}
                             />
                         ))
@@ -534,6 +589,7 @@ function InvoiceCard({
     invoice: Invoice;
     onDelete: (id: string) => void;
     onToggleStatus: (id: string, status: string) => void;
+    onEdit: (invoice: Invoice) => void;
     color: 'red' | 'green';
 }) {
     const isRed = color === 'red';
@@ -583,6 +639,13 @@ function InvoiceCard({
                             <FileText size={16} />
                         </a>
                     )}
+                    <button
+                        onClick={() => onEdit(invoice)}
+                        className="p-1.5 text-[#008DCB] hover:bg-[#008DCB]/10 rounded-lg transition-colors border border-transparent hover:border-[#008DCB]/20"
+                        title="Editar"
+                    >
+                        <Pencil size={16} />
+                    </button>
                     <button
                         onClick={() => onDelete(invoice.id)}
                         className="p-1.5 text-[#EF4444] hover:bg-[#EF4444]/10 rounded-lg transition-colors border border-transparent hover:border-[#EF4444]/20 opacity-60 hover:opacity-100"
