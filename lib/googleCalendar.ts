@@ -134,16 +134,16 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         {
             type: 'custom',
             name: 'consultar_agenda',
-            description: 'Consulta las citas y disponibilidad en la agenda. Úsalo cuando el usuario pregunte por disponibilidad, quiera saber si hay hueco, o quiera ver sus citas programadas.',
+            description: 'Consulta las citas y disponibilidad en la agenda. Úsalo cuando el usuario pregunte por disponibilidad, quiera saber si hay hueco, o quiera ver sus citas programadas. La fecha y hora actual es {{current_time_Europe/Madrid}}. Si el usuario dice "mañana", "pasado mañana", "este jueves", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en la fecha actual.',
             url: `${baseUrl}/api/calendar/tools/list-events?token=${token}`,
-            method: 'GET',
+            method: 'POST',
             speak_during_execution: true,
             speak_after_execution: true,
             execution_message_description: 'Consultando la agenda...',
             parameters: {
                 type: 'object',
                 properties: {
-                    date_from: { type: 'string', description: 'Fecha inicio en formato YYYY-MM-DD. Si el usuario dice "mañana", calcula la fecha.' },
+                    date_from: { type: 'string', description: 'Fecha inicio en formato YYYY-MM-DD. Calcula la fecha correcta a partir de {{current_time_Europe/Madrid}} si el usuario dice "mañana", "el lunes", etc.' },
                     date_to: { type: 'string', description: 'Fecha fin en formato YYYY-MM-DD. Si no se indica, es igual a date_from.' },
                 },
                 required: ['date_from'],
@@ -152,17 +152,17 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         {
             type: 'custom',
             name: 'agendar_cita',
-            description: 'Crea una nueva cita en la agenda. Úsalo cuando el usuario quiera agendar, reservar o pedir cita. Antes de agendar, confirma fecha, hora y nombre con el usuario.',
+            description: 'Crea una nueva cita en la agenda. Úsalo cuando el usuario quiera agendar, reservar o pedir cita. Antes de agendar, consulta la disponibilidad primero. Confirma fecha, hora y nombre con el usuario. La fecha y hora actual es {{current_time_Europe/Madrid}}.',
             url: `${baseUrl}/api/calendar/tools/create-event?token=${token}`,
             method: 'POST',
             speak_during_execution: true,
-            speak_on_send: false,
+            speak_after_execution: true,
             execution_message_description: 'Agendando la cita...',
             parameters: {
                 type: 'object',
                 properties: {
                     summary: { type: 'string', description: 'Título de la cita, ejemplo: "Cita con Juan García"' },
-                    date: { type: 'string', description: 'Fecha de la cita en formato YYYY-MM-DD' },
+                    date: { type: 'string', description: 'Fecha de la cita en formato YYYY-MM-DD. Calcula a partir de {{current_time_Europe/Madrid}}.' },
                     start_time: { type: 'string', description: 'Hora de inicio en formato HH:MM (24h), ejemplo: "10:30"' },
                     end_time: { type: 'string', description: 'Hora de fin en formato HH:MM (24h), ejemplo: "11:00"' },
                     description: { type: 'string', description: 'Notas adicionales o motivo de la cita' },
@@ -175,11 +175,11 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         {
             type: 'custom',
             name: 'reagendar_cita',
-            description: 'Cambia la fecha u hora de una cita existente. Úsalo cuando el usuario quiera mover, cambiar o reagendar una cita ya existente.',
+            description: 'Cambia la fecha u hora de una cita existente. Úsalo cuando el usuario quiera mover, cambiar o reagendar una cita ya existente. La fecha y hora actual es {{current_time_Europe/Madrid}}.',
             url: `${baseUrl}/api/calendar/tools/update-event?token=${token}`,
             method: 'POST',
             speak_during_execution: true,
-            speak_on_send: false,
+            speak_after_execution: true,
             execution_message_description: 'Modificando la cita...',
             parameters: {
                 type: 'object',
@@ -196,17 +196,17 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         {
             type: 'custom',
             name: 'cancelar_cita',
-            description: 'Cancela una cita existente. Úsalo cuando el usuario quiera cancelar, anular o eliminar una cita.',
+            description: 'Cancela una cita existente. Úsalo cuando el usuario quiera cancelar, anular o eliminar una cita. La fecha y hora actual es {{current_time_Europe/Madrid}}.',
             url: `${baseUrl}/api/calendar/tools/delete-event?token=${token}`,
             method: 'POST',
             speak_during_execution: true,
-            speak_on_send: false,
+            speak_after_execution: true,
             execution_message_description: 'Cancelando la cita...',
             parameters: {
                 type: 'object',
                 properties: {
                     attendee_name: { type: 'string', description: 'Nombre de la persona cuya cita se quiere cancelar' },
-                    date: { type: 'string', description: 'Fecha de la cita a cancelar en formato YYYY-MM-DD' },
+                    date: { type: 'string', description: 'Fecha de la cita a cancelar en formato YYYY-MM-DD. Calcula a partir de {{current_time_Europe/Madrid}}.' },
                 },
                 required: ['attendee_name', 'date'],
             },
@@ -220,7 +220,7 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
     const allTools = [...existingTools, ...calendarTools];
 
     // 6. Append calendar instructions to the general prompt
-    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. \n- **Consulta Disponibilidad**: Antes de ofrecer una hora, USA la herramienta "consultar_agenda" para ver qué huecos están libres. No inventes disponibilidad.\n- **Agendar**: Cuando el usuario confirme una hora libre, USA "agendar_cita". Pide nombre y teléfono si no los tienes.\n- **Conflictos**: Si al intentar agendar la herramienta devuelve error de conflicto, infórmalo y ofrece otra hora.\n- **Confirmación**: Siempre confirma fecha (día y mes) y hora antes de llamar a la herramienta de agendar.`;
+    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. La fecha y hora actual es {{current_time_Europe/Madrid}}.\n- **Cálculo de fechas**: Si el usuario dice "mañana", "pasado mañana", "el lunes", "este viernes", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en {{current_time_Europe/Madrid}}.\n- **Consulta Disponibilidad**: Antes de ofrecer una hora, USA la herramienta "consultar_agenda" para ver qué huecos están libres. No inventes disponibilidad.\n- **Agendar**: Cuando el usuario confirme una hora libre, USA "agendar_cita". Pide nombre y teléfono si no los tienes.\n- **Conflictos**: Si al intentar agendar la herramienta devuelve error de conflicto, infórmalo y ofrece otra hora.\n- **Confirmación**: Siempre confirma fecha (día y mes) y hora antes de llamar a la herramienta de agendar.`;
 
     let generalPrompt = llmData.general_prompt || '';
     if (!generalPrompt.includes('## Gestión de Agenda')) {
