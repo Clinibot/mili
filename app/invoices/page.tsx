@@ -433,6 +433,9 @@ function InvoiceColumn({
     onAdd,
     onDelete,
     onToggleStatus,
+    onEdit,
+    onCancelEdit,
+    editingId,
     uploading,
     loading
 }: {
@@ -584,6 +587,7 @@ function InvoiceCard({
     invoice,
     onDelete,
     onToggleStatus,
+    onEdit,
     color
 }: {
     invoice: Invoice;
