@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle, Bot, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -33,8 +33,6 @@ export default function LoginPage() {
             }
 
             toast.success('Sesión iniciada correctamente');
-
-            // Redirect to dashboard
             window.location.href = '/';
         } catch (err: any) {
             console.error('Login error:', err);
@@ -46,70 +44,89 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-            <Card className="w-full max-w-md bg-white border-slate-100 shadow-xl">
-                <CardHeader className="space-y-1 text-center pb-8 border-b border-slate-50">
-                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white shadow-lg shadow-blue-600/20">
-                        <Lock size={24} />
-                    </div>
-                    <CardTitle className="text-2xl font-bold text-slate-900">
-                        Panel de Administración
-                    </CardTitle>
-                    <p className="text-sm text-slate-500">
-                        Ingresa tus credenciales para continuar
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A0F] p-4 font-sans text-[#E8ECF1]">
+            {/* Logo and Intro Section */}
+            <div className="w-full max-w-md text-center mb-8 space-y-4">
+                <div className="w-20 h-20 bg-[#008DCB]/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-[#008DCB]/20 shadow-2xl shadow-[#008DCB]/10">
+                    <Bot size={40} className="text-[#008DCB]" />
+                </div>
+                <h1 className="text-4xl font-black text-white tracking-tight">Mili y son-ia</h1>
+                <p className="text-[rgba(232,236,241,0.5)] text-sm leading-relaxed max-w-sm mx-auto">
+                    Somos creadores de agentes de voz para llamadas. Esta plataforma es para uso exclusivo de los clientes de <strong>Mili Pérez</strong> y <strong>Sonia Ortiz</strong>.
+                </p>
+            </div>
+
+            <div className="w-full max-w-md bg-[#0E1219] border border-[#1F2937] rounded-[32px] p-8 lg:p-10 shadow-3xl shadow-black/50 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#008DCB] to-transparent opacity-50"></div>
+
+                <div className="mb-8 p-4 bg-[#141A23] border border-[#1F2937] rounded-2xl flex items-start gap-3">
+                    <ShieldCheck className="text-[#008DCB] flex-shrink-0 mt-0.5" size={18} />
+                    <p className="text-[11px] font-bold text-[rgba(232,236,241,0.6)] uppercase tracking-wider leading-relaxed">
+                        Aviso: https://centrodemando.es es de uso exclusivo para clientes autorizados.
                     </p>
-                </CardHeader>
-                <CardContent className="pt-8">
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700" htmlFor="email">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 placeholder:text-slate-400"
-                                    placeholder="admin@empresa.com"
-                                    required
-                                />
-                            </div>
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-xs font-black text-[#008DCB] uppercase tracking-widest ml-1" htmlFor="email">Email de Acceso</label>
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4B5563]" size={20} />
+                            <input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full pl-12 pr-4 py-4 bg-[#141A23] border border-[#1F2937] rounded-2xl focus:outline-none focus:border-[#008DCB] transition-all text-white placeholder:text-[#4B5563] font-medium"
+                                placeholder="tu@email.com"
+                                required
+                            />
                         </div>
+                    </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700" htmlFor="password">Contraseña</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 placeholder:text-slate-400"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                            </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-black text-[#008DCB] uppercase tracking-widest ml-1" htmlFor="password">Contraseña</label>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4B5563]" size={20} />
+                            <input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full pl-12 pr-4 py-4 bg-[#141A23] border border-[#1F2937] rounded-2xl focus:outline-none focus:border-[#008DCB] transition-all text-white placeholder:text-[#4B5563] font-medium"
+                                placeholder="••••••••"
+                                required
+                            />
                         </div>
+                    </div>
 
-                        {error && (
-                            <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2">
-                                <AlertCircle size={16} />
-                                {error}
-                            </div>
-                        )}
+                    {error && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-3">
+                            <AlertCircle size={16} />
+                            {error}
+                        </div>
+                    )}
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Iniciar Sesión'}
-                        </button>
-                    </form>
-                </CardContent>
-            </Card>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-[#008DCB] hover:bg-[#008DCB]/90 text-[#070A0F] font-black py-4 rounded-2xl shadow-xl shadow-[#008DCB]/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest"
+                    >
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : 'Entrar al Control de Mando'}
+                    </button>
+                </form>
+            </div>
+
+            {/* Verification Footer */}
+            <div className="mt-12 text-center space-y-4">
+                <div className="flex items-center justify-center gap-6">
+                    <a href="/politica-privacidad" className="text-xs font-bold text-[#4B5563] hover:text-[#008DCB] transition-colors uppercase tracking-widest">Privacidad</a>
+                    <div className="w-1 h-1 bg-[#1F2937] rounded-full"></div>
+                    <a href="/condiciones-servicio" className="text-xs font-bold text-[#4B5563] hover:text-[#008DCB] transition-colors uppercase tracking-widest">Términos</a>
+                </div>
+                <p className="text-[10px] text-[#4B5563] font-medium uppercase tracking-widest">
+                    &copy; {new Date().getFullYear()} Mili y son-ia — centrodemando.es
+                </p>
+            </div>
         </div>
     );
 }
