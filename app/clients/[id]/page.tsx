@@ -952,10 +952,12 @@ export default function ClientDetail() {
                                                                                 onChange={(e) => handleUpdateAnalytics(config.id, { chart_type: e.target.value })}
                                                                                 className="w-full bg-[#0E1219] border border-[#1F2937] rounded-md px-1 py-1 text-[10px] text-[#E8ECF1] outline-none font-bold"
                                                                             >
-                                                                                <option value="bar">Barra</option>
-                                                                                <option value="area">Área</option>
-                                                                                <option value="line">Línea</option>
-                                                                                <option value="pie">Tarta</option>
+                                                                                <option value="bar">Barra (Temporal)</option>
+                                                                                <option value="area">Área (Temporal)</option>
+                                                                                <option value="line">Línea (Temporal)</option>
+                                                                                <option value="pie">Tarta (Distribución)</option>
+                                                                                <option value="dist-bar">Barra (Distribución)</option>
+                                                                                <option value="list">Lista (Valores)</option>
                                                                             </select>
                                                                         ) : (
                                                                             <button

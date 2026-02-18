@@ -33,7 +33,7 @@ interface Call {
 interface ChartConfig {
     id: string;
     name: string;
-    chart_type: 'bar' | 'area' | 'pie' | 'line';
+    chart_type: 'bar' | 'area' | 'pie' | 'line' | 'dist-bar' | 'list';
     data_field: string;
     calculation: string;
 }
@@ -111,15 +111,17 @@ export default function AnalyticsCharts({
         const aggregated = aggregateByViewMode(calls || [], viewMode, startDate, endDate, configs || []);
         setChartData(aggregated);
 
-        // Categorical Aggregation for Pie Charts
+        // Categorical Aggregation for Pie, Dist-Bar, and List Charts
         const categorical: Record<string, { name: string, value: number, color: string }[]> = {};
         const colors = ['#008DCB', '#67B7AF', '#F78E5E', '#E8ECF1', '#1F2937'];
 
         (configs || []).forEach(config => {
-            if (config.chart_type === 'pie') {
+            if (['pie', 'dist-bar', 'list'].includes(config.chart_type)) {
                 const field = config.data_field;
                 const counts: Record<string, number> = {};
+                const recentValues: Set<string> = new Set();
 
+                // For 'list', we might want chronological order, but counts are also useful
                 (calls || []).forEach(call => {
                     const val = call.custom_analysis_data?.[field];
                     if (val !== undefined && val !== null && val !== '') {
@@ -342,6 +344,26 @@ export default function AnalyticsCharts({
                                         <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
                                         <Line type="monotone" dataKey={config.data_field} stroke="#F78E5E" strokeWidth={3} dot={{ r: 4 }} name={config.name} />
                                     </LineChart>
+                                ) : config.chart_type === 'dist-bar' ? (
+                                    <BarChart data={categoricalData[config.id] || []}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} />
+                                        <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                        <Bar dataKey="value" fill="#008DCB" radius={[4, 4, 0, 0]} name="Ocurrencias" />
+                                    </BarChart>
+                                ) : config.chart_type === 'list' ? (
+                                    <div className="h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                        {(categoricalData[config.id] || []).map((item, i) => (
+                                            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-[#141A23] hover:bg-[#1A222C] transition-colors border border-[#1F2937]/50">
+                                                <span className="text-xs font-medium text-[#E8ECF1] line-clamp-2 pr-4">{item.name}</span>
+                                                <span className="text-[10px] font-black text-[#008DCB] bg-[#008DCB]/10 px-2 py-1 rounded">x{item.value}</span>
+                                            </div>
+                                        ))}
+                                        {(categoricalData[config.id] || []).length === 0 && (
+                                            <p className="text-center text-[rgba(255,255,255,0.2)] text-[10px] uppercase font-bold mt-12">No hay datos registrados</p>
+                                        )}
+                                    </div>
                                 ) : (
                                     <PieChart>
                                         <Pie
