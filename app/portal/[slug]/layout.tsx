@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
 import NotificationBell from './NotificationBell';
-import { Wallet, LayoutDashboard, Phone, Mic, CreditCard, BarChart3, Settings, Menu, X, Calculator, Users, CalendarDays } from 'lucide-react';
+import { Wallet, LayoutDashboard, Phone, Mic, CreditCard, BarChart3, Settings, Menu, X, Calculator, Users, CalendarDays, Bell } from 'lucide-react';
 import { PortalProvider } from './PortalContext';
 
 interface Client {
@@ -17,6 +17,7 @@ interface Client {
     contact_name: string;
     balance?: number;
     calendar_connected: boolean;
+    notification_preferences?: any;
 }
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -72,6 +73,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         { name: 'Llamadas', href: `/portal/${slug}#llamadas`, icon: Phone },
         { name: 'Clientes', href: `/portal/${slug}/customers`, icon: Users },
         { name: 'Calendario', href: `/portal/${slug}/calendar`, icon: CalendarDays },
+        { name: 'Alertas', href: `/portal/${slug}/alerts`, icon: Bell },
         { name: 'Calculadora', href: `/portal/${slug}/calculator`, icon: Calculator },
         { name: 'Monedero', href: `/portal/${slug}/billing`, icon: CreditCard },
     ];

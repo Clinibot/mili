@@ -9,6 +9,7 @@ interface Client {
     contact_name: string;
     balance?: number;
     calendar_connected: boolean;
+    notification_preferences?: any;
 }
 
 interface PortalContextType {
