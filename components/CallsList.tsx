@@ -30,13 +30,9 @@ export default function CallsList({ clientId, limit = 20, showClientName = false
             }
 
             if (searchQuery) {
-                // Search in from_number
                 query = query.ilike('from_number', `%${searchQuery}%`);
             }
 
-            // Apply limit after filtering if it's a general list, 
-            // but if searching we might want more results? 
-            // For now, keep the limit.
             query = query.limit(limit);
 
             const { data, error } = await query;
@@ -116,11 +112,18 @@ export default function CallsList({ clientId, limit = 20, showClientName = false
                             </div>
                             <div className="text-right flex flex-col items-end gap-2">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-sm font-black text-[#E8ECF1] tabular-nums">
-                                        {call.duration_seconds
-                                            ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`
-                                            : '0s'}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-0.5">
+                                        <span className="text-sm font-black text-[#E8ECF1] tabular-nums">
+                                            {call.duration_seconds
+                                                ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`
+                                                : '0s'}
+                                        </span>
+                                        {call.cost && (
+                                            <span className="text-[10px] font-bold text-[#67B7AF]">
+                                                {Number(call.cost).toFixed(2)}€
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className={cn(
                                         "w-8 h-8 rounded-full flex items-center justify-center border border-[#1F2937] text-[rgba(255,255,255,0.3)] group-hover:text-[#008DCB] group-hover:border-[#008DCB]/30 transition-all",
                                         expandedCall === call.id && "bg-[#008DCB] text-[#070A0F] border-[#008DCB]"

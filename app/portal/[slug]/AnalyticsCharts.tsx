@@ -72,6 +72,7 @@ export default function AnalyticsCharts({
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
     const [hourlyData, setHourlyData] = useState<{ hour: string; calls: number }[]>([]);
     const [chartConfigs, setChartConfigs] = useState<ChartConfig[]>([]);
+    const [categoricalData, setCategoricalData] = useState<Record<string, { name: string, value: number, color: string }[]>>({});
     const [loading, setLoading] = useState(true);
     const [sentimentTotal, setSentimentTotal] = useState({ positive: 0, neutral: 0, negative: 0 });
 
@@ -109,6 +110,32 @@ export default function AnalyticsCharts({
 
         const aggregated = aggregateByViewMode(calls || [], viewMode, startDate, endDate, configs || []);
         setChartData(aggregated);
+
+        // Categorical Aggregation for Pie Charts
+        const categorical: Record<string, { name: string, value: number, color: string }[]> = {};
+        const colors = ['#008DCB', '#67B7AF', '#F78E5E', '#E8ECF1', '#1F2937'];
+
+        (configs || []).forEach(config => {
+            if (config.chart_type === 'pie') {
+                const field = config.data_field;
+                const counts: Record<string, number> = {};
+
+                (calls || []).forEach(call => {
+                    const val = call.custom_analysis_data?.[field];
+                    if (val !== undefined && val !== null && val !== '') {
+                        const label = String(val);
+                        counts[label] = (counts[label] || 0) + 1;
+                    }
+                });
+
+                categorical[config.id] = Object.entries(counts).map(([name, value], i) => ({
+                    name,
+                    value,
+                    color: colors[i % colors.length]
+                })).sort((a, b) => b.value - a.value);
+            }
+        });
+        setCategoricalData(categorical);
 
         // Hourly Distribution
         const hourly = Array.from({ length: 24 }, (_, i) => ({
@@ -307,7 +334,7 @@ export default function AnalyticsCharts({
                                         <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
                                         <Area type="monotone" dataKey={config.data_field} stroke="#67B7AF" fill="#67B7AF" fillOpacity={0.1} strokeWidth={3} name={config.name} />
                                     </AreaChart>
-                                ) : (
+                                ) : config.chart_type === 'line' ? (
                                     <LineChart data={chartData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
                                         <XAxis dataKey="date" stroke="rgba(255,255,255,0.1)" fontSize={10} />
@@ -315,8 +342,38 @@ export default function AnalyticsCharts({
                                         <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
                                         <Line type="monotone" dataKey={config.data_field} stroke="#F78E5E" strokeWidth={3} dot={{ r: 4 }} name={config.name} />
                                     </LineChart>
+                                ) : (
+                                    <PieChart>
+                                        <Pie
+                                            data={categoricalData[config.id] || []}
+                                            innerRadius={60}
+                                            outerRadius={100}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            cx="50%"
+                                            cy="50%"
+                                        >
+                                            {(categoricalData[config.id] || []).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                    </PieChart>
                                 )}
                             </ResponsiveContainer>
+                            {config.chart_type === 'pie' && (
+                                <div className="mt-4 grid grid-cols-2 gap-2">
+                                    {(categoricalData[config.id] || []).slice(0, 6).map((item, i) => (
+                                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-[#141A23]">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }}></div>
+                                                <span className="text-[10px] text-[rgba(255,255,255,0.5)] truncate">{item.name}</span>
+                                            </div>
+                                            <span className="text-[10px] font-black text-[#E8ECF1] ml-2">{item.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 ))}

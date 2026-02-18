@@ -955,6 +955,7 @@ export default function ClientDetail() {
                                                                                 <option value="bar">Barra</option>
                                                                                 <option value="area">Área</option>
                                                                                 <option value="line">Línea</option>
+                                                                                <option value="pie">Tarta</option>
                                                                             </select>
                                                                         ) : (
                                                                             <button

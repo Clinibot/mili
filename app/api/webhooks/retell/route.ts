@@ -134,6 +134,7 @@ export async function POST(req: Request) {
                     call_successful: call_analysis?.call_successful || false,
                     in_voicemail: call_analysis?.in_voicemail || false,
                     custom_analysis_data: call_analysis?.custom_analysis_data || {},
+                    cost: totalCost,
                     // Si se analizó y fue exitosa, y marcamos intento antes, confirmamos éxito
                     transfer_successful: call_analysis?.call_successful && (existingCall as any)?.transfer_attempted
                 }, { onConflict: 'call_id' });
