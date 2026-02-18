@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 export default function CustomersPage() {
-    const { client: portalClient } = usePortal();
+    const { client: portalClient, slug: portalSlug } = usePortal();
     const [calls, setCalls] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -123,7 +123,7 @@ export default function CustomersPage() {
         const headers = visibleColumns.map(col => {
             if (col === 'fecha') return 'Fecha';
             if (col === 'telefono') return 'Teléfono';
-            if (col === 'nombre') return 'Nombre (IA)';
+            if (col === 'nombre') return 'Nombre';
             if (col === 'duracion') return 'Duración';
             return col;
         });
@@ -154,7 +154,7 @@ export default function CustomersPage() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `clientes_${usePortal().slug}_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.setAttribute('download', `clientes_${portalSlug}_${format(new Date(), 'yyyy-MM-dd')}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
