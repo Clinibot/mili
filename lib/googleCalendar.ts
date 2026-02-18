@@ -138,7 +138,7 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
             url: `${baseUrl}/api/calendar/tools/list-events?token=${token}`,
             method: 'GET',
             speak_during_execution: true,
-            speak_on_send: false,
+            speak_after_execution: true,
             execution_message_description: 'Consultando la agenda...',
             parameters: {
                 type: 'object',
@@ -255,7 +255,7 @@ export async function removeCalendarToolsFromAgent(clientId: string) {
 
     try {
         const agent = await retellClient.agent.retrieve(agentId);
-        const llmId = agent.response_engine?.llm_id;
+        const llmId = (agent.response_engine as any)?.llm_id;
         if (!llmId) return;
 
         const llmData = await retellClient.llm.retrieve(llmId);
