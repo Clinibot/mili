@@ -129,22 +129,21 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
     // 3. Get the current LLM config
     const llmData = await retellClient.llm.retrieve(llmId);
 
-    // 4. Build the 4 calendar tools
     const calendarTools: any[] = [
         {
             type: 'custom',
             name: 'consultar_agenda',
-            description: 'Consulta las citas y disponibilidad en la agenda. Úsalo cuando el usuario pregunte por disponibilidad, quiera saber si hay hueco, o quiera ver sus citas programadas. La fecha y hora actual es {{current_time_Europe/Madrid}}. Si el usuario dice "mañana", "pasado mañana", "este jueves", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en la fecha actual.',
+            description: 'Consulta las citas OCUPADAS en la agenda para un rango de fechas. Devuelve la lista de citas existentes (horas ocupadas). Tú debes analizar los huecos entre las citas para determinar qué horas están LIBRES. La fecha y hora actual es {{current_time_Europe/Madrid}}. Si el usuario dice "mañana", "pasado mañana", "este jueves", etc., calcula la fecha correcta en formato YYYY-MM-DD.',
             url: `${baseUrl}/api/calendar/tools/list-events?token=${token}`,
             method: 'POST',
             speak_during_execution: true,
             speak_after_execution: true,
-            execution_message_description: 'Consultando la agenda...',
+            execution_message_description: 'Dame un momento, estoy consultando la agenda...',
             parameters: {
                 type: 'object',
                 properties: {
                     date_from: { type: 'string', description: 'Fecha inicio en formato YYYY-MM-DD. Calcula la fecha correcta a partir de {{current_time_Europe/Madrid}} si el usuario dice "mañana", "el lunes", etc.' },
-                    date_to: { type: 'string', description: 'Fecha fin en formato YYYY-MM-DD. Si no se indica, es igual a date_from.' },
+                    date_to: { type: 'string', description: 'Fecha fin en formato YYYY-MM-DD. Si no se indica, es igual a date_from. Para buscar alternativas en días cercanos, pon un rango de 2-3 días.' },
                 },
                 required: ['date_from'],
             },
@@ -152,24 +151,24 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         {
             type: 'custom',
             name: 'agendar_cita',
-            description: 'Crea una nueva cita en la agenda. Úsalo cuando el usuario quiera agendar, reservar o pedir cita. Antes de agendar, consulta la disponibilidad primero. Confirma fecha, hora y nombre con el usuario. La fecha y hora actual es {{current_time_Europe/Madrid}}.',
+            description: 'Crea una nueva cita en la agenda. SOLO usa esta herramienta DESPUÉS de haber consultado la disponibilidad con consultar_agenda y haber confirmado con el usuario la fecha y hora. La fecha y hora actual es {{current_time_Europe/Madrid}}. El teléfono del usuario es {{user_number}}.',
             url: `${baseUrl}/api/calendar/tools/create-event?token=${token}`,
             method: 'POST',
             speak_during_execution: true,
             speak_after_execution: true,
-            execution_message_description: 'Agendando la cita...',
+            execution_message_description: 'Perfecto, estoy reservando tu cita...',
             parameters: {
                 type: 'object',
                 properties: {
-                    summary: { type: 'string', description: 'Título de la cita, ejemplo: "Cita con Juan García"' },
+                    summary: { type: 'string', description: 'Título de la cita. Formato: "Cita - [Nombre del usuario] - [Motivo]"' },
                     date: { type: 'string', description: 'Fecha de la cita en formato YYYY-MM-DD. Calcula a partir de {{current_time_Europe/Madrid}}.' },
                     start_time: { type: 'string', description: 'Hora de inicio en formato HH:MM (24h), ejemplo: "10:30"' },
-                    end_time: { type: 'string', description: 'Hora de fin en formato HH:MM (24h), ejemplo: "11:00"' },
-                    description: { type: 'string', description: 'Notas adicionales o motivo de la cita' },
-                    attendee_name: { type: 'string', description: 'Nombre del paciente o cliente' },
-                    attendee_phone: { type: 'string', description: 'Teléfono del paciente o cliente' },
+                    end_time: { type: 'string', description: 'Hora de fin en formato HH:MM (24h), ejemplo: "11:00". Por defecto, 30 minutos después de start_time.' },
+                    description: { type: 'string', description: 'Incluir: Nombre, Teléfono ({{user_number}}), y Motivo de la cita.' },
+                    attendee_name: { type: 'string', description: 'Nombre completo del usuario/paciente' },
+                    attendee_phone: { type: 'string', description: 'Teléfono del usuario. Usa {{user_number}} por defecto.' },
                 },
-                required: ['summary', 'date', 'start_time', 'end_time'],
+                required: ['summary', 'date', 'start_time', 'end_time', 'attendee_name'],
             },
         },
         {
@@ -220,12 +219,13 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
     const allTools = [...existingTools, ...calendarTools];
 
     // 6. Append calendar instructions to the general prompt
-    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. La fecha y hora actual es {{current_time_Europe/Madrid}}.\n- **Cálculo de fechas**: Si el usuario dice "mañana", "pasado mañana", "el lunes", "este viernes", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en {{current_time_Europe/Madrid}}.\n- **Consulta Disponibilidad**: Antes de ofrecer una hora, USA la herramienta "consultar_agenda" para ver qué huecos están libres. No inventes disponibilidad.\n- **Agendar**: Cuando el usuario confirme una hora libre, USA "agendar_cita". Pide nombre y teléfono si no los tienes.\n- **Conflictos**: Si al intentar agendar la herramienta devuelve error de conflicto, infórmalo y ofrece otra hora.\n- **Confirmación**: Siempre confirma fecha (día y mes) y hora antes de llamar a la herramienta de agendar.`;
+    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. La fecha y hora actual es {{current_time_Europe/Madrid}}. El teléfono del usuario que llama es {{user_number}}.\n\n### Cálculo de fechas\nSi el usuario dice "mañana", "pasado mañana", "el lunes", "este viernes", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en {{current_time_Europe/Madrid}}.\n\n### Flujo de trabajo para agendar una cita:\n1. **Pregunta fecha y hora**: Cuando el usuario quiera una cita, pregúntale qué día y hora prefiere.\n2. **Consulta disponibilidad**: USA "consultar_agenda" para ver las citas OCUPADAS de ese día. La herramienta devuelve las horas que YA están cogidas. Los huecos entre esas citas son los horarios DISPONIBLES.\n3. **Si la hora solicitada está LIBRE**: Confírmale al usuario: "Perfecto, tengo disponibilidad el [día] a las [hora]. ¿Confirmamos la cita?"\n4. **Si la hora solicitada está OCUPADA**: Ofrece 2 alternativas cercanas:\n   - La primera hora libre inmediatamente después de la solicitada ese mismo día.\n   - La misma hora solicitada pero al día siguiente laborable (consulta ese día también con consultar_agenda).\n   Ejemplo: "Lo siento, a las 9 ya hay una cita. Tengo libre a las 9:30 del mismo día, o a las 9:00 del miércoles. ¿Cuál prefieres?"\n5. **Cuando el usuario confirme**: Pide su nombre completo y el motivo de la cita. El teléfono ya lo tienes ({{user_number}}).\n6. **Agendar**: USA "agendar_cita" con todos los datos:\n   - summary: "Cita - [Nombre] - [Motivo]"\n   - description: "Nombre: [nombre]\\nTeléfono: {{user_number}}\\nMotivo: [motivo]"\n   - attendee_name: nombre del usuario\n   - attendee_phone: {{user_number}}\n   - Si no se dice duración, las citas duran 30 minutos por defecto.\n\n### Reglas importantes:\n- NUNCA inventes disponibilidad. Siempre consulta primero.\n- Si hay conflicto al intentar agendar, infórmalo y ofrece alternativas.\n- Siempre confirma la fecha completa (día, mes) y hora antes de agendar.\n- No preguntes el teléfono, ya lo tienes en {{user_number}}.`;
 
     let generalPrompt = llmData.general_prompt || '';
-    if (!generalPrompt.includes('## Gestión de Agenda')) {
-        generalPrompt += calendarPromptAddition;
-    }
+    // Remove old calendar section if exists, then add updated one
+    const calendarSectionRegex = /\n\n## Gestión de Agenda[\s\S]*$/;
+    generalPrompt = generalPrompt.replace(calendarSectionRegex, '');
+    generalPrompt += calendarPromptAddition;
 
     // 7. Update the LLM
     await retellClient.llm.update(llmId, {
