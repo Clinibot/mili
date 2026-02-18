@@ -195,19 +195,19 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
         {
             type: 'custom',
             name: 'cancelar_cita',
-            description: 'Cancela una cita existente. Úsalo cuando el usuario quiera cancelar, anular o eliminar una cita. La fecha y hora actual es {{current_time_Europe/Madrid}}.',
+            description: 'Cancela una cita existente buscándola por el teléfono del usuario. La cita solo se puede cancelar si el teléfono del que llama ({{user_number}}) coincide con el teléfono registrado en la cita. La fecha y hora actual es {{current_time_Europe/Madrid}}.',
             url: `${baseUrl}/api/calendar/tools/delete-event?token=${token}`,
             method: 'POST',
             speak_during_execution: true,
             speak_after_execution: true,
-            execution_message_description: 'Cancelando la cita...',
+            execution_message_description: 'Buscando tu cita para cancelarla...',
             parameters: {
                 type: 'object',
                 properties: {
-                    attendee_name: { type: 'string', description: 'Nombre de la persona cuya cita se quiere cancelar' },
-                    date: { type: 'string', description: 'Fecha de la cita a cancelar en formato YYYY-MM-DD. Calcula a partir de {{current_time_Europe/Madrid}}.' },
+                    user_phone: { type: 'string', description: 'Teléfono del usuario que solicita la cancelación. Usa {{user_number}}.' },
+                    date: { type: 'string', description: 'Fecha de la cita a cancelar en formato YYYY-MM-DD. Calcula a partir de {{current_time_Europe/Madrid}}. Si el usuario no indica fecha, buscar en los próximos 7 días.' },
                 },
-                required: ['attendee_name', 'date'],
+                required: ['user_phone'],
             },
         },
     ];
@@ -219,7 +219,7 @@ export async function registerCalendarToolsOnAgent(clientId: string) {
     const allTools = [...existingTools, ...calendarTools];
 
     // 6. Append calendar instructions to the general prompt
-    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. La fecha y hora actual es {{current_time_Europe/Madrid}}. El teléfono del usuario que llama es {{user_number}}.\n\n### Cálculo de fechas\nSi el usuario dice "mañana", "pasado mañana", "el lunes", "este viernes", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en {{current_time_Europe/Madrid}}.\n\n### Flujo de trabajo para agendar una cita:\n1. **Pregunta fecha y hora**: Cuando el usuario quiera una cita, pregúntale qué día y hora prefiere.\n2. **Consulta disponibilidad**: USA "consultar_agenda" para ver las citas OCUPADAS de ese día. La herramienta devuelve las horas que YA están cogidas. Los huecos entre esas citas son los horarios DISPONIBLES.\n3. **Si la hora solicitada está LIBRE**: Confírmale al usuario: "Perfecto, tengo disponibilidad el [día] a las [hora]. ¿Confirmamos la cita?"\n4. **Si la hora solicitada está OCUPADA**: Ofrece 2 alternativas cercanas:\n   - La primera hora libre inmediatamente después de la solicitada ese mismo día.\n   - La misma hora solicitada pero al día siguiente laborable (consulta ese día también con consultar_agenda).\n   Ejemplo: "Lo siento, a las 9 ya hay una cita. Tengo libre a las 9:30 del mismo día, o a las 9:00 del miércoles. ¿Cuál prefieres?"\n5. **Cuando el usuario confirme**: Pide su nombre completo y el motivo de la cita. El teléfono ya lo tienes ({{user_number}}).\n6. **Agendar**: USA "agendar_cita" con todos los datos:\n   - summary: "Cita - [Nombre] - [Motivo]"\n   - description: "Nombre: [nombre]\\nTeléfono: {{user_number}}\\nMotivo: [motivo]"\n   - attendee_name: nombre del usuario\n   - attendee_phone: {{user_number}}\n   - Si no se dice duración, las citas duran 30 minutos por defecto.\n\n### Reglas importantes:\n- NUNCA inventes disponibilidad. Siempre consulta primero.\n- Si hay conflicto al intentar agendar, infórmalo y ofrece alternativas.\n- Siempre confirma la fecha completa (día, mes) y hora antes de agendar.\n- No preguntes el teléfono, ya lo tienes en {{user_number}}.`;
+    const calendarPromptAddition = `\n\n## Gestión de Agenda\nTienes acceso a la agenda del calendario en tiempo real. La fecha y hora actual es {{current_time_Europe/Madrid}}. El teléfono del usuario que llama es {{user_number}}.\n\n### Cálculo de fechas\nSi el usuario dice "mañana", "pasado mañana", "el lunes", "este viernes", etc., calcula la fecha correcta en formato YYYY-MM-DD basándote en {{current_time_Europe/Madrid}}.\n\n### Flujo de trabajo para agendar una cita:\n1. **Pregunta fecha y hora**: Cuando el usuario quiera una cita, pregúntale qué día y hora prefiere.\n2. **Consulta disponibilidad**: USA "consultar_agenda" para ver las citas OCUPADAS de ese día. La herramienta devuelve las horas que YA están cogidas. Los huecos entre esas citas son los horarios DISPONIBLES.\n3. **Si la hora solicitada está LIBRE**: Confírmale al usuario: "Perfecto, tengo disponibilidad el [día] a las [hora]. ¿Confirmamos la cita?"\n4. **Si la hora solicitada está OCUPADA**: Ofrece 2 alternativas cercanas:\n   - La primera hora libre inmediatamente después de la solicitada ese mismo día.\n   - La misma hora solicitada pero al día siguiente laborable (consulta ese día también con consultar_agenda).\n   Ejemplo: "Lo siento, a las 9 ya hay una cita. Tengo libre a las 9:30 del mismo día, o a las 9:00 del miércoles. ¿Cuál prefieres?"\n5. **Cuando el usuario confirme**: Pide su nombre completo y el motivo de la cita. El teléfono ya lo tienes ({{user_number}}).\n6. **Agendar**: USA "agendar_cita" con todos los datos:\n   - summary: "Cita - [Nombre] - [Motivo]"\n   - description: "Nombre: [nombre]\\nTeléfono: {{user_number}}\\nMotivo: [motivo]"\n   - attendee_name: nombre del usuario\n   - attendee_phone: {{user_number}}\n   - Si no se dice duración, las citas duran 30 minutos por defecto.\n\n### Flujo para cancelar una cita:\n1. El usuario pide cancelar → USA "cancelar_cita" pasando user_phone={{user_number}}.\n2. La herramienta buscará citas asociadas a ese teléfono y las cancelará.\n3. Si no se encuentra ninguna cita con ese teléfono, informa al usuario.\n4. Si el usuario da una fecha, pásala también para acotar la búsqueda.\n\n### Reglas importantes:\n- NUNCA inventes disponibilidad. Siempre consulta primero.\n- Si hay conflicto al intentar agendar, infórmalo y ofrece alternativas.\n- Siempre confirma la fecha completa (día, mes) y hora antes de agendar.\n- No preguntes el teléfono, ya lo tienes en {{user_number}}.`;
 
     let generalPrompt = llmData.general_prompt || '';
     // Remove old calendar section if exists, then add updated one
