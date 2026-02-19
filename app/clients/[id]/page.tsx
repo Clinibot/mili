@@ -841,7 +841,7 @@ export default function ClientDetail() {
                                 <div className="space-y-1.5 pt-2 border-t border-[#1F2937] mt-2">
                                     <label className="text-xs font-medium text-[rgba(255,255,255,0.55)]">Notas / Información Recopilada</label>
                                     <textarea
-                                        className="w-full h-32 bg-[#141A23] border border-[#1F2937] rounded-lg p-3 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all resize-y placeholder:text-[rgba(255,255,255,0.3)]"
+                                        className="w-full h-48 min-h-[192px] bg-[#141A23] border border-[#1F2937] rounded-lg p-3 text-sm text-[#E8ECF1] focus:outline-none focus:border-[#008DCB] focus:ring-1 focus:ring-[#008DCB]/20 transition-all resize-y placeholder:text-[rgba(255,255,255,0.3)]"
                                         placeholder="Escribe aquí toda la información recopilada del cliente, resumen de llamadas, detalles a tener en cuenta..."
                                         value={client.notes || ''}
                                         onChange={(e) => setClient({ ...client, notes: e.target.value })}
