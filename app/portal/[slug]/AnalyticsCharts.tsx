@@ -334,7 +334,7 @@ export default function AnalyticsCharts({
                             <CardTitle className="text-2xl font-black font-header tracking-tight text-[#E8ECF1]">{config.name}</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <ResponsiveContainer width="100%" height={300}>
+                            <ResponsiveContainer width="100%" height={config.chart_type === 'dist-bar' ? Math.max(300, (categoricalData[config.id]?.length || 0) * 50) : 300}>
                                 {config.chart_type === 'bar' ? (
                                     <BarChart data={chartData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
@@ -360,12 +360,12 @@ export default function AnalyticsCharts({
                                         <Line type="monotone" dataKey={config.data_field} stroke="#F78E5E" strokeWidth={3} dot={{ r: 4 }} name={config.name} />
                                     </LineChart>
                                 ) : config.chart_type === 'dist-bar' ? (
-                                    <BarChart data={categoricalData[config.id] || []}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
-                                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} />
-                                        <YAxis stroke="rgba(255,255,255,0.1)" fontSize={10} />
-                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                                        <Bar dataKey="value" fill="#008DCB" radius={[4, 4, 0, 0]} name="Ocurrencias" />
+                                    <BarChart data={categoricalData[config.id] || []} layout="vertical" margin={{ left: 20, right: 30, top: 5, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.06)" />
+                                        <XAxis type="number" stroke="rgba(255,255,255,0.1)" fontSize={10} tick={{ fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                                        <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.1)" fontSize={11} tick={{ fill: 'rgba(255,255,255,0.6)' }} width={180} axisLine={false} tickLine={false} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#0E1219', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                                        <Bar dataKey="value" fill="#008DCB" radius={[0, 6, 6, 0]} name="Ocurrencias" barSize={28} />
                                     </BarChart>
                                 ) : config.chart_type === 'list' ? (
                                     <div className="h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
