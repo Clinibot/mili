@@ -15,7 +15,11 @@ import {
     LogOut,
     CalendarDays,
     Wrench,
-    ChevronDown
+    ChevronDown,
+    X,
+    MapPin,
+    Users,
+    FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, parseISO } from 'date-fns';
@@ -26,6 +30,9 @@ interface CalendarEvent {
     id: string;
     summary: string;
     description?: string;
+    location?: string;
+    htmlLink?: string;
+    status?: string;
     start: {
         dateTime?: string;
         date?: string;
@@ -33,6 +40,21 @@ interface CalendarEvent {
     end: {
         dateTime?: string;
         date?: string;
+    };
+    attendees?: {
+        email: string;
+        displayName?: string;
+        responseStatus?: string;
+        self?: boolean;
+        organizer?: boolean;
+    }[];
+    creator?: {
+        email?: string;
+        displayName?: string;
+    };
+    organizer?: {
+        email?: string;
+        displayName?: string;
     };
 }
 
@@ -50,6 +72,7 @@ export default function CalendarPage() {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [syncing, setSyncing] = useState(false);
     const [disconnecting, setDisconnecting] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
     // Multi-calendar support
     const [availableCalendars, setAvailableCalendars] = useState<GoogleCalendar[]>([]);
@@ -443,7 +466,8 @@ export default function CalendarPage() {
                                         {dayEvents.slice(0, 3).map((event) => (
                                             <div
                                                 key={event.id}
-                                                className="px-2 py-1 bg-[#141A23] border border-[#1F2937] rounded-md text-[10px] font-bold text-[#E8ECF1] truncate hover:border-[#008DCB]/50 cursor-default transition-all shadow-sm"
+                                                onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
+                                                className="px-2 py-1 bg-[#141A23] border border-[#1F2937] rounded-md text-[10px] font-bold text-[#E8ECF1] truncate hover:border-[#008DCB]/50 cursor-pointer transition-all shadow-sm hover:bg-[#1A2230]"
                                                 title={event.summary}
                                             >
                                                 {event.start.dateTime && format(parseISO(event.start.dateTime), 'HH:mm')} {event.summary}
@@ -482,7 +506,11 @@ export default function CalendarPage() {
                                 })
                                 .slice(0, 5)
                                 .map(event => (
-                                    <div key={event.id} className="p-3 bg-[#141A23] rounded-2xl border border-[#1F2937] group hover:border-[#008DCB]/30 transition-all">
+                                    <div
+                                        key={event.id}
+                                        onClick={() => setSelectedEvent(event)}
+                                        className="p-3 bg-[#141A23] rounded-2xl border border-[#1F2937] group hover:border-[#008DCB]/30 transition-all cursor-pointer hover:bg-[#1A2230]"
+                                    >
                                         <p className="text-xs font-black text-[#E8ECF1] line-clamp-1 mb-1 group-hover:text-[#008DCB]">
                                             {event.summary}
                                         </p>
@@ -517,6 +545,140 @@ export default function CalendarPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Event Detail Modal */}
+            {selectedEvent && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setSelectedEvent(null)}
+                >
+                    <div
+                        className="bg-[#0E1219] border border-[#1F2937] rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 fade-in duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-[#1F2937] flex items-start justify-between gap-4">
+                            <div className="space-y-1 min-w-0">
+                                <h2 className="text-lg font-black text-[#E8ECF1] leading-tight">
+                                    {selectedEvent.summary}
+                                </h2>
+                                {selectedEvent.status === 'cancelled' && (
+                                    <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-[#EF4444]/10 text-[#EF4444] px-2 py-0.5 rounded-lg border border-[#EF4444]/20">
+                                        Cancelado
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setSelectedEvent(null)}
+                                className="p-2 rounded-xl text-[#4B5563] hover:text-[#E8ECF1] hover:bg-[#1F2937] transition-all flex-shrink-0"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 space-y-5">
+                            {/* Date & Time */}
+                            <div className="flex items-start gap-3">
+                                <div className="w-9 h-9 bg-[#008DCB]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <CalendarIcon size={16} className="text-[#008DCB]" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-black text-[#4B5563] uppercase tracking-widest mb-1">Fecha y Hora</p>
+                                    <p className="text-sm font-bold text-[#E8ECF1]">
+                                        {selectedEvent.start.dateTime
+                                            ? format(parseISO(selectedEvent.start.dateTime), "EEEE d 'de' MMMM, yyyy", { locale: es })
+                                            : selectedEvent.start.date && format(parseISO(selectedEvent.start.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                                    </p>
+                                    {selectedEvent.start.dateTime && selectedEvent.end?.dateTime && (
+                                        <p className="text-xs text-[#4B5563] font-bold mt-0.5">
+                                            {format(parseISO(selectedEvent.start.dateTime), 'HH:mm')} – {format(parseISO(selectedEvent.end.dateTime), 'HH:mm')}
+                                        </p>
+                                    )}
+                                    {selectedEvent.start.date && !selectedEvent.start.dateTime && (
+                                        <p className="text-xs text-[#4B5563] font-bold mt-0.5">Todo el día</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Location */}
+                            {selectedEvent.location && (
+                                <div className="flex items-start gap-3">
+                                    <div className="w-9 h-9 bg-[#008DCB]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <MapPin size={16} className="text-[#008DCB]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-[#4B5563] uppercase tracking-widest mb-1">Ubicación</p>
+                                        <p className="text-sm font-bold text-[#E8ECF1]">{selectedEvent.location}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Description */}
+                            {selectedEvent.description && (
+                                <div className="flex items-start gap-3">
+                                    <div className="w-9 h-9 bg-[#008DCB]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <FileText size={16} className="text-[#008DCB]" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-black text-[#4B5563] uppercase tracking-widest mb-1">Descripción</p>
+                                        <p className="text-sm text-[rgba(255,255,255,0.7)] leading-relaxed whitespace-pre-wrap break-words">
+                                            {selectedEvent.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Attendees */}
+                            {selectedEvent.attendees && selectedEvent.attendees.length > 0 && (
+                                <div className="flex items-start gap-3">
+                                    <div className="w-9 h-9 bg-[#008DCB]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <Users size={16} className="text-[#008DCB]" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-black text-[#4B5563] uppercase tracking-widest mb-2">Asistentes</p>
+                                        <div className="space-y-1.5">
+                                            {selectedEvent.attendees.map((att, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 text-sm">
+                                                    <span className={cn(
+                                                        "w-2 h-2 rounded-full flex-shrink-0",
+                                                        att.responseStatus === 'accepted' ? 'bg-[#22C55E]' :
+                                                            att.responseStatus === 'declined' ? 'bg-[#EF4444]' :
+                                                                att.responseStatus === 'tentative' ? 'bg-[#F59E0B]' : 'bg-[#4B5563]'
+                                                    )} />
+                                                    <span className="text-[#E8ECF1] font-bold truncate">
+                                                        {att.displayName || att.email}
+                                                    </span>
+                                                    {att.organizer && (
+                                                        <span className="text-[8px] bg-[#008DCB]/20 text-[#008DCB] px-1.5 py-0.5 rounded font-black uppercase flex-shrink-0">
+                                                            Organizador
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        {selectedEvent.htmlLink && (
+                            <div className="p-6 border-t border-[#1F2937]">
+                                <a
+                                    href={selectedEvent.htmlLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full bg-[#008DCB] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#008DCB]/90 transition-all active:scale-[0.98]"
+                                >
+                                    <ExternalLink size={16} />
+                                    Abrir en Google Calendar
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
