@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
     FileText, Upload, Trash2, Eye,
-    Loader2, X, File, ExternalLink
+    Loader2, X, File, ExternalLink, FileCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -143,7 +143,7 @@ export default function DocumentationSection({ clientId }: { clientId: string })
     const canPreview = (fileName?: string) => {
         if (!fileName) return false;
         const ext = fileName.split('.').pop()?.toLowerCase();
-        return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt'].includes(ext || '');
+        return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'json'].includes(ext || '');
     };
 
     return (
@@ -224,7 +224,11 @@ export default function DocumentationSection({ clientId }: { clientId: string })
                                 >
                                     <div className="flex items-center gap-3 min-w-0 flex-1">
                                         <div className="p-2 bg-[#141A23] rounded-lg text-[#67B7AF] shrink-0">
-                                            <File size={16} />
+                                            {item.file_name?.toLowerCase().endsWith('.json') ? (
+                                                <FileCode size={16} />
+                                            ) : (
+                                                <File size={16} />
+                                            )}
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-xs font-bold text-[#E8ECF1] truncate pr-2">{item.title}</p>
