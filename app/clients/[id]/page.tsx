@@ -471,7 +471,7 @@ export default function ClientDetail() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <p className="text-sm text-[rgba(255,255,255,0.55)]">Sube aquí el presupuesto o plantilla PDF/Doc, o pega una URL externa para este cliente.</p>
+                                <p className="text-sm text-[rgba(255,255,255,0.55)]">Sube aquí el presupuesto, plantilla o documentación (PDF, Doc, JSON), o pega una URL externa para este cliente.</p>
 
                                 {client.budget_template_url ? (
                                     <div className="flex items-center gap-3 p-3 bg-[#141A23] border border-[#1F2937] rounded-xl">
@@ -543,13 +543,13 @@ export default function ClientDetail() {
                                                 </div>
                                                 <div className="text-center">
                                                     <p className="text-sm font-medium text-[rgba(255,255,255,0.55)] group-hover:text-[#008DCB]">Subir presupuesto</p>
-                                                    <p className="text-xs text-[rgba(255,255,255,0.3)]">PDF, DOCX, IMG (Max 5MB)</p>
+                                                    <p className="text-xs text-[rgba(255,255,255,0.3)]">PDF, DOCX, IMG, JSON (Max 5MB)</p>
                                                 </div>
                                             </div>
                                             <input
                                                 type="file"
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.json"
                                                 onChange={async (e) => {
                                                     const file = e.target.files?.[0];
                                                     if (!file) return;

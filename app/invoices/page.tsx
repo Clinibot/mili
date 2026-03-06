@@ -493,7 +493,7 @@ function InvoiceColumn({
                         <div className="relative">
                             <input
                                 type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
+                                accept=".pdf,.jpg,.jpeg,.png,.json"
                                 onChange={(e) => setNewInvoice({ ...newInvoice, type, file: e.target.files?.[0] || null })}
                                 className="w-full text-sm text-[rgba(255,255,255,0.4)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#0E1219] file:text-[#E8ECF1] hover:file:bg-[#1F2937] cursor-pointer"
                             />

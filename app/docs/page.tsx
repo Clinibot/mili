@@ -132,6 +132,7 @@ export default function DocsPage() {
         if (item.type === 'url') return <LinkIcon className="text-[#008DCB]" size={20} />;
         if (item.file_name?.match(/\.(jpg|jpeg|png|gif)$/i)) return <ImageIcon className="text-[#F78E5E]" size={20} />;
         if (item.file_name?.match(/\.(pdf)$/i)) return <FileText className="text-[#67B7AF]" size={20} />;
+        if (item.file_name?.match(/\.(json)$/i)) return <FileCode className="text-[#008DCB]" size={20} />;
         return <File className="text-[rgba(255,255,255,0.4)]" size={20} />;
     };
 
@@ -274,6 +275,7 @@ export default function DocsPage() {
                                                 type="file"
                                                 ref={fileInputRef}
                                                 className="hidden"
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.json"
                                                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                                             />
                                             {file ? (
@@ -285,7 +287,7 @@ export default function DocsPage() {
                                                 <div className="text-[rgba(255,255,255,0.4)] group-hover:text-[#008DCB] transition-colors">
                                                     <Upload size={32} className="mx-auto mb-2" />
                                                     <p className="text-sm font-bold">Haz clic para subir o arrastra un archivo</p>
-                                                    <p className="text-xs mt-1">PDF, Imagen o Texto (Máx 5MB)</p>
+                                                    <p className="text-xs mt-1">PDF, Imagen, JSON o Texto (Máx 5MB)</p>
                                                 </div>
                                             )}
                                         </div>
