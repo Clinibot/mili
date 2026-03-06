@@ -30,6 +30,7 @@ export default function QueTeCuentasPage() {
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [newNote, setNewNote] = useState({ title: '', content: '', color: 'Amarillo' });
+    const [viewingNote, setViewingNote] = useState<Note | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editNote, setEditNote] = useState({ title: '', content: '', color: '' });
 
@@ -272,63 +273,150 @@ export default function QueTeCuentasPage() {
                                             "hover:scale-[1.02] hover:-translate-y-1 hover:shadow-2xl"
                                         )}
                                         style={{ transform: `rotate(${rotation})` }}
-                                        onClick={() => startEditing(note)}
+                                        onClick={() => setViewingNote(note)}
                                     >
                                         {/* Paper Tape Effect */}
                                         <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/30 backdrop-blur-sm -rotate-2 z-10 border border-white/20"></div>
 
-                                        {editingId === note.id ? (
-                                            <div className="space-y-4 pt-4" onClick={e => e.stopPropagation()}>
-                                                <input
-                                                    className="w-full bg-transparent border-b border-black/10 focus:outline-none font-bold text-lg"
-                                                    value={editNote.title}
-                                                    onChange={e => setEditNote({ ...editNote, title: e.target.value })}
-                                                    autoFocus
-                                                />
-                                                <textarea
-                                                    className="w-full bg-transparent focus:outline-none resize-none min-h-[120px]"
-                                                    value={editNote.content}
-                                                    onChange={e => setEditNote({ ...editNote, content: e.target.value })}
-                                                />
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => setEditingId(null)} className="p-2 hover:bg-black/5 rounded-full">
-                                                        <X size={18} />
-                                                    </button>
-                                                    <button onClick={handleUpdateNote} className="p-2 bg-black text-white rounded-full">
-                                                        <Check size={18} />
-                                                    </button>
-                                                </div>
+                                        <div className="space-y-4 pt-4">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="font-header font-black text-xl leading-tight">
+                                                    {note.title}
+                                                </h3>
+                                                <button
+                                                    onClick={(e) => handleDeleteNote(note.id, e)}
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-black/5 rounded-lg"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
-                                        ) : (
-                                            <div className="space-y-4 pt-4">
-                                                <div className="flex justify-between items-start">
-                                                    <h3 className="font-header font-black text-xl leading-tight">
-                                                        {note.title}
-                                                    </h3>
-                                                    <button
-                                                        onClick={(e) => handleDeleteNote(note.id, e)}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-black/5 rounded-lg"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                                <p className="font-sans leading-relaxed whitespace-pre-wrap opacity-80 overflow-hidden text-ellipsis line-clamp-6">
-                                                    {note.content}
+                                            <p className="font-sans leading-relaxed whitespace-pre-wrap opacity-80 overflow-hidden text-ellipsis line-clamp-6">
+                                                {note.content}
+                                            </p>
+                                            <div className="pt-4 mt-auto flex justify-between items-center opacity-60">
+                                                <p className="text-[10px] font-mono font-bold uppercase tracking-wider">
+                                                    {format(new Date(note.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                                                 </p>
-                                                <div className="pt-4 mt-auto flex justify-between items-center opacity-60">
-                                                    <p className="text-[10px] font-mono font-bold uppercase tracking-wider">
-                                                        {format(new Date(note.created_at), "d 'de' MMMM, yyyy", { locale: es })}
-                                                    </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] uppercase font-bold tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">Leer más</span>
                                                     <Edit2 size={12} className="group-hover:translate-x-1 transition-transform" />
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 );
                             })}
                         </div>
                     )}
                 </div>
+
+                {/* View/Edit Modal */}
+                {viewingNote && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 overflow-hidden bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
+                        <div
+                            className={cn(
+                                "w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] p-8 lg:p-16 relative shadow-2xl border-t-8 custom-scrollbar",
+                                "bg-gradient-to-br",
+                                (COLORS.find(c => c.name === (editingId ? editNote.color : viewingNote.color)) || COLORS[0]).value,
+                                (COLORS.find(c => c.name === (editingId ? editNote.color : viewingNote.color)) || COLORS[0]).border,
+                                (COLORS.find(c => c.name === (editingId ? editNote.color : viewingNote.color)) || COLORS[0]).text,
+                                "animate-in zoom-in-95 slide-in-from-bottom-8 duration-500"
+                            )}
+                        >
+                            {/* Close Button */}
+                            <button
+                                onClick={() => { setViewingNote(null); setEditingId(null); }}
+                                className="absolute top-8 right-8 p-3 rounded-full hover:bg-black/5 transition-colors"
+                            >
+                                <X size={32} />
+                            </button>
+
+                            {editingId === viewingNote.id ? (
+                                <div className="space-y-12">
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] opacity-50">Editando nota</p>
+                                        <input
+                                            className="w-full bg-transparent border-b-2 border-black/10 focus:outline-none font-header font-black text-4xl lg:text-6xl"
+                                            value={editNote.title}
+                                            onChange={e => setEditNote({ ...editNote, title: e.target.value })}
+                                            placeholder="Título..."
+                                        />
+                                    </div>
+
+                                    <textarea
+                                        className="w-full bg-transparent focus:outline-none resize-none min-h-[400px] text-xl lg:text-2xl leading-relaxed font-sans"
+                                        value={editNote.content}
+                                        onChange={e => setEditNote({ ...editNote, content: e.target.value })}
+                                        placeholder="Escribe aquí..."
+                                    />
+
+                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-8 border-t border-black/10">
+                                        <div className="flex gap-3">
+                                            {COLORS.map(c => (
+                                                <button
+                                                    key={c.name}
+                                                    onClick={() => setEditNote({ ...editNote, color: c.name })}
+                                                    className={cn(
+                                                        "w-10 h-10 rounded-full border-2 transition-all p-1",
+                                                        editNote.color === c.name ? "border-black scale-110" : "border-transparent",
+                                                        "bg-gradient-to-br", c.value
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div className="flex gap-4 w-full sm:w-auto">
+                                            <button
+                                                onClick={() => setEditingId(null)}
+                                                className="flex-1 sm:flex-none px-8 py-4 rounded-2xl border-2 border-black/10 font-bold hover:bg-black/5 transition-all"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleUpdateNote}
+                                                className="flex-1 sm:flex-none px-12 py-4 rounded-2xl bg-black text-white font-black transition-all hover:scale-105 shadow-xl"
+                                            >
+                                                Guardar Cambios
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-12">
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] opacity-50">
+                                            {format(new Date(viewingNote.created_at), "d 'de' MMMM, yyyy", { locale: es })}
+                                        </p>
+                                        <h2 className="font-header font-black text-4xl lg:text-6xl leading-tight">
+                                            {viewingNote.title}
+                                        </h2>
+                                    </div>
+
+                                    <div className="font-sans text-xl lg:text-2xl leading-relaxed whitespace-pre-wrap opacity-90 pb-20">
+                                        {viewingNote.content}
+                                    </div>
+
+                                    <div className="flex justify-between items-center pt-8 border-t border-black/10">
+                                        <button
+                                            onClick={async (e) => {
+                                                await handleDeleteNote(viewingNote.id, e);
+                                                setViewingNote(null);
+                                            }}
+                                            className="text-rose-600 font-bold hover:bg-rose-600/10 px-6 py-3 rounded-xl transition-all"
+                                        >
+                                            Eliminar permanente
+                                        </button>
+                                        <button
+                                            onClick={() => startEditing(viewingNote)}
+                                            className="flex items-center gap-3 bg-black text-white px-10 py-5 rounded-2xl font-black transition-all hover:scale-105 shadow-2xl"
+                                        >
+                                            <Edit2 size={20} />
+                                            <span>Editar Nota</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                 {/* Motivational Footer */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12">
