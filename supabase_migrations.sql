@@ -171,3 +171,29 @@ BEGIN
     CREATE POLICY "Documentation Bucket All Access" ON storage.objects FOR ALL USING (bucket_id = 'documentation') WITH CHECK (bucket_id = 'documentation');
   END IF;
 END $$;
+
+-- 2026-03-06: Create Admin Notes Table (Notebook)
+CREATE TABLE IF NOT EXISTS public.admin_notes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  title TEXT,
+  content TEXT,
+  color TEXT DEFAULT 'Amarillo',
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Enable RLS
+ALTER TABLE public.admin_notes ENABLE ROW LEVEL SECURITY;
+
+-- Policies for admin_notes (Allow authenticated users)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for authenticated users' AND tablename = 'admin_notes' AND schemaname = 'public') THEN
+    CREATE POLICY "Enable all for authenticated users" ON public.admin_notes FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+  END IF;
+
+  -- Fallback for local development if auth is not yet configured for RLS
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for public (Development ONLY)' AND tablename = 'admin_notes' AND schemaname = 'public') THEN
+     CREATE POLICY "Allow all for public (Development ONLY)" ON public.admin_notes FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;

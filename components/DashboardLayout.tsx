@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
     Users, FileText, Settings,
     Menu, X, Bell, Search, ChevronDown, LogOut,
-    BookOpen, Activity, Calculator
+    BookOpen, Activity, Calculator, Edit3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
@@ -40,6 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Facturas', icon: FileText, href: '/invoices' },
         { name: 'Documentación', icon: BookOpen, href: '/docs' },
         { name: 'Calculadora', icon: Calculator, href: '/calculator' },
+        { name: '¿Qué te cuentas?', icon: Edit3, href: '/que-te-cuentas' },
     ];
 
     const getGreeting = () => {

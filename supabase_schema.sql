@@ -58,3 +58,22 @@ create policy "Enable update for all users" on public.agents for update using (t
 create policy "Enable read access for all users" on public.invoices for select using (true);
 create policy "Enable insert for all users" on public.invoices for insert with check (true);
 create policy "Enable update for all users" on public.invoices for update using (true);
+
+-- Create Admin Notes Table (Notebook)
+create table public.admin_notes (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  title text,
+  content text,
+  color text default 'blue',
+  user_id uuid references auth.users(id)
+);
+
+-- Enable RLS
+alter table public.admin_notes enable row level security;
+
+-- Policies for admin_notes
+create policy "Enable read for all verified" on public.admin_notes for select using (true);
+create policy "Enable insert for all verified" on public.admin_notes for insert with check (true);
+create policy "Enable update for all verified" on public.admin_notes for update using (true);
+create policy "Enable delete for all verified" on public.admin_notes for delete using (true);
