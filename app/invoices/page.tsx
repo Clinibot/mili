@@ -8,6 +8,7 @@ import { FileText, Upload, TrendingUp, TrendingDown, DollarSign, Check, Clock, X
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { sanitizeFilename } from '@/lib/utils';
 
 interface Invoice {
     id: string;
@@ -118,7 +119,8 @@ export default function InvoicesPage() {
             // Upload file if exists
             if (newInvoice.file) {
                 console.log('Uploading file:', newInvoice.file.name, 'to bucket: invoices');
-                const fileName = `${Date.now()}_${newInvoice.file.name.replace(/\s+/g, '_')}`;
+                const sanitizedName = sanitizeFilename(newInvoice.file.name);
+                const fileName = `${Date.now()}_${sanitizedName}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('invoices')

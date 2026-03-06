@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, sanitizeFilename } from '@/lib/utils';
 
 interface DocItem {
     id: string;
@@ -65,8 +65,8 @@ export default function DocsPage() {
             let content = url;
 
             if (docType === 'file' && file) {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+                const sanitizedName = sanitizeFilename(file.name);
+                const fileName = `${Math.random().toString(36).substring(2)}_${sanitizedName}`;
                 const filePath = `shared/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage

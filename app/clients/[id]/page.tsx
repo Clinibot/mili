@@ -15,7 +15,7 @@ import { notifyBalanceRecharge } from '@/lib/notificationService';
 import slugify from 'slugify'; // Assuming slugify is used based on code context
 import StatusSelector from './StatusSelector';
 import DocumentationSection from '@/app/portal/[slug]/DocumentationSection';
-import { cn } from '@/lib/utils';
+import { cn, sanitizeFilename } from '@/lib/utils';
 
 export default function ClientDetail() {
     const router = useRouter();
@@ -558,7 +558,8 @@ export default function ClientDetail() {
 
                                                     try {
                                                         const fileExt = file.name.split('.').pop();
-                                                        const fileName = `budget_${id}_${Date.now()}.${fileExt}`;
+                                                        const sanitizedName = sanitizeFilename(file.name);
+                                                        const fileName = `budget_${id}_${Date.now()}_${sanitizedName}`;
                                                         const filePath = `${fileName}`;
 
                                                         const { error: uploadError } = await supabase.storage

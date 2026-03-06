@@ -8,7 +8,7 @@ import {
     FileText, Upload, Trash2, Eye,
     Loader2, X, File, ExternalLink, FileCode
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, sanitizeFilename } from '@/lib/utils';
 
 interface DocItem {
     id: string;
@@ -68,7 +68,8 @@ export default function DocumentationSection({ clientId }: { clientId: string })
         const toastId = toast.loading('Subiendo archivo...');
 
         try {
-            const fileName = `${clientId}/${Math.random().toString(36).substring(2)}_${file.name}`;
+            const sanitizedName = sanitizeFilename(file.name);
+            const fileName = `${clientId}/${Math.random().toString(36).substring(2)}_${sanitizedName}`;
             const filePath = `docs/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
