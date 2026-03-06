@@ -51,7 +51,7 @@ export default function DocumentationSection({ clientId }: { clientId: string })
     };
 
     const handleFileUpload = async (file: File) => {
-        const allowedExtensions = ['txt', 'md', 'pdf', 'doc', 'docx'];
+        const allowedExtensions = ['txt', 'md', 'pdf', 'doc', 'docx', 'json'];
         const fileExt = file.name.split('.').pop()?.toLowerCase();
 
         if (!fileExt || !allowedExtensions.includes(fileExt)) {
@@ -152,7 +152,7 @@ export default function DocumentationSection({ clientId }: { clientId: string })
                 <div className="flex items-center justify-between gap-4">
                     <div className="min-w-0">
                         <CardTitle className="text-xl font-bold text-[#E8ECF1]">Documentación</CardTitle>
-                        <p className="text-xs text-[rgba(255,255,255,0.4)] mt-1 font-medium italic truncate">PDF, DOCX, TXT o MD.</p>
+                        <p className="text-xs text-[rgba(255,255,255,0.4)] mt-1 font-medium italic truncate">PDF, DOCX, TXT, JSON o MD.</p>
                     </div>
                     <div className="p-2 bg-[#008DCB]/10 rounded-xl text-[#008DCB] border border-[#008DCB]/20 shrink-0">
                         <FileText size={18} />
@@ -178,7 +178,7 @@ export default function DocumentationSection({ clientId }: { clientId: string })
                         type="file"
                         ref={fileInputRef}
                         className="hidden"
-                        accept=".txt,.md,.pdf,.doc,.docx"
+                        accept=".txt,.md,.pdf,.doc,.docx,.json"
                         onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
                     />
                     <div className="flex flex-col items-center gap-3">
